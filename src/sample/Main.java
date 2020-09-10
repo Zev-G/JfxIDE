@@ -23,16 +23,12 @@ public class Main extends Application {
 
         Interpreter.init();
 
-//        CommandConsole console = CommandConsole.generateForJava();
-
         CodeChunk chunk = Interpreter.getCodeChunkFromCode(
                 "print \"example\"\n" +
                         "print new stage"
         );
         chunk.run();
 
-
-//CommandConsole.generateForJava();
         CommandConsole console = new CommandConsole();
         Interpreter.setPrintConsole(console);
         primaryStage.setScene(new Scene(console));

@@ -76,8 +76,7 @@ public final class Parser {
                 }
             }
         }
-        if (inEvent) {
-            assert lastEvent != null;
+        if (inEvent && lastEvent != null) {
             CodeChunk runChunk = Interpreter.getCodeChunkFromCode(eventCode.toString());
             runChunk.setCode(lastEventCode);
             runChunk.setParent(chunk);
@@ -216,9 +215,7 @@ public final class Parser {
      * @return The effect that is parsed from the given code.
      */
     public static Effect parseLine(String code) {
-        code = code.trim();
-        if (CodeChunk.printing) System.out.println("-------\n" + code + "\n-------");
-        return (Effect) parseSyntaxPiece(code, Interpreter.EFFECT_FACTORIES);
+        return (Effect) parseSyntaxPiece(code.trim(), Interpreter.EFFECT_FACTORIES);
     }
 
     /**
