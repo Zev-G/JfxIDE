@@ -1,0 +1,3 @@
+HIGH.get(Number.class).add(new ExpressionFactory<>("", (state, values, args) -> {
+    return null;
+}, Number.class));
