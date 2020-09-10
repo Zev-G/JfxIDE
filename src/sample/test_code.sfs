@@ -1,0 +1,28 @@
+set {stage} to new stage
+set title of {stage} to "Simple Stage"
+
+set {addPaneButton} to new button
+set text of {addPaneButton} to "Add Pane"
+set {hbox} to new hbox
+set {vbox} to new vbox
+add {hbox} to children of {vbox}
+add {addPaneButton} to children of {hbox}
+when {addPaneButton} is pressed:
+  add defaultPane() to children of {vbox}
+put {vbox} into {stage}
+show {stage}
+
+
+
+function pane defaultPane():
+  print "No way"
+  set {asdf} to new vbox
+  if 1 < 10:
+    print "Some text " appended to {asdf}
+  loop 10 times:
+    set {loopButton} to new button
+    set background color of {loopButton} to red
+    set text of {loopButton} to "Here's some text " appended to loop-number
+    add {loopButton} to children of {asdf}
+
+  return {asdf}

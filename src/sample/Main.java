@@ -15,7 +15,6 @@ import java.util.Scanner;
 
 public class Main extends Application {
 
-    private static final String PATH = "D:\\Users\\Windows\\Documents\\test_code.sfs";
     private static CodeChunk executeChunk = new CodeChunk();
 
     @Override
@@ -52,7 +51,7 @@ public class Main extends Application {
                 } else if (command.startsWith("load")) {
                     command = command.replaceFirst("load ", "");
                     command = command.replaceFirst("load", "");
-                    if (command.equals("")) command = PATH;
+                    if (command.equals("")) command = Main.class.getResource("test_code.sfs").getFile();
                     File codeFile = new File(command);
                     Scanner scanner = null;
                     try {
