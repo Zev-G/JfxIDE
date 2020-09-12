@@ -1,7 +1,7 @@
 package sample.test.syntaxPiece.expressions;
 
 import sample.test.interpretation.run.CodeChunk;
-import sample.test.interpretation.Interpreter;
+import sample.test.interpretation.SyntaxManager;
 import sample.test.syntaxPiece.SyntaxPiece;
 import sample.test.syntaxPiece.SyntaxPieceFactory;
 import sample.test.syntaxPiece.effects.Effect;
@@ -46,7 +46,7 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
         if (CodeChunk.printing) System.out.println("Activating expression factory: " + this);
         for (Class<?> argClass : getArgs()) {
             if (argClass != null) {
-                System.out.println("On loop class: " + argClass + " On expression factory: " + expressionArgs.get(loops));
+                if (CodeChunk.printing) System.out.println("On loop class: " + argClass + " On expression factory: " + expressionArgs.get(loops));
                 if (expressionArgs.size() > loops && expressionArgs.size() > 0 &&
                         (argClass.isAssignableFrom(expressionArgs.get(loops).getGenericClass())
                                 || expressionArgs.get(loops).getGenericClass().isAssignableFrom(argClass))
@@ -122,7 +122,7 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
         }
         if (pieces.isEmpty()) pieces.add(regex);
         for (String var : pieces) {
-            Class<?> addClass = Interpreter.SUPPORTED_TYPES.get(var.replaceAll("%", "").trim());
+            Class<?> addClass = SyntaxManager.SUPPORTED_TYPES.get(var.replaceAll("%", "").trim());
             if (addClass != null || var.startsWith("%")) {
                 if (CodeChunk.printing) System.out.println("On arg class: " + addClass + " (from: " + var + ")");
                 classes.add(addClass);

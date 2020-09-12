@@ -31,7 +31,6 @@ import sample.test.syntaxPiece.events.Function;
 import sample.test.syntaxPiece.events.WhenEventFactory;
 import sample.test.syntaxPiece.expressions.ExpressionFactory;
 import sample.test.syntaxPiece.expressions.ExpressionPriority;
-import sample.test.tools.JSONTools;
 import sample.test.variable.LinkedList;
 import sample.test.variable.List;
 import sample.test.variable.Variable;
@@ -53,7 +52,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class Interpreter {
+public class SyntaxManager {
 
     public static Console PRINT_CONSOLE = null;
 
@@ -70,9 +69,6 @@ public class Interpreter {
     public static final ArrayList<WhenEventFactory> EVENT_FACTORIES = new ArrayList<>();
 
     public static void init() {
-
-
-
 
         // All
         // Supported Types
@@ -101,12 +97,6 @@ public class Interpreter {
         SUPPORTED_TYPES.put("grid-pane", GridPane.class);
         SUPPORTED_TYPES.put("image", Image.class);
         SUPPORTED_TYPES.put("image-view", ImageView.class);
-//        for (Map.Entry<String, Class<?>> classEntry : SUPPORTED_TYPES.entrySet()) {
-//            System.out.println("      {");
-//            System.out.println("        match: \"\\\\b" + classEntry.getKey() + "\\\\b\"");
-//            System.out.println("        name: \"type.javafx." + classEntry.getKey().replaceAll("-", ".") + ".sfs\"");
-//            System.out.println("      {");
-//        }
 
         // Java
         SUPPORTED_TYPES.put("value", Object.class);
@@ -209,8 +199,6 @@ public class Interpreter {
                 Stage stage = (Stage) values.get(1);
                 stage.setScene(new Scene((Parent) values.get(0)));
             }));
-//            EFFECT_FACTORIES.add(new EffectFactory("add %node% to children of %pane%", (state, values, args) -> ((Pane) values.get(1)).getChildren().add((Node) values.get(0))));
-//            EFFECT_FACTORIES.add(new EffectFactory("remove %node% from children of %pane%", (state, values, args) -> ((Pane) values.get(1)).getChildren().remove((Node) values.get(0))));
             EFFECT_FACTORIES.add(new EffectFactory("set text of %button% to %string%", (state, values, args) -> ((Button) values.get(0)).setText(values.get(1).toString())));
             EFFECT_FACTORIES.add(new EffectFactory("set background color of %region% to %color%", (state, values, args) -> ((Region) values.get(0)).setBackground(new Background(new BackgroundFill((Paint) values.get(1), CornerRadii.EMPTY, Insets.EMPTY)))));
             EFFECT_FACTORIES.add(new EffectFactory("set scale x of %node% to %number%", (state, values, args) -> ((Node) values.get(0)).setScaleX((Double) values.get(1))));
@@ -218,22 +206,6 @@ public class Interpreter {
             EFFECT_FACTORIES.add(new EffectFactory("set scale of %node% to %number%", (state, values, args) -> {
                 ((Node) values.get(0)).setScaleY((Double) values.get(1));
                 ((Node) values.get(0)).setScaleX((Double) values.get(1));
-            }));
-            EFFECT_FACTORIES.add(new EffectFactory("execute %string%", (state, values, args) -> {
-                String[] pieces = values.get(0).toString().split("\\\\n");
-                CodeChunk chunk = (CodeChunk) state;
-                for (String piece : pieces) {
-                    chunk.runPiece(Interpreter.genCodePieceFromCode(piece.trim()));
-                }
-            }));
-            EFFECT_FACTORIES.add(new EffectFactory("execute %string% when %node% is pressed", (state, values, args) -> {
-                String[] pieces = values.get(0).toString().split("\\\\n");
-                CodeChunk chunk = (CodeChunk) state;
-                ((Node) values.get(1)).setOnMousePressed(mouseEvent -> {
-                    for (String piece : pieces) {
-                        chunk.runPiece(Interpreter.genCodePieceFromCode(piece.trim()));
-                    }
-                });
             }));
             EFFECT_FACTORIES.add(new EffectFactory("set background of %region% to %background%", (state, values, args) -> ((Region) values.get(0)).setBackground((Background) values.get(1))));
             EFFECT_FACTORIES.add(new EffectFactory("push %node% to front", (state, values, args) -> ((Node) values.get(0)).toFront()));
@@ -492,7 +464,7 @@ public class Interpreter {
                         StringBuilder builder = new StringBuilder();
                         appendAllArgs(builder, args);
                         String variableName = builder.toString().replaceAll("[{}]", "");
-                        System.out.println("Getting Variable: " + variableName + " State: " + state + " children: " + state.getChildren());
+                        if (CodeChunk.printing) System.out.println("Getting Variable: " + variableName + " State: " + state + " children: " + state.getChildren());
                         if (state.getVariableByName(variableName) == null) state.setVariableValue(variableName, null);
                         return state.getVariableByName(variableName);
                     }, Variable.class));
@@ -613,23 +585,8 @@ public class Interpreter {
             }
         }
 
-        HIGHEST.values().forEach(expressionFactories -> expressionFactories.forEach(expressionFactory -> System.out.println(JSONTools.expressionFactoryToJSON(expressionFactory, "nothing", "nothing", "comment") + "\n")));
-
 
     }
-
-    public ExpressionFactory<?> getLocalExpressionFromState(CodeState state, String expressionText) {
-        for (ExpressionFactory<?> expression : state.getLocalExpressions()) {
-            if (expressionText.matches(expression.getRegex())) {
-                ExpressionFactory<?> dupedExpression = expression.duplicate();
-                dupedExpression.setCode(expressionText);
-                return dupedExpression;
-            }
-        }
-        return null;
-    }
-
-
 
     /**
      * This is in it's own method because it is easily the most complex effect/expression. And being used twice it doesn't make sense for it to be in it's respective expression and effect.
@@ -781,19 +738,17 @@ public class Interpreter {
      * @param code The code from which the code piece will be generated.
      * @return A CodePiece interpreted and parsed from the inputted code. Note that this piece is not yet attached to a code chunk.
      */
-    public static CodePiece genCodePieceFromCode(String code) {
-        Effect effect = Parser.parseLine(code);
+    public static CodePiece genCodePieceFromCode(String code, File file, int lineNum) {
+        Effect effect = Parser.parseLine(code, file, lineNum);
         CodePiece piece = new CodePiece(code);
         if (effect != null) {
             piece.setEffect(effect);
-        } else {
-            System.err.println("Code couldn't be parsed properly. Code: " + code);
         }
         return piece;
     }
 
-    public static CodeChunk getCodeChunkFromCode(String code) {
-        return Parser.parseChunk(code);
+    public static CodeChunk getCodeChunkFromCode(String code, File file) {
+        return Parser.parseChunk(code, file);
     }
 
     public static void setPrintConsole(Console printConsole) {

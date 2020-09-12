@@ -28,7 +28,6 @@ public class Variable<T> {
         if (changeListener != null) {
             changeListener.changed(null, this.value, (T) value);
         }
-        System.out.println("Value of variable: " + name + " has been set to:  " + value);
         this.value = (T) value;
     }
 

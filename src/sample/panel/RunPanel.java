@@ -6,7 +6,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import sample.test.interpretation.Interpreter;
+import sample.test.interpretation.SyntaxManager;
 import sample.test.interpretation.parse.Parser;
 import sample.test.interpretation.run.CodeChunk;
 import sample.test.interpretation.run.CodePiece;
@@ -62,7 +62,6 @@ public class RunPanel extends AnchorPane {
         ArrayList<CodeState> children = codeChunk.getChildren();
         for (CodeState child : children) {
             TreeItem<CodeState> newTreeItem = new TreeItem<>(child);
-            System.out.println("Child: " + child + " (" + child.getCode() + ")");
             abovePiece.getChildren().add(newTreeItem);
             populateTreeView(newTreeItem, child);
         }
@@ -161,7 +160,7 @@ public class RunPanel extends AnchorPane {
         codeBox.getChildren().addAll(codeField, activate);
         codeBox.setSpacing(5);
         activate.setOnAction(actionEvent -> {
-            CodePiece piece = Interpreter.genCodePieceFromCode(codeField.getText());
+            CodePiece piece = SyntaxManager.genCodePieceFromCode(codeField.getText(), null, 0);
             piece.setCodeChunk((CodeChunk) state);
             ((CodeChunk) state).runPiece(piece);
         });

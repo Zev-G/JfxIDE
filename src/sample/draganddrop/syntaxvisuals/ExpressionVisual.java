@@ -3,10 +3,6 @@ package sample.draganddrop.syntaxvisuals;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -15,8 +11,7 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Popup;
-import javafx.util.Callback;
-import sample.test.interpretation.Interpreter;
+import sample.test.interpretation.SyntaxManager;
 import sample.test.interpretation.parse.Parser;
 import sample.test.syntaxPiece.expressions.ExpressionFactory;
 
@@ -52,18 +47,18 @@ public class ExpressionVisual<T> extends SyntaxVisual<ExpressionFactory<?>> {
     public ArrayList<ExpressionFactory<?>> genExpressionFactories() {
         ArrayList<Class<?>> supportedClasses = new ArrayList<>();
         supportedClasses.add(Object.class);
-        for (Class<?> loopClass : Interpreter.SUPPORTED_TYPES.values()) {
+        for (Class<?> loopClass : SyntaxManager.SUPPORTED_TYPES.values()) {
             if (loopClass.isAssignableFrom(tClass)) {
                 supportedClasses.add(loopClass);
             }
         }
         ArrayList<ExpressionFactory<?>> expressionFactories = new ArrayList<>();
         supportedClasses.forEach(aClass -> {
-            expressionFactories.addAll(Interpreter.HIGHEST.get(aClass));
-            expressionFactories.addAll(Interpreter.HIGH.get(aClass));
-            expressionFactories.addAll(Interpreter.MEDIUM.get(aClass));
-            expressionFactories.addAll(Interpreter.LOW.get(aClass));
-            expressionFactories.addAll(Interpreter.LOWEST.get(aClass));
+            expressionFactories.addAll(SyntaxManager.HIGHEST.get(aClass));
+            expressionFactories.addAll(SyntaxManager.HIGH.get(aClass));
+            expressionFactories.addAll(SyntaxManager.MEDIUM.get(aClass));
+            expressionFactories.addAll(SyntaxManager.LOW.get(aClass));
+            expressionFactories.addAll(SyntaxManager.LOWEST.get(aClass));
         });
         return expressionFactories;
     }
@@ -74,7 +69,7 @@ public class ExpressionVisual<T> extends SyntaxVisual<ExpressionFactory<?>> {
         for (String typePiece : typePieces) {
             boolean isExpression = typePiece.startsWith("%");
             if (isExpression) {
-                getChildren().add(new ExpressionVisual<>(Interpreter.SUPPORTED_TYPES.get(typePiece.replaceAll("%", ""))));
+                getChildren().add(new ExpressionVisual<>(SyntaxManager.SUPPORTED_TYPES.get(typePiece.replaceAll("%", ""))));
             } else {
                 getChildren().add(defaultText(typePiece));
             }

@@ -1,7 +1,7 @@
 package sample.test.syntaxPiece.events;
 
 import sample.test.interpretation.run.CodeChunk;
-import sample.test.interpretation.Interpreter;
+import sample.test.interpretation.SyntaxManager;
 import sample.test.syntaxPiece.SyntaxPiece;
 import sample.test.syntaxPiece.SyntaxPieceFactory;
 import sample.test.syntaxPiece.expressions.ExpressionFactory;
@@ -39,7 +39,6 @@ public class WhenEventFactory extends Event implements SyntaxPieceFactory {
                 arguments.add(null);
             }
         }
-        System.out.println("CODE: " + code);
         eventProcessedHandler.processed(parent.getCodeChunk(), arguments, this, code.split(" "));
     }
 
@@ -52,7 +51,7 @@ public class WhenEventFactory extends Event implements SyntaxPieceFactory {
         ArrayList<Class<?>> classes = new ArrayList<>();
         if (CodeChunk.printing) System.out.println("-Getting arguments (for effect with regex: " + regex + ")-");
         for (String var : regex.split("(?=%([A-z]+)%)|(?<=% )")) {
-            Class<?> addClass = Interpreter.SUPPORTED_TYPES.get(var.replaceAll("%", "").trim());
+            Class<?> addClass = SyntaxManager.SUPPORTED_TYPES.get(var.replaceAll("%", "").trim());
             if (addClass != null || var.startsWith("%")) {
                 if (CodeChunk.printing) System.out.println("On arg class: " + addClass + " (from: " + var + ")");
                 classes.add(addClass);

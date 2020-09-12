@@ -1,13 +1,13 @@
 package sample.draganddrop;
 
 import javafx.scene.layout.Pane;
-import sample.test.interpretation.Interpreter;
+import sample.test.interpretation.SyntaxManager;
 
 public class CodeArea extends Pane {
 
     public CodeArea() {
-        this.getChildren().add(new CodeLineVisual(Interpreter.EFFECT_FACTORIES.get(12)));
-        this.getChildren().add(new CodeLineVisual(Interpreter.EFFECT_FACTORIES.get(10)));
+        this.getChildren().add(new CodeLineVisual(SyntaxManager.EFFECT_FACTORIES.get(12)));
+        this.getChildren().add(new CodeLineVisual(SyntaxManager.EFFECT_FACTORIES.get(10)));
     }
 
 }

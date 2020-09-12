@@ -20,8 +20,6 @@ public class CodePiece {
             effect.activate();
         } else if (event != null) {
             event.runWhenArrivedTo();
-        } else {
-            System.err.println("Stopped invalid code from being ran. Code: " + code + "(" + code.length() + ")");
         }
     }
 
@@ -48,7 +46,9 @@ public class CodePiece {
 
     public void setEvent(Event event) {
         this.event = event;
-        event.setParent(this);
+        if (event != null) {
+            event.setParent(this);
+        }
     }
 
     public Event getEvent() {

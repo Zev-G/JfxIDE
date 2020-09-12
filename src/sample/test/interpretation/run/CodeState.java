@@ -65,6 +65,10 @@ public class CodeState {
         parent.getChildren().add(this);
         variables.putAll(parent.getVariables());
     }
+    public CodeState getParent() {
+        return parent;
+    }
+
     public ArrayList<CodeState> getChildren() {
         return children;
     }

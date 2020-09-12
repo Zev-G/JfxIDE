@@ -6,12 +6,13 @@ import javafx.stage.Stage;
 import sample.betterfx.CommandConsole;
 import sample.panel.RunPanel;
 import sample.test.FXScript;
-import sample.test.interpretation.Interpreter;
+import sample.test.interpretation.SyntaxManager;
 import sample.test.interpretation.run.CodeChunk;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Main extends Application {
 
@@ -20,24 +21,20 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-        Interpreter.init();
+        SyntaxManager.init();
 
-        CodeChunk chunk = Interpreter.getCodeChunkFromCode(
-                "print \"example\"\n" +
-                        "print new stage"
-        );
-        chunk.run();
 
         CommandConsole console = new CommandConsole();
-        Interpreter.setPrintConsole(console);
+        SyntaxManager.setPrintConsole(console);
         primaryStage.setScene(new Scene(console));
         primaryStage.show();
+        AtomicReference<File> codeFile = new AtomicReference<>(new File(Main.class.getResource("test_code.sfs").getFile()));
         console.setOnUserInput((inputtedString, eventConsole) -> {
             if (!inputtedString.startsWith("/")) {
                 String[] lines = inputtedString.split("\\\\n");
                 for (String line : lines) {
                     console.addTexts(console.genText("\n&bRunning code: &m" + line));
-                    executeChunk.runPiece(Interpreter.genCodePieceFromCode(line));
+                    executeChunk.runPiece(SyntaxManager.genCodePieceFromCode(line, codeFile.get(), 0));
                 }
             } else {
                 String command = inputtedString.split("/")[1];
@@ -52,10 +49,10 @@ public class Main extends Application {
                     command = command.replaceFirst("load ", "");
                     command = command.replaceFirst("load", "");
                     if (command.equals("")) command = Main.class.getResource("test_code.sfs").getFile();
-                    File codeFile = new File(command);
+                    codeFile.set(new File(command));
                     Scanner scanner = null;
                     try {
-                        scanner = new Scanner(codeFile);
+                        scanner = new Scanner(codeFile.get());
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -69,7 +66,7 @@ public class Main extends Application {
                             }
                         }
                         console.addTexts(console.genText("\n&aCompiling..."));
-                        executeChunk = Interpreter.getCodeChunkFromCode(builder.toString());
+                        executeChunk = SyntaxManager.getCodeChunkFromCode(builder.toString(), codeFile.get());
                         Stage runStage = new Stage();
                         runStage.setScene(new Scene(new RunPanel(executeChunk)));
                         runStage.show();

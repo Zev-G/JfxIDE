@@ -10,7 +10,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import sample.draganddrop.syntaxvisuals.ExpressionVisual;
-import sample.test.interpretation.Interpreter;
+import sample.test.interpretation.SyntaxManager;
 import sample.test.interpretation.parse.Parser;
 import sample.test.syntaxPiece.effects.EffectFactory;
 
@@ -49,7 +49,7 @@ public class CodeLineVisual extends HBox {
         for (String typePiece : Parser.generateExpressionPiecesFromString(code)) {
             boolean isExpression = typePiece.startsWith("%");
             if (isExpression) {
-                getChildren().add(new ExpressionVisual<>(Interpreter.SUPPORTED_TYPES.get(typePiece.replaceAll("%", ""))));
+                getChildren().add(new ExpressionVisual<>(SyntaxManager.SUPPORTED_TYPES.get(typePiece.replaceAll("%", ""))));
             } else {
                 getChildren().add(defaultText(typePiece));
             }

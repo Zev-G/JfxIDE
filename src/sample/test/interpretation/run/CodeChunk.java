@@ -9,7 +9,7 @@ public class CodeChunk extends CodeState {
 
     public static final ArrayList<CodeChunk> ALL_CHUNKS = new ArrayList<>();
 
-    public static final boolean printing = true;
+    public static final boolean printing = false;
 
     private final ArrayList<CodePiece> pieces = new ArrayList<>();
     private boolean finished = false;

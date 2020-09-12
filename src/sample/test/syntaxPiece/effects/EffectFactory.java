@@ -1,6 +1,6 @@
 package sample.test.syntaxPiece.effects;
 
-import sample.test.interpretation.Interpreter;
+import sample.test.interpretation.SyntaxManager;
 import sample.test.interpretation.run.CodeChunk;
 import sample.test.syntaxPiece.SyntaxPiece;
 import sample.test.syntaxPiece.SyntaxPieceFactory;
@@ -78,10 +78,10 @@ public class EffectFactory extends Effect implements SyntaxPieceFactory {
         }
         if (pieces.isEmpty()) pieces.add(regex);
         for (String var : pieces) {
-            Class<?> addClass = Interpreter.SUPPORTED_TYPES.get(var.replaceAll("%", "").trim());
+            Class<?> addClass = SyntaxManager.SUPPORTED_TYPES.get(var.replaceAll("%", "").trim());
             if (addClass != null || var.startsWith("%")) {
 //                if (CodeChunk.printing)
-                System.out.println("On arg class: " + addClass + " (from: " + var + ")");
+                if (CodeChunk.printing) System.out.println("On arg class: " + addClass + " (from: " + var + ")");
                 classes.add(addClass);
             }
         }
