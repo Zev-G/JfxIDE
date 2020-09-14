@@ -1,23 +1,25 @@
 package sample.test.interpretation.parse;
 
+import sample.test.interpretation.SyntaxManager;
 import sample.test.interpretation.parse.error.ParseError;
-import sample.test.syntaxPiece.SyntaxPiece;
-import sample.test.syntaxPiece.SyntaxPieceFactory;
-import sample.test.syntaxPiece.events.WhenEventFactory;
-import sample.test.syntaxPiece.events.statements.ElseStatement;
-import sample.test.syntaxPiece.events.Event;
 import sample.test.interpretation.run.CodeChunk;
 import sample.test.interpretation.run.CodePiece;
-import sample.test.interpretation.SyntaxManager;
+import sample.test.syntaxPiece.SyntaxPiece;
+import sample.test.syntaxPiece.SyntaxPieceFactory;
 import sample.test.syntaxPiece.effects.Effect;
+import sample.test.syntaxPiece.events.Event;
 import sample.test.syntaxPiece.events.Function;
+import sample.test.syntaxPiece.events.WhenEventFactory;
+import sample.test.syntaxPiece.events.statements.ElseStatement;
 import sample.test.syntaxPiece.events.statements.IfStatement;
 import sample.test.syntaxPiece.expressions.Expression;
 import sample.test.syntaxPiece.expressions.ExpressionFactory;
 import sample.test.variable.Variable;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
 public final class Parser {
@@ -110,7 +112,7 @@ public final class Parser {
      * @param possiblePieces The SyntaxPieceFactories that will be tested.
      * @return A parsed syntax piece. This could be a Event, Effect or Expression.
      */
-    public static SyntaxPiece<?> parseSyntaxPiece(String code, ArrayList<? extends SyntaxPieceFactory> possiblePieces, File file, int line) {
+    public static <T extends SyntaxPieceFactory> T parseSyntaxPiece(String code, ArrayList<T> possiblePieces, File file, int line) {
         code = code.trim();
         if (CodeChunk.printing) System.out.println("Parsing syntax piece: " + code + " with possible pieces: " + possiblePieces);
         pieces: for (SyntaxPieceFactory syntaxPieceFactory : possiblePieces) {
@@ -216,11 +218,11 @@ public final class Parser {
             nestedExpressionFactories.forEach(expressionFactory -> expressionFactory.setParent(syntaxPiece));
             syntaxPieceFactory = (SyntaxPieceFactory) syntaxPiece;
             syntaxPieceFactory.getExpressionArgs().addAll(nestedExpressionFactories);
-            return syntaxPieceFactory.getSyntaxPiece();
+            return (T) syntaxPieceFactory.getSyntaxPiece();
         }
         return null;
     }
-    public static SyntaxPiece<?> parseSyntaxPiece(String code, ArrayList<? extends SyntaxPieceFactory> possiblePieces) {
+    public static <T extends SyntaxPieceFactory> T parseSyntaxPiece(String code, ArrayList<T> possiblePieces) {
         return parseSyntaxPiece(code, possiblePieces, null, 0);
     }
 
@@ -230,7 +232,7 @@ public final class Parser {
      * @return The effect that is parsed from the given code.
      */
     public static Effect parseLine(String code, File file, int lineNum) {
-        Effect parsedEffect = (Effect) parseSyntaxPiece(code.trim(), SyntaxManager.EFFECT_FACTORIES, file, lineNum);
+        Effect parsedEffect = parseSyntaxPiece(code.trim(), SyntaxManager.EFFECT_FACTORIES, file, lineNum);
         if (parsedEffect == null) {
             new ParseError(lineNum, 0, code, "Unrecognized Effect", null, file).print();
         }
@@ -262,7 +264,6 @@ public final class Parser {
             }
         } else if (code.startsWith("else")) {
             if (!code.contains("if")) {
-                System.out.println("ELSE STATEMENT");
                 return new ElseStatement();
             }
 //            else if (code.startsWith("else if")) {
@@ -296,25 +297,22 @@ public final class Parser {
             }
             Function<?> function = new Function<>(functionName);
             function.getArguments().addAll(functionArguments);
-            System.out.println(function.getArguments());
             return function;
         } else {
             String justCode = code.replaceAll(":", "").replaceFirst("\\$", "");
             if (CodeChunk.printing) System.out.println("Getting event from code: " + justCode);
-            SyntaxPiece<?> syntaxPiece = parseSyntaxPiece(justCode, SyntaxManager.EVENT_FACTORIES, file, lineNum);
+            WhenEventFactory syntaxPiece = parseSyntaxPiece(justCode, SyntaxManager.EVENT_FACTORIES, file, lineNum);
             // Error Handling
             if (syntaxPiece == null) {
                 new ParseError(lineNum, 0, code, "Unrecognized Event", null, file).print();
                 return null;
             }
-            if (code.startsWith("$") || ((WhenEventFactory) syntaxPiece).getRegex().startsWith("$")) {
-                ((Event) syntaxPiece).setParent(new CodePiece(""));
-                ((Event) syntaxPiece).runWhenArrivedTo();
-                if (syntaxPiece instanceof WhenEventFactory) {
-                    ((WhenEventFactory) syntaxPiece).setEventProcessedHandler((state, values, event, args) -> { });
-                }
+            if (code.startsWith("$") || syntaxPiece.getRegex().startsWith("$")) {
+                syntaxPiece.setParent(new CodePiece(""));
+                syntaxPiece.runWhenArrivedTo();
+                syntaxPiece.setEventProcessedHandler((state, values, event, args) -> { });
             }
-            return (Event) syntaxPiece;
+            return syntaxPiece;
         }
         new ParseError(lineNum, 0, code, "Unrecognized Event", null, file).print();
         return null;
@@ -339,7 +337,7 @@ public final class Parser {
         addHashMapToHashMap(fullMap, SyntaxManager.LOWEST);
         ArrayList<ExpressionFactory<?>> allExpressions = new ArrayList<>();
         fullMap.values().forEach(allExpressions::addAll);
-        return (ExpressionFactory<?>) parseSyntaxPiece(code, allExpressions, file, lineNum);
+        return parseSyntaxPiece(code, allExpressions, file, lineNum);
     }
     public static ExpressionFactory<?> parseExpression(String code) {
         return parseExpression(code, null, 0);

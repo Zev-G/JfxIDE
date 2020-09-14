@@ -16,7 +16,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
@@ -126,7 +125,7 @@ public class SyntaxManager {
 
         effects: {
             reflect: {
-                EFFECT_FACTORIES.add(new EffectFactory("%object%\\.(.*\\))", (state, values, args) -> {
+                EFFECT_FACTORIES.add(new EffectFactory("%object%.%function%", "%object%\\.(.*\\))", (state, values, args) -> {
                     String connectedArgs = appendAllArgs(new StringBuilder(), args).toString();
                     Object obj = values.get(0);
                     reflectMethod(state, connectedArgs, obj);
@@ -162,7 +161,7 @@ public class SyntaxManager {
                 }));
             }
 
-            EFFECT_FACTORIES.add(new EffectFactory("([A-z]+)\\((.*?)\\)", (state, values, args) -> {
+            EFFECT_FACTORIES.add(new EffectFactory("IGNORE", "([A-z]+)\\((.*?)\\)", (state, values, args) -> {
                 String connectedArgs = appendAllArgs(new StringBuilder(), args).toString();
                 Function<?> function = Function.ALL_FUNCTIONS.get(connectedArgs.split("\\(")[0]);
                 function.invoke();
@@ -180,13 +179,7 @@ public class SyntaxManager {
             EFFECT_FACTORIES.add(new EffectFactory("set title of %stage% to %string%",
                     (state, values, args) -> ((Stage) values.get(0)).setTitle((String) values.get(1))));
             EFFECT_FACTORIES.add(new EffectFactory("show %stage%", (state, values, args) -> ((Stage) values.get(0)).show()));
-            EFFECT_FACTORIES.add(new EffectFactory("print %object%", (state, values, args) -> {
-                if (PRINT_CONSOLE == null) {
-                    System.out.println("PRINTING: " + values.get(0));
-                } else {
-                    PRINT_CONSOLE.addLines(PRINT_CONSOLE.genText(values.get(0).toString()));
-                }
-            }));
+            EFFECT_FACTORIES.add(new EffectFactory("print %object%", (state, values, args) -> System.out.println(values.get(0))));
             EFFECT_FACTORIES.add(new EffectFactory("stop program", (state, values, args) -> Platform.exit()));
             EFFECT_FACTORIES.add(new EffectFactory("set title of %stage% to %string%", (state, values, args) -> ((Stage) values.get(0)).setTitle(values.get(1).toString())));
             EFFECT_FACTORIES.add(new EffectFactory("set fill color of %stage% to %color%", (state, values, args) -> {
@@ -200,7 +193,14 @@ public class SyntaxManager {
                 stage.setScene(new Scene((Parent) values.get(0)));
             }));
             EFFECT_FACTORIES.add(new EffectFactory("set text of %button% to %string%", (state, values, args) -> ((Button) values.get(0)).setText(values.get(1).toString())));
-            EFFECT_FACTORIES.add(new EffectFactory("set background color of %region% to %color%", (state, values, args) -> ((Region) values.get(0)).setBackground(new Background(new BackgroundFill((Paint) values.get(1), CornerRadii.EMPTY, Insets.EMPTY)))));
+            EFFECT_FACTORIES.add(new EffectFactory("set background color of %region% to %color%", (state, values, args) -> {
+                Region region = ((Region) values.get(0));
+                BackgroundFill currentFill = new BackgroundFill(null, new CornerRadii(3), Insets.EMPTY);
+                if (region.getBackground() != null && region.getBackground().getFills() != null && !region.getBackground().getFills().isEmpty()) {
+                    currentFill = region.getBackground().getFills().get(0);
+                }
+                region.setBackground(new Background(new BackgroundFill((Color) values.get(1), currentFill.getRadii(), currentFill.getInsets())));
+            }));
             EFFECT_FACTORIES.add(new EffectFactory("set scale x of %node% to %number%", (state, values, args) -> ((Node) values.get(0)).setScaleX((Double) values.get(1))));
             EFFECT_FACTORIES.add(new EffectFactory("set scale y of %node% to %number%", (state, values, args) -> ((Node) values.get(0)).setScaleY((Double) values.get(1))));
             EFFECT_FACTORIES.add(new EffectFactory("set scale of %node% to %number%", (state, values, args) -> {
@@ -223,31 +223,31 @@ public class SyntaxManager {
                 scaleTransition.setToY((double) (Number) values.get(1));
                 scaleTransition.play();
             }));
-            EFFECT_FACTORIES.add(new EffectFactory("transition x position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
+            EFFECT_FACTORIES.add(new EffectFactory("transition x position of %node% to %number% over %number% seconds","transition x position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
                 TranslateTransition scaleTransition = new TranslateTransition(Duration.seconds((double) (Number) values.get(2)), (Node) values.get(0));
                 scaleTransition.setToX((double) (Number) values.get(1));
                 scaleTransition.play();
             }));
-            EFFECT_FACTORIES.add(new EffectFactory("transition y position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
+            EFFECT_FACTORIES.add(new EffectFactory("transition y position of %node% to %number% over %number% seconds","transition y position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
                 TranslateTransition scaleTransition = new TranslateTransition(Duration.seconds((double) (Number) values.get(2)), (Node) values.get(0));
                 scaleTransition.setToY((double) (Number) values.get(1));
                 scaleTransition.play();
             }));
-            EFFECT_FACTORIES.add(new EffectFactory("transition position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
+            EFFECT_FACTORIES.add(new EffectFactory("transition position of %node% to %number% over %number% seconds","transition position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
                 TranslateTransition scaleTransition = new TranslateTransition(Duration.seconds((double) (Number) values.get(2)), (Node) values.get(0));
                 scaleTransition.setToX((double) (Number) values.get(1));
                 scaleTransition.setToY(((Number) values.get(1)).doubleValue());
                 scaleTransition.play();
             }));
-            EFFECT_FACTORIES.add(new EffectFactory("transition opacity of %node% to %number% over %number% second(s|)", (state, values, args) -> {
+            EFFECT_FACTORIES.add(new EffectFactory("transition opacity of %node% to %number% over %number% seconds","transition opacity of %node% to %number% over %number% second(s|)", (state, values, args) -> {
                 FadeTransition scaleTransition = new FadeTransition(Duration.seconds((double) (Number) values.get(2)), (Node) values.get(0));
                 scaleTransition.setToValue((double) (Number) values.get(1));
                 scaleTransition.play();
             }));
-            EFFECT_FACTORIES.add(new EffectFactory("(|set )full screen %stage%", (state, values, args) -> ((Stage) values.get(0)).setFullScreen(true)));
-            EFFECT_FACTORIES.add(new EffectFactory("(|set )(normal|unfull) screen %stage%", (state, values, args) -> ((Stage) values.get(0)).setFullScreen(false)));
-            EFFECT_FACTORIES.add(new EffectFactory("(|set )maximize %stage%", (state, values, args) -> ((Stage) values.get(0)).setMaximized(true)));
-            EFFECT_FACTORIES.add(new EffectFactory("(|set )un maximize %stage%", (state, values, args) -> ((Stage) values.get(0)).setMaximized(false)));
+            EFFECT_FACTORIES.add(new EffectFactory("full screen %stage%", "(|set )full screen %stage%", (state, values, args) -> ((Stage) values.get(0)).setFullScreen(true)));
+            EFFECT_FACTORIES.add(new EffectFactory("unfull screen %stage%", "(|set )(normal|unfull) screen %stage%", (state, values, args) -> ((Stage) values.get(0)).setFullScreen(false)));
+            EFFECT_FACTORIES.add(new EffectFactory("maximize %stage%", "(|set )maximize %stage%", (state, values, args) -> ((Stage) values.get(0)).setMaximized(true)));
+            EFFECT_FACTORIES.add(new EffectFactory("un maximize %stage%", "(|set )un maximize %stage%", (state, values, args) -> ((Stage) values.get(0)).setMaximized(false)));
             EFFECT_FACTORIES.add(new EffectFactory("make %stage% resizable", (state, values, args) -> ((Stage) values.get(0)).setResizable(true)));
             EFFECT_FACTORIES.add(new EffectFactory("make %stage% not resizable", (state, values, args) -> ((Stage) values.get(0)).setResizable(true)));
             EFFECT_FACTORIES.add(new EffectFactory("hide %window%", (state, values, args) -> ((Window) values.get(0)).hide()));
@@ -262,30 +262,30 @@ public class SyntaxManager {
         }
         events: {
             // Mouse Events
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) %node% is pressed", (state, values, event, args) -> ((Node) values.get(0)).setOnMousePressed(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) %node% is clicked", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseClicked(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) mouse drag enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseDragEntered(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) mouse drag exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseDragExited(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) mouse moves over %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseMoved(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) %node% is released", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseReleased(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) drag is detected for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDetected(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) mouse enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseEntered(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) mouse exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseExited(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when %node% is pressed:", "(when|on) %node% is pressed", (state, values, event, args) -> ((Node) values.get(0)).setOnMousePressed(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when %node% is clicked:","(when|on) %node% is clicked", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseClicked(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when mouse drag enters %node%:","(when|on) mouse drag enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseDragEntered(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when mouse drag exits %node%:","(when|on) mouse drag exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseDragExited(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when mouse moves over %node%:","(when|on) mouse moves over %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseMoved(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when %node% is released:","(when|on) %node% is released", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseReleased(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when drag is detected for %node%:","(when|on) drag is detected for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDetected(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when mouse enters %node%:","(when|on) mouse enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseEntered(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when mouse exits %node%:", "(when|on) mouse exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseExited(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
             // Drag Events
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) drag is done for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDone(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) drag is dropped on %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDropped(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) drag enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragEntered(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) drag exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragExited(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) drag is over %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragOver(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when drag is done for %node%:","(when|on) drag is done for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDone(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when drag is dropped on %node%:","(when|on) drag is dropped on %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDropped(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when drag enters %node%:","(when|on) drag enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragEntered(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when drag exits %node%:","(when|on) drag exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragExited(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when drag is over %node%:","(when|on) drag is over %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragOver(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
             // Key Events
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) key is pressed for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyPressed(keyEvent -> { addKeyEventExpressions(keyEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) key is released for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyReleased(keyEvent -> { addKeyEventExpressions(keyEvent, event.getRunChunk()); event.run(); })));
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) key is typed for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyTyped(keyEvent -> { addKeyEventExpressions(keyEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when key is pressed for %node%:","(when|on) key is pressed for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyPressed(keyEvent -> { addKeyEventExpressions(keyEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when key is released for %node%:","(when|on) key is released for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyReleased(keyEvent -> { addKeyEventExpressions(keyEvent, event.getRunChunk()); event.run(); })));
+            EVENT_FACTORIES.add(new WhenEventFactory("when key is typed for %node%:","(when|on) key is typed for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyTyped(keyEvent -> { addKeyEventExpressions(keyEvent, event.getRunChunk()); event.run(); })));
 
-            EVENT_FACTORIES.add(new WhenEventFactory("(when|on) %string-property% changes", (state, values, event, args) -> ((StringProperty) values.get(0)).addListener((observableValue, s, t1) -> event.run())));
+            EVENT_FACTORIES.add(new WhenEventFactory("when %string-property% changes:","(when|on) %string-property% changes", (state, values, event, args) -> ((StringProperty) values.get(0)).addListener((observableValue, s, t1) -> event.run())));
 
             special: {
-                EVENT_FACTORIES.add(new WhenEventFactory("$expression (.*?)", (state, values, event, args) -> {
+                EVENT_FACTORIES.add(new WhenEventFactory("expression ","$expression (.*?)", (state, values, event, args) -> {
                     StringBuilder builder = new StringBuilder();
                     appendAllArgs(builder, args);
                     String returnType = args[1];
@@ -306,14 +306,14 @@ public class SyntaxManager {
                         LOW.get(returnClass).add(expressionFactory);
                     }
                 }));
-                EVENT_FACTORIES.add(new WhenEventFactory("in %number% second(s|)", (state, values, event, args) -> new Timer().schedule(new TimerTask() {
+                EVENT_FACTORIES.add(new WhenEventFactory("in %number% seconds:", "in %number% second(s|)", (state, values, event, args) -> new Timer().schedule(new TimerTask() {
                                          @Override
                                          public void run() {
                                              Platform.runLater(event::run);
                                          }
                                      }, ((Double) (((Double) values.get(0)) * 1000)).longValue()
                 )));
-                EVENT_FACTORIES.add(new WhenEventFactory("every %number% second(s|)", (state, values, event, args) -> {
+                EVENT_FACTORIES.add(new WhenEventFactory("every %number% seconds:","every %number% second(s|)", (state, values, event, args) -> {
                     ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
                     executorService.scheduleAtFixedRate(() -> Platform.runLater(event::run), (long) 0.1, ((Double) (((Double) values.get(0)) * 1000)).longValue(), TimeUnit.MILLISECONDS);
                 }));
@@ -329,7 +329,6 @@ public class SyntaxManager {
                         event.getRunChunk().getLocalExpressions().clear();
                         int finalI = i;
                         event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("num(ber|)", (state1, values1, args1) -> finalI, Number.class));
-                        System.out.println("All variables: " + event.getRunChunk().getVariables().values());
                         event.run();
                     }
                 }));
@@ -349,26 +348,23 @@ public class SyntaxManager {
         }
         expressions: {
             java: {
-                object: {
-
-                }
                 string: {
-                    HIGHEST.get(String.class).add(new ExpressionFactory<>("\"([^\\\"]*?)\"", (state, values, args) -> {
+                    HIGHEST.get(String.class).add(new ExpressionFactory<>("IGNORE", "\"([^\\\"]*?)\"", (state, values, args) -> {
                         StringBuilder builder = new StringBuilder();
                         appendAllArgs(builder, args);
                         return builder.toString().replaceAll("\"", "");
                     }, String.class));
                     HIGHEST.get(String.class).add(new ExpressionFactory<>("%string% appended to %string%", (state, values, args) -> values.get(0).toString() + values.get(1), String.class));
                     HIGH.get(String.class).add(new ExpressionFactory<>("value of %string-property%", (state, values, args) -> ((StringProperty) values.get(0)).get(), String.class));
-                    LOW.get(String.class).add(new ExpressionFactory<>("%string% without( the|) last character", (state, values, args) -> {
+                    LOW.get(String.class).add(new ExpressionFactory<>("%string% without the last character", "%string% without( the|) last character", (state, values, args) -> {
                         if (values.get(0).toString().length() < 1) return values.get(0).toString();
                         return values.get(0).toString().substring(0, values.get(0).toString().length() - 1);
                     }, String.class));
-                    LOW.get(String.class).add(new ExpressionFactory<>("%string% without( the|) first character", (state, values, args) -> {
+                    LOW.get(String.class).add(new ExpressionFactory<>("%string% without the first character", "%string% without( the|) first character", (state, values, args) -> {
                         if (values.get(0).toString().length() < 1) return values.get(0).toString();
                         return values.get(0).toString().substring(1);
                     }, String.class));
-                    LOW.get(String.class).add(new ExpressionFactory<>("%string% without character %number%", (state, values, args) -> {
+                    LOW.get(String.class).add(new ExpressionFactory<>("%string% without character at %number%", "%string% without character (at |)%number%", (state, values, args) -> {
                         String arg1 = values.get(0).toString();
                         int arg2 = ((Double) values.get(1)).intValue();
                         return arg1.substring(0, arg2) + (arg1.length() > arg2 + 1 ? arg1.substring(0, arg2 + 1) : "");
@@ -400,15 +396,15 @@ public class SyntaxManager {
                     }, String.class));
                 }
                 number: {
-                    HIGHEST.get(Number.class).add(new ExpressionFactory<>("([0-9]+)(|\\.([0-9]+))", (state, values, args) -> {
+                    HIGHEST.get(Number.class).add(new ExpressionFactory<>("IGNORE", "([0-9]+)(|\\.([0-9]+))", (state, values, args) -> {
                         StringBuilder builder = new StringBuilder();
                         appendAllArgs(builder, args);
                         return Double.parseDouble(builder.toString().replaceAll("@", ""));
                     }, Number.class));
-                    HIGH.get(Number.class).add(new ExpressionFactory<>("%number% \\+ %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() + ((Number) values.get(1)).doubleValue(), Number.class));
-                    HIGH.get(Number.class).add(new ExpressionFactory<>("%number% - %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() - ((Number) values.get(1)).doubleValue(), Number.class));
-                    HIGH.get(Number.class).add(new ExpressionFactory<>("%number% \\* %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() * ((Number) values.get(1)).doubleValue(), Number.class));
-                    HIGH.get(Number.class).add(new ExpressionFactory<>("%number% / %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() / ((Number) values.get(1)).doubleValue(), Number.class));
+                    HIGH.get(Number.class).add(new ExpressionFactory<>("IGNORE", "%number% \\+ %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() + ((Number) values.get(1)).doubleValue(), Number.class));
+                    HIGH.get(Number.class).add(new ExpressionFactory<>("IGNORE", "%number% - %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() - ((Number) values.get(1)).doubleValue(), Number.class));
+                    HIGH.get(Number.class).add(new ExpressionFactory<>("IGNORE", "%number% \\* %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() * ((Number) values.get(1)).doubleValue(), Number.class));
+                    HIGH.get(Number.class).add(new ExpressionFactory<>("IGNORE", "%number% \\/ %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() / ((Number) values.get(1)).doubleValue(), Number.class));
 
                     MEDIUM.get(Number.class).add(new ExpressionFactory<>("random number between %number% and %number%", (state, values, args) -> {
                         double firstValue = (double) values.get(0);
@@ -430,16 +426,17 @@ public class SyntaxManager {
                     }, Number.class));
                     LOW.get(Number.class).add(new ExpressionFactory<>("length of %string%", (state, values, args) -> values.get(0).toString().length(), Number.class));
                     LOW.get(Number.class).add(new ExpressionFactory<>("space taken up by %file%", (state, values, args) -> Long.valueOf(((File) values.get(0)).getTotalSpace()).doubleValue(), Number.class));
+                    LOW.get(Number.class).add(new ExpressionFactory<>("size of %list%", ((state, values, args) -> ((List) values.get(0)).getValues().values().size()), Number.class));
                 }
                 bool: {
                     HIGHEST.get(Boolean.class).add(new ExpressionFactory<>("true", (state, values, args) -> true, Boolean.class));
                     HIGHEST.get(Boolean.class).add(new ExpressionFactory<>("false", (state, values, args) -> false, Boolean.class));
-                    HIGHEST.get(Boolean.class).add(new ExpressionFactory<>("%object% == %object%", (state, values, args) -> values.get(0).equals(values.get(1)), Boolean.class));
-                    HIGHEST.get(Boolean.class).add(new ExpressionFactory<>("%object% != %object%", (state, values, args) -> !values.get(0).equals(values.get(1)), Boolean.class));
-                    HIGH.get(Boolean.class).add(new ExpressionFactory<>("%number% > %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() > ((Number) values.get(1)).doubleValue(), Boolean.class));
-                    HIGH.get(Boolean.class).add(new ExpressionFactory<>("%number% < %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() < ((Number) values.get(1)).doubleValue(), Boolean.class));
-                    HIGH.get(Boolean.class).add(new ExpressionFactory<>("%number% >= %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() >= ((Number) values.get(1)).doubleValue(), Boolean.class));
-                    HIGH.get(Boolean.class).add(new ExpressionFactory<>("%number% <= %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() <= ((Number) values.get(1)).doubleValue(), Boolean.class));
+                    HIGHEST.get(Boolean.class).add(new ExpressionFactory<>("IGNORE", "%object% == %object%", (state, values, args) -> values.get(0).equals(values.get(1)), Boolean.class));
+                    HIGHEST.get(Boolean.class).add(new ExpressionFactory<>("IGNORE", "%object% != %object%", (state, values, args) -> !values.get(0).equals(values.get(1)), Boolean.class));
+                    HIGH.get(Boolean.class).add(new ExpressionFactory<>("IGNORE", "%number% > %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() > ((Number) values.get(1)).doubleValue(), Boolean.class));
+                    HIGH.get(Boolean.class).add(new ExpressionFactory<>("IGNORE", "%number% < %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() < ((Number) values.get(1)).doubleValue(), Boolean.class));
+                    HIGH.get(Boolean.class).add(new ExpressionFactory<>("IGNORE", "%number% >= %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() >= ((Number) values.get(1)).doubleValue(), Boolean.class));
+                    HIGH.get(Boolean.class).add(new ExpressionFactory<>("IGNORE", "%number% <= %number%", (state, values, args) -> ((Number) values.get(0)).doubleValue() <= ((Number) values.get(1)).doubleValue(), Boolean.class));
                     HIGH.get(Boolean.class).add(new ExpressionFactory<>("%number% is a multiple of %number%", (state, values, args) -> (double) ((Number) values.get(0)) % (double) ((Number) values.get(1)) == 0, Boolean.class));
                     HIGH.get(Boolean.class).add(new ExpressionFactory<>("\\!%boolean%", (state, values, args) -> !((Boolean) values.get(0)), Boolean.class));
                     LOW.get(Boolean.class).add(new ExpressionFactory<>("computer is connected to the internet", (state, values, args) -> {
@@ -460,7 +457,7 @@ public class SyntaxManager {
             }
             special: {
                 variable: {
-                    HIGHEST.get(Variable.class).add(new ExpressionFactory<>("\\{([^\\s]*?)\\}", (state, values, args) -> {
+                    HIGHEST.get(Variable.class).add(new ExpressionFactory<>("IGNORE", "\\{([^\\s]*?)\\}", (state, values, args) -> {
                         StringBuilder builder = new StringBuilder();
                         appendAllArgs(builder, args);
                         String variableName = builder.toString().replaceAll("[{}]", "");
@@ -470,7 +467,7 @@ public class SyntaxManager {
                     }, Variable.class));
                 }
                 function: {
-                    HIGHEST.get(Object.class).add(new ExpressionFactory<>("([A-z]+)\\((.*?)\\)", (state, values, args) -> {
+                    HIGHEST.get(Object.class).add(new ExpressionFactory<>("IGNORE", "([A-z]+)\\((.*?)\\)", (state, values, args) -> {
                         String connectedArgs = appendAllArgs(new StringBuilder(), args).toString();
                         String[] arguments = connectedArgs.split("\\(")[1].replaceAll("\\)", "").split(",( *)");
                         ArrayList<Object> objects = new ArrayList<>();
@@ -487,14 +484,14 @@ public class SyntaxManager {
                     }, Object.class));
                 }
                 reflect: {
-                    MEDIUM.get(Object.class).add(new ExpressionFactory<>("%object%.*", "%object%\\.(.*\\))", (state, values, args) -> {
+                    MEDIUM.get(Object.class).add(new ExpressionFactory<>("IGNORE", "%object%\\.(.*\\))", (state, values, args) -> {
                         String connectedArgs = appendAllArgs(new StringBuilder(), args).toString();
                         Object obj = values.get(0);
                         return reflectMethod(state, connectedArgs, obj);
                     }, Object.class));
                 }
                 loopOrEventValue: {
-                    ExpressionFactory<?> loopOrEventValue = new ExpressionFactory<>("(event|loop|expression|effect|arg|value)-*", "(event|loop|expression|effect|arg|value)-(([^\\s]|-)*)", (state, values, args) -> {
+                    ExpressionFactory<?> loopOrEventValue = new ExpressionFactory<>("IGNORE", "(event|loop|expression|effect|arg|value)-(([^\\s]|-)*)", (state, values, args) -> {
                         String connectedArgs = appendAllArgs(new StringBuilder(), args).toString().split("-")[1];
                         for (ExpressionFactory<?> expression : state.getLocalExpressions()) {
                             if (connectedArgs.matches(expression.getRegex())) {
@@ -519,13 +516,13 @@ public class SyntaxManager {
                 }
             }
             stage: {
-                MEDIUM.get(Stage.class).add(new ExpressionFactory<>("(|new )stage", (state, values, args) -> new Stage(), Stage.class));
+                MEDIUM.get(Stage.class).add(new ExpressionFactory<>("new stage", "(|new )stage", (state, values, args) -> new Stage(), Stage.class));
             }
             file: {
-                HIGH.get(File.class).add(new ExpressionFactory<>("(load file|file loaded) from %string%", (state, values, args) -> new File(values.get(0).toString()), File.class));
+                HIGH.get(File.class).add(new ExpressionFactory<>("load file from %string%", "(load file|file loaded) from %string%", (state, values, args) -> new File(values.get(0).toString()), File.class));
             }
             color: {
-                LOW.get(Color.class).add(new ExpressionFactory<>("web colo(u|)r %string%", (state, values, args) -> Color.valueOf(values.get(0).toString()), Color.class));
+                LOW.get(Color.class).add(new ExpressionFactory<>("web color %string%", "web colo(u|)r %string%", (state, values, args) -> Color.valueOf(values.get(0).toString()), Color.class));
 
                 LOW.get(Color.class).add(new ExpressionFactory<>("blue", ((state, values, args) -> Color.BLUE), Color.class));
                 LOW.get(Color.class).add(new ExpressionFactory<>("red", ((state, values, args) -> Color.RED), Color.class));
@@ -562,26 +559,26 @@ public class SyntaxManager {
                 LOW.get(Color.class).add(new ExpressionFactory<>("violet", ((state, values, args) -> Color.VIOLET), Color.class));
             }
             button: {
-                MEDIUM.get(Button.class).add(new ExpressionFactory<>("(|new )button", (state, values, args) -> new Button(), Button.class));
+                MEDIUM.get(Button.class).add(new ExpressionFactory<>("new button", "(|new )button", (state, values, args) -> new Button(), Button.class));
             }
             label: {
-                MEDIUM.get(Label.class).add(new ExpressionFactory<>("(|new )label", (state, values, args) -> new Label(), Label.class));
+                MEDIUM.get(Label.class).add(new ExpressionFactory<>("new label", "(|new )label", (state, values, args) -> new Label(), Label.class));
             }
             pane: {
-                MEDIUM.get(Pane.class).add(new ExpressionFactory<>("(|new )pane", (state, values, args) -> new Pane(), Pane.class));
+                MEDIUM.get(Pane.class).add(new ExpressionFactory<>("new pane", "(|new )pane", (state, values, args) -> new Pane(), Pane.class));
             }
             vbox: {
-                MEDIUM.get(VBox.class).add(new ExpressionFactory<>("(|new )vbox", (state, values, args) -> new VBox(), VBox.class));
+                MEDIUM.get(VBox.class).add(new ExpressionFactory<>("new vbox", "(|new )vbox", (state, values, args) -> new VBox(), VBox.class));
             }
             hbox: {
-                MEDIUM.get(HBox.class).add(new ExpressionFactory<>("(|new )hbox", (state, values, args) -> new HBox(), HBox.class));
+                MEDIUM.get(HBox.class).add(new ExpressionFactory<>("new hbox", "(|new )hbox", (state, values, args) -> new HBox(), HBox.class));
             }
             stringProperty: {
                 MEDIUM.get(StringProperty.class).add(new ExpressionFactory<>("title property of %stage%", (state, values, args) -> ((Stage) values.get(0)).titleProperty(), StringProperty.class));
                 MEDIUM.get(StringProperty.class).add(new ExpressionFactory<>("text property of %button%", (state, values, args) -> ((Button) values.get(0)).textProperty(), StringProperty.class));
             }
             background: {
-                MEDIUM.get(Background.class).add(new ExpressionFactory<>("(|new )background colo(u|)red %color% with corner radius %number%", (state, values, args) -> new Background(new BackgroundFill((Color) values.get(0), new CornerRadii((Double) values.get(1)), Insets.EMPTY)), Background.class));
+                MEDIUM.get(Background.class).add(new ExpressionFactory<>("new background colored %color% with corner radius %number%", "(|new )background colo(u|)red %color% with corner radius %number%", (state, values, args) -> new Background(new BackgroundFill((Color) values.get(0), new CornerRadii((Double) values.get(1)), Insets.EMPTY)), Background.class));
             }
         }
 
@@ -609,10 +606,8 @@ public class SyntaxManager {
         if (currentPiece.toString().length() > 0 && !currentPiece.toString().equals(",")) methods.add(currentPiece.toString());
         Object currentObj = obj;
         for (String methodText : methods) {
-            System.out.println("On method text: " + methodText + " with object: " + currentObj.getClass());
             Object nextObj = getMethodFromString(methodText, currentObj.getClass(), state, currentObj);
             if (nextObj == null) return currentObj;
-            System.out.println("Got object: " + nextObj + " class: " + nextObj.getClass());
             currentObj = nextObj;
         }
         return currentObj;
@@ -762,6 +757,28 @@ public class SyntaxManager {
             }
         }
         return false;
+    }
+
+    public static ArrayList<ExpressionFactory<?>> getAllExpressionFactories() {
+        ArrayList<ExpressionFactory<?>> arrayList = new ArrayList<>();
+        EXPRESSIONS.values().forEach(classArrayListHashMap -> classArrayListHashMap.values().forEach(arrayList::addAll));
+        return arrayList;
+    }
+    public static ArrayList<ExpressionFactory<?>> getAllExpressionFactories(Class<?> ofClass) {
+        ArrayList<ExpressionFactory<?>> arrayList = new ArrayList<>();
+        EXPRESSIONS.values().forEach(classArrayListHashMap -> arrayList.addAll(classArrayListHashMap.get(ofClass)));
+        return arrayList;
+    }
+    public static ArrayList<ExpressionFactory<?>> getAllExpressionFactoriesFromClass(Class<?> ofClass) {
+        ArrayList<ExpressionFactory<?>> arrayList = new ArrayList<>();
+        for (HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> map : EXPRESSIONS.values()) {
+            for (Map.Entry<Class<?>, ArrayList<ExpressionFactory<?>>> entry : map.entrySet()) {
+                if (ofClass.isAssignableFrom(entry.getKey()) || entry.getKey() == Object.class || ofClass == String.class) {
+                    arrayList.addAll(entry.getValue());
+                }
+            }
+        }
+        return arrayList;
     }
 
 }

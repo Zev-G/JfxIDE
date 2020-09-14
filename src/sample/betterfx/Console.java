@@ -51,7 +51,7 @@ public class Console extends HBox {
     private Background mainBg = new Background(new BackgroundFill(Paint.valueOf("#333333"), CornerRadii.EMPTY, Insets.EMPTY));
     private String textFill = "rgb(245, 245, 245)";
     private Color defaultConsoleColor = Color.rgb(245, 245, 245);
-    private static final Font FONT = new Font("Terminal", 20);
+    private Font font = new Font("Terminal", 20);
     private static final Font INPUT_FONT = new Font("Terminal", 24);
 
     private final ArrayList<String> sent = new ArrayList<>();
@@ -213,7 +213,7 @@ public class Console extends HBox {
     public Text getDefaultText(Color color) { return getDefaultText("", color); }
     public Text getDefaultText(String s, Color color) {
         Text text = new Text(s + " ");
-        text.setFont(FONT);
+        text.setFont(font);
         text.setFill(color);
         return text;
     }
@@ -257,10 +257,11 @@ public class Console extends HBox {
         }
     }
 
-    public void setMainBg(Paint paint) { setMainBg(new Background(new BackgroundFill(paint, CornerRadii.EMPTY, Insets.EMPTY))); }
-    public void setMainBg(Background background) {
+    public void setMainBg(Paint paint) {
+        Background background = new Background(new BackgroundFill(paint, CornerRadii.EMPTY, Insets.EMPTY));
         inputBox.setBackground(background);
         consoleTextScrollPane.setBackground(background);
+        consoleTextScrollPane.setBorder(new Border(new BorderStroke(paint, BorderStrokeStyle.NONE, CornerRadii.EMPTY, BorderWidths.EMPTY)));
         consoleText.setBackground(background);
         consoleInput.setBackground(background);
         wrapConsoleText.setBackground(background);
@@ -399,5 +400,12 @@ public class Console extends HBox {
         newText.setVisible(text.isVisible());
         newText.setFill(text.getFill());
         return newText;
+    }
+
+    public void setFont(Font font) {
+        this.font = font;
+    }
+    public Font getFont() {
+        return font;
     }
 }

@@ -11,7 +11,7 @@ public class Function<T> extends Event {
 
     private final String name;
     private final ArrayList<FunctionArgument> arguments = new ArrayList<>();
-    public static boolean PRINT_IF_RETURNING_NULL = true;
+    public static boolean PRINT_IF_RETURNING_NULL = false;
 
     private boolean ran = false;
 
@@ -30,10 +30,7 @@ public class Function<T> extends Event {
         // Check if args match args
         int i = 0;
         if (ran) {
-            System.out.println("Run chunk before: " + getRunChunk());
             this.setRunChunk(this.getRunChunk().duplicateWithoutVariables());
-            System.out.println("Run chunk after: " + getRunChunk());
-            System.out.println("Calling function: " + name + " and i dont even know");
         }
         ran = true;
         for (FunctionArgument argument : arguments) {
@@ -44,7 +41,6 @@ public class Function<T> extends Event {
             }
             i++;
         }
-        System.out.println("Run chunk that gets ran: " + getRunChunk());
         run();
         T returnedObject = (T) getRunChunk().getReturnedObject();
         if (returnedObject == null && PRINT_IF_RETURNING_NULL) {

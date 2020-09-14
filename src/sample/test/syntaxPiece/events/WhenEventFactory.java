@@ -10,14 +10,21 @@ import sample.test.variable.Variable;
 import java.util.ArrayList;
 
 public class WhenEventFactory extends Event implements SyntaxPieceFactory {
-    
+
+    private final String usage;
     private final String regex;
     private EventProcessedHandler eventProcessedHandler;
     
     private final ArrayList<ExpressionFactory<?>> expressionArgs = new ArrayList<>();
     
+    public WhenEventFactory(String usage, String regex, EventProcessedHandler eventProcessedHandler) {
+        this.regex = regex;
+        this.usage = usage;
+        this.eventProcessedHandler = eventProcessedHandler;
+    }
     public WhenEventFactory(String regex, EventProcessedHandler eventProcessedHandler) {
         this.regex = regex;
+        this.usage = regex;
         this.eventProcessedHandler = eventProcessedHandler;
     }
     
@@ -60,6 +67,11 @@ public class WhenEventFactory extends Event implements SyntaxPieceFactory {
         return classes;
     }
 
+    @Override
+    public String getUsage() {
+        return usage;
+    }
+
     public String getRegex() {
         return regex;
     }
@@ -79,7 +91,7 @@ public class WhenEventFactory extends Event implements SyntaxPieceFactory {
 
     @Override
     public WhenEventFactory duplicate() {
-        WhenEventFactory event = new WhenEventFactory(regex, eventProcessedHandler);
+        WhenEventFactory event = new WhenEventFactory(usage, regex, eventProcessedHandler);
         event.setRunChunk(getRunChunk());
         event.setParent(parent);
         event.setTopLevel(isTopLevel());

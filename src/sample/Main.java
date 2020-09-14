@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import sample.betterfx.CommandConsole;
+import sample.ide.Ide;
 import sample.panel.RunPanel;
 import sample.test.FXScript;
 import sample.test.interpretation.SyntaxManager;
@@ -21,12 +22,15 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
 
+
+
         SyntaxManager.init();
 
 
         CommandConsole console = new CommandConsole();
         SyntaxManager.setPrintConsole(console);
-        primaryStage.setScene(new Scene(console));
+//        primaryStage.setScene(new Scene(console));
+        primaryStage.setScene(new Scene(new Ide()));
         primaryStage.show();
         AtomicReference<File> codeFile = new AtomicReference<>(new File(Main.class.getResource("test_code.sfs").getFile()));
         console.setOnUserInput((inputtedString, eventConsole) -> {

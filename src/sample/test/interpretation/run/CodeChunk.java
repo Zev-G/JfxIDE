@@ -25,10 +25,9 @@ public class CodeChunk extends CodeState {
 
     public void run() {
         finished = false;
-        System.out.println("Running Code Chunk: " + code + " current variables: " + variables.values() + " parent: " + parent + (parent != null ? "Parent variables: " + parent.getVariables().values() : ""));
         for (CodePiece piece : pieces) {
             if (!finished) {
-                System.out.println("-=-Running Piece: (" + piece.getCode() + ") -=-");
+//                System.out.println("-=-Running Piece: (" + piece.getCode() + ") -=-");
                 piece.setCodeChunk(this);
                 piece.run();
             }

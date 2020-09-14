@@ -1,0 +1,72 @@
+* {
+    -default-text-color: #808da7;
+    -editor-background-color: #273245;
+    -fx-background: #273245;
+    -editor-selected-line: #4e5a6e;
+    -editor-selection: rgba(200, 200, 200, 0.3);
+}
+
+@font-face {
+    font-family: Montserrat;
+    src: url('Montserrat-Regular.ttf');
+}
+
+.keyword {
+    -fx-fill: #c678dd !important;
+}
+.string {
+    -fx-fill: #88d258 !important;
+}
+.comment {
+    -fx-fill: #7e7e7e !important;
+}
+.number {
+    -fx-fill: #f3af3a !important;
+}
+.variable {
+    -fx-fill: #ff475b !important;
+}
+.expression {
+    -fx-fill: #a960c1 !important;
+}
+.effect {
+    -fx-fill: #ab54b0 !important;
+}
+.event {
+    -fx-fill: #a473db !important;
+}
+
+.code-area {
+    -fx-background-color: -editor-background-color;
+}
+.code-area  .paragraph-box .paragraph-text,.paragraph-text .text{
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 18;
+    -fx-padding: 0 0 0 8;
+    -fx-effect: dropshadow( gaussian , rgba(43, 43, 43, 0.5), 0,0,0,1 );
+    /*-fx-font-weight: bold;*/
+}
+
+.code-area .lineno, .lineno {
+    -fx-text-fill: -default-text-color;
+    -fx-font-size: 16;
+    -fx-background-color: rgb(36, 49, 64);
+    -fx-font-family: monospace;
+    -fx-effect: dropshadow(gaussian, rgb(27, 37, 48), 10, 0, 5, 3);
+    -fx-background-radius: 0;
+    -fx-box-border: none;
+}
+
+.code-area .text {
+    -fx-fill: -default-text-color;
+}
+
+.styled-text-area .selection {
+    -fx-fill: -editor-selection;
+}
+.caret {
+    -fx-stroke: white;
+}
+.code-area, .code-area .content{
+    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.5) , 0,0,0,1 );
+}

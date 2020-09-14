@@ -15,7 +15,6 @@ public class ElseStatement extends Event {
         boolean ifStatement = chunk.getLastEvent() instanceof IfStatement
                 && !(((IfStatement) chunk.getLastEvent()).isRanLastTime());
         boolean elseIfStatement = chunk.getLastEvent() instanceof ElseIfStatement && (!((ElseIfStatement) chunk.getLastEvent()).isRanLastTime());
-        System.out.println("IF: " + ifStatement + " else: " + elseIfStatement + " last event: " + chunk.getLastEvent());
         if (ifStatement || elseIfStatement) {
             super.run();
         }

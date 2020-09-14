@@ -18,7 +18,6 @@ public class ElseIfStatement extends Event {
         boolean elseIfStatement = this.state.getLastEvent() instanceof ElseIfStatement && (!((ElseIfStatement) this.state.getLastEvent()).isRanLastTime());
         if (ifStatement || elseIfStatement) {
             if ((Boolean) condition.activate()) {
-                System.out.println("Boolean passed");
                 ranLastTime = true;
                 super.run();
             } else {

@@ -16,7 +16,6 @@ public class IfStatement extends Event {
     public void run() {
         this.getParent().getCodeChunk().setLastEvent(this);
         if ((Boolean) condition.activate()) {
-            System.out.println("Boolean passed");
             ranLastTime = true;
             super.run();
         } else {

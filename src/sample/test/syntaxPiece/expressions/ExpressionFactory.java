@@ -13,21 +13,28 @@ import java.util.Arrays;
 
 public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFactory {
 
+    private final String usage;
     private final String regex;
     private ExpressionCreationHandler<T> expressionCreationHandler;
 
     private ArrayList<ExpressionFactory<?>> expressionArgs = new ArrayList<>();
 
-    public ExpressionFactory(String regex, ExpressionCreationHandler<T> expressionCreationHandler, Class<T> thisClass) {
+    public ExpressionFactory(String usage, String regex, ExpressionCreationHandler<T> expressionCreationHandler, Class<T> thisClass) {
         super(thisClass);
+        this.usage = usage;
         this.regex = regex;
         this.expressionCreationHandler = expressionCreationHandler;
     }
-    public ExpressionFactory(String text, String regex, ExpressionCreationHandler<T> expressionCreationHandler, Class<T> thisClass) {
+    public ExpressionFactory(String regex, ExpressionCreationHandler<T> expressionCreationHandler, Class<T> thisClass) {
         super(thisClass);
-        this.text = text;
+        this.usage = regex;
         this.regex = regex;
         this.expressionCreationHandler = expressionCreationHandler;
+    }
+
+    @Override
+    public String getUsage() {
+        return usage;
     }
 
     public String getRegex() {
@@ -80,7 +87,6 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
                 chunk = ((Event) loopParent).getParent().getCodeChunk();
                 if (CodeChunk.printing) System.out.println("Chunk: " + chunk);
             } else {
-                System.out.println("Stuck in loop!: " + loopParent);
                 break;
             }
         }
@@ -152,7 +158,7 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
 
     @Override
     public ExpressionFactory<T> duplicate() {
-        ExpressionFactory<T> expressionFactory = new ExpressionFactory<>(this.regex, expressionCreationHandler, thisClass);
+        ExpressionFactory<T> expressionFactory = new ExpressionFactory<>(this.usage, this.regex, expressionCreationHandler, thisClass);
         expressionFactory.setCode(code);
         expressionFactory.setParent(parent);
         expressionFactory.setGenerateClass(generateClass);

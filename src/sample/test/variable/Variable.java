@@ -2,6 +2,12 @@ package sample.test.variable;
 
 import javafx.beans.value.ChangeListener;
 
+/**
+ * <p>
+ *     This class is used for storing and retrieving values for a variable. This variable has a name and can have a listener attached to it.
+ * </p>
+ * @param <T> The type of the value stored inside.
+ */
 public class Variable<T> {
 
     private final boolean global;

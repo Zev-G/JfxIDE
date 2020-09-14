@@ -12,12 +12,19 @@ import java.util.Arrays;
 
 public class EffectFactory extends Effect implements SyntaxPieceFactory {
 
+    private final String usage;
     private final String regex;
     private EffectCreationHandler effectCreationHandler;
 
     private final ArrayList<ExpressionFactory<?>> expressionArgs = new ArrayList<>();
 
+    public EffectFactory(String usage, String regex, EffectCreationHandler effectCreationHandler) {
+        this.usage = usage;
+        this.regex = regex;
+        this.effectCreationHandler = effectCreationHandler;
+    }
     public EffectFactory(String regex, EffectCreationHandler effectCreationHandler) {
+        this.usage = regex;
         this.regex = regex;
         this.effectCreationHandler = effectCreationHandler;
     }
@@ -88,6 +95,11 @@ public class EffectFactory extends Effect implements SyntaxPieceFactory {
         return classes;
     }
 
+    @Override
+    public String getUsage() {
+        return usage;
+    }
+
     public String getRegex() {
         return regex;
     }
@@ -110,7 +122,7 @@ public class EffectFactory extends Effect implements SyntaxPieceFactory {
     }
 
     public EffectFactory duplicate() {
-        EffectFactory factory = new EffectFactory(regex, effectCreationHandler);
+        EffectFactory factory = new EffectFactory(usage, regex, effectCreationHandler);
         factory.getExpressionArgs().addAll(expressionArgs);
         factory.setCode(code);
         factory.setParent(parent);
