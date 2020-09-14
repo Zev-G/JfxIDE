@@ -55,7 +55,7 @@ public final class IdeSpecialParser {
                 String lastPiece = piece;
                 lastWasExpression = isAnExpression;
                 if (codeBuffer.length() == 0) {
-                    possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, codeBufferForPiece, lastPiece, i, filledIn.toString(), notFilledInPieces));
+                    possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, codeBufferForPiece, lastPiece, i, filledIn.toString(), notFilledInPieces, code));
                     System.out.println("Continue (0) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                     continue pieces;
                 }
@@ -91,7 +91,7 @@ public final class IdeSpecialParser {
                                 continue pieces;
                             }
                         } else {
-                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, true, lastExpression, beforeCodeBuffer, lastPiece, i, filledIn.toString(), notFilledInPieces));
+                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, true, lastExpression, beforeCodeBuffer, lastPiece, i, filledIn.toString(), notFilledInPieces, code));
                             System.out.println("Continue (3) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                             continue pieces;
                         }
@@ -108,7 +108,7 @@ public final class IdeSpecialParser {
                         codeBuffer = codeBuffer.replaceFirst(codeBuffer, "");
                         filledIn.append(codeBufferForPiece);
                         if (pieces.size() - 1 == i) {
-                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, codeBuffer, lastPiece, i, filledIn.toString(), notFilledInPieces));
+                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, codeBuffer, lastPiece, i, filledIn.toString(), notFilledInPieces, code));
                             System.out.println("Continue (5) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                             continue pieces;
                         }
@@ -134,7 +134,7 @@ public final class IdeSpecialParser {
         return possiblePiecePackages;
     }
 
-    private static <T extends SyntaxPieceFactory> PossiblePiecePackage<T> getPackage(T syntaxPieceFactory, ArrayList<String> pieces, boolean lastWasExpression, String lastExpression, String codeBuffer, String lastPiece, int i, String filledIn, ArrayList<String> notFilledIn) {
+    private static <T extends SyntaxPieceFactory> PossiblePiecePackage<T> getPackage(T syntaxPieceFactory, ArrayList<String> pieces, boolean lastWasExpression, String lastExpression, String codeBuffer, String lastPiece, int i, String filledIn, ArrayList<String> notFilledIn, String code) {
         Class<?> aClass = lastWasExpression ? SyntaxManager.SUPPORTED_TYPES.get(lastPiece.replaceAll("%", "")) : null;
         List<String> list = pieces.subList(0, i);
         list.remove(list.size() - 1);
