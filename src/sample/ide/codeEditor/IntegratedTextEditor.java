@@ -1,7 +1,9 @@
 package sample.ide.codeEditor;
 
 import javafx.application.Platform;
+import javafx.css.PseudoClass;
 import javafx.geometry.Bounds;
+import javafx.scene.control.IndexRange;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
@@ -15,12 +17,15 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.w3c.dom.ranges.Range;
 import sample.ide.Ide;
 import sample.ide.IdeSpecialParser;
 import sample.test.interpretation.SyntaxManager;
+import sample.test.syntaxPiece.SyntaxPiece;
 import sample.test.syntaxPiece.SyntaxPieceFactory;
 import sample.test.syntaxPiece.effects.EffectFactory;
 
+import java.awt.font.NumericShaper;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,7 +33,8 @@ import java.util.regex.Pattern;
 public class IntegratedTextEditor extends CodeArea {
 
     // Static Fields
-    private static final ArrayList<String> ADDED_SYNTAX_PATTERNS = new ArrayList<>();
+
+    private final ArrayList<String> ADDED_SYNTAX_PATTERNS = new ArrayList<>();
 
     private final String[] KEYWORDS = { "function", "if", "else" };
     private final String KEYWORD_PATTERN = "(" + String.join("|", KEYWORDS) + ")";
@@ -56,10 +62,11 @@ public class IntegratedTextEditor extends CodeArea {
 
     // Non Static Fields
 
-    private final ArrayList<IdeSpecialParser.PossiblePiecePackage<EffectFactory>> factoryOrder = new ArrayList<>();
+    private final ArrayList<IdeSpecialParser.PossiblePiecePackage<SyntaxPieceFactory>> factoryOrder = new ArrayList<>();
     private final VBox popupBox = new VBox();
     private final ScrollPane popupScrollPane = new ScrollPane(popupBox);
     private final Popup autoCompletePopup = new Popup();
+    private final ArrayList<IndexRange> selectionQueue = new ArrayList<>();
 
     public IntegratedTextEditor() {
         this.setParagraphGraphicFactory(LineNumberFactory.get(this));
@@ -76,6 +83,26 @@ public class IntegratedTextEditor extends CodeArea {
             }
         });
         Pattern whiteSpace = Pattern.compile( "^\\s+" );
+
+        this.textProperty().addListener((observableValue, s, t1) -> {
+            if (this.getCaretPosition() < t1.length()) {
+                String lastCharacter = this.getText(this.getCaretPosition(), this.getCaretPosition() + 1);
+                System.out.println(lastCharacter);
+                int bracketsBefore = stringOccurrences(s, '{');
+                int bracketsAfter = stringOccurrences(t1, '{');
+                System.out.println(bracketsBefore + " " + bracketsAfter);
+                if (bracketsAfter == bracketsBefore - 1 && lastCharacter.equals("}")) {
+                    this.replaceText(this.getCaretPosition(), this.getCaretPosition() + 1, "");
+                } else {
+                    int quotesBefore = stringOccurrences(s, '"');
+                    int quotesAfter = stringOccurrences(t1, '"');
+                    if (quotesAfter == quotesBefore - 1 && lastCharacter.equals("\"")) {
+                        this.replaceText(this.getCaretPosition(), this.getCaretPosition() + 1, "");
+                    }
+                }
+            }
+            Platform.runLater(() -> fillBox(this.getParagraph(this.getCurrentParagraph()).getSegments().get(0)));
+        });
 
         this.addEventFilter( KeyEvent.KEY_PRESSED, keyEvent -> {
             String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
@@ -129,7 +156,6 @@ public class IntegratedTextEditor extends CodeArea {
         };
         this.caretBoundsProperty().addListener((observableValue, integer, t1) -> {
             runWhenChanged.run();
-            Platform.runLater(() -> fillBox(this.getParagraph(this.getCurrentParagraph()).getSegments().get(0)));
         });
         this.sceneProperty().addListener((observableValue, scene, t1) -> {
             Window t11 = t1.getWindow();
@@ -137,25 +163,34 @@ public class IntegratedTextEditor extends CodeArea {
             t11.yProperty().addListener((observableValue11, number, t111) -> autoCompletePopup.hide());
             t11.widthProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
             t11.heightProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
-            t11.setWidth(800);
-            t11.setHeight(700);
         });
         this.setOnMousePressed(mouseEvent -> autoCompletePopup.hide());
 
+    }
+
+    private int stringOccurrences(String string, char checkFor) {
+        int occurrences = 0;
+        for (char c : string.toCharArray()) {
+            if (c == checkFor) occurrences++;
+        }
+        return occurrences;
     }
 
     private void fillBox(String line) {
         if (line.length() > 0) {
             factoryOrder.clear();
             System.out.println("---00--- Searching ---00---");
-            factoryOrder.addAll(IdeSpecialParser.possibleSyntaxPieces(line, SyntaxManager.EFFECT_FACTORIES));
+            ArrayList<SyntaxPieceFactory> allSyntaxPieceFactories = new ArrayList<>();
+            allSyntaxPieceFactories.addAll(SyntaxManager.EFFECT_FACTORIES);
+            allSyntaxPieceFactories.addAll(SyntaxManager.EVENT_FACTORIES);
+//            allSyntaxPieceFactories.addAll(SyntaxManager.getAllExpressionFactories());
+            factoryOrder.addAll(IdeSpecialParser.possibleSyntaxPieces(line, allSyntaxPieceFactories));
             System.out.println("Got: " + factoryOrder + "(size: " + factoryOrder.size() + ")");
             popupBox.getChildren().clear();
-            for (IdeSpecialParser.PossiblePiecePackage<EffectFactory> entry : factoryOrder) {
-                Label label = new Label(entry.getNotFilledIn());
+            for (IdeSpecialParser.PossiblePiecePackage<SyntaxPieceFactory> entry : factoryOrder) {
+                Label label = new Label(entry.getSyntaxPieceFactory().getUsage());
                 label.setFont(new Font(16));
                 popupBox.getChildren().add(new HBox(label));
-                System.out.println(entry.toString());
             }
             if (!popupBox.getChildren().isEmpty()) {
                 autoCompletePopup.show(this.getScene().getWindow());
@@ -169,7 +204,7 @@ public class IntegratedTextEditor extends CodeArea {
     }
 
 
-    private static <T extends SyntaxPieceFactory> String generateSyntaxPattern(Collection<T> factories) {
+    private <T extends SyntaxPieceFactory> String generateSyntaxPattern(Collection<T> factories) {
         ArrayList<String> patterns = new ArrayList<>();
         for (SyntaxPieceFactory factory : factories) {
             String[] pieces = factory.getRegex().split("( %(.*?)%|%(.*?)% |%(.*?)%)");

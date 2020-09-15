@@ -2,6 +2,7 @@
     -main-background-color: #273245;
     -lighter-background-color: #38465d;
     -darker-background-color: #1c2532;
+    -darkest-background-color: #171d2b;
     -fx-background: #1c2532;
     -default-text-color: #bcc5d2;
     -highlight-color: #b94646;
@@ -94,4 +95,36 @@
 }
 .split-pane {
     -fx-background-color: -main-background-color;
+}
+
+.menu-bar {
+    -fx-background-color: -darkest-background-color;
+}
+
+.menu-bar .label {
+    -fx-text-fill: -default-text-color;
+}
+.menu-item {
+    -fx-background-color: -darkest-background-color;
+}
+.menu-item:hover {
+    -fx-background-color: -fx-background;
+}
+
+.popup-shower {
+    -fx-background-color: rgba(30, 30, 30, 0.5);
+}
+
+.context-menu {
+    -fx-background-color: -darkest-background-color;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: -main-background-color;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: -fx-background;
+}
+.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+    -fx-border-color: transparent;
 }

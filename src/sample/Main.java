@@ -32,6 +32,8 @@ public class Main extends Application {
 //        primaryStage.setScene(new Scene(console));
         primaryStage.setScene(new Scene(new Ide()));
         primaryStage.show();
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(600);
         AtomicReference<File> codeFile = new AtomicReference<>(new File(Main.class.getResource("test_code.sfs").getFile()));
         console.setOnUserInput((inputtedString, eventConsole) -> {
             if (!inputtedString.startsWith("/")) {

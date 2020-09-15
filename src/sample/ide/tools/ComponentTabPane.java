@@ -3,6 +3,9 @@ package sample.ide.tools;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.css.PseudoClass;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.*;
@@ -31,7 +34,8 @@ public class ComponentTabPane extends TabPane {
     public static final String STYLE_SHEET = ComponentTabPane.class.getResource("tab.css").toExternalForm();
 
     public static final Color DEFAULT_LABEL_COLOR = Color.WHITE;
-    public static final Color SELECTED_LABEL_COLOR = Color.WHITE;
+
+    private EventHandler<Event> eventEventHandler;
 
     public ComponentTabPane() {
         super();
@@ -43,6 +47,7 @@ public class ComponentTabPane extends TabPane {
     }
 
     private void init() {
+        this.getStyleClass().add("component-tab-pane");
         ALL_TAB_PANES.add(this);
         this.setTabDragPolicy(TabDragPolicy.REORDER);
         this.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
@@ -50,14 +55,14 @@ public class ComponentTabPane extends TabPane {
 
         this.getStylesheets().add(STYLE_SHEET);
 
-        this.getSelectionModel().selectedItemProperty().addListener((observableValue, tab, t1) -> {
-            if (t1 instanceof ComponentTab) {
-                ((ComponentTab) t1).getLabel().setTextFill(SELECTED_LABEL_COLOR);
-            }
-            if (tab instanceof ComponentTab) {
-                ((ComponentTab) tab).getLabel().setTextFill(DEFAULT_LABEL_COLOR);
-            }
-        });
+    }
+
+    public EventHandler<Event> getOnTabCloseRequested() {
+        return eventEventHandler;
+    }
+
+    public void setOnTabCloseRequested(EventHandler<Event> eventHandler) {
+        this.eventEventHandler = eventHandler;
     }
 
     public ComponentTab getSelectedTab() {
@@ -81,7 +86,7 @@ public class ComponentTabPane extends TabPane {
         private final IntegratedTextEditor integratedTextEditor;
 
         private File file;
-
+        private Node mainNode;
 
         public ComponentTab(String s, IntegratedTextEditor node) {
             super("", node);
@@ -91,6 +96,7 @@ public class ComponentTabPane extends TabPane {
         }
 
         private void init() {
+            this.getStyleClass().add("component-tab");
             this.setGraphic(label);
             label.setTextFill(DEFAULT_LABEL_COLOR);
             makeDraggable();
@@ -102,7 +108,15 @@ public class ComponentTabPane extends TabPane {
                 @Override
                 public void changed(ObservableValue<? extends TabPane> observableValue, TabPane tabPane, TabPane t1) {
                     ogTabPane = t1;
+                    if (t1 instanceof ComponentTabPane) {
+                        setOnCloseRequest(((ComponentTabPane) t1).getOnTabCloseRequested());
+                    }
                     tabPaneProperty().removeListener(this);
+                }
+            });
+            this.contentProperty().addListener((observableValue, node, t1) -> {
+                if (mainNode == null && t1 != null) {
+                    mainNode = t1;
                 }
             });
         }
@@ -218,6 +232,12 @@ public class ComponentTabPane extends TabPane {
             });
         }
 
+        public void setMainNode(Node mainNode) {
+            this.mainNode = mainNode;
+        }
+        public Node getMainNode() {
+            return mainNode;
+        }
 
         private ComponentTabPane getTopTabPane(MouseEvent mouseEvent) {
             ComponentTabPane pane = null;
