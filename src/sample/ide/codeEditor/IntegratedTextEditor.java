@@ -1,9 +1,7 @@
 package sample.ide.codeEditor;
 
 import javafx.application.Platform;
-import javafx.css.PseudoClass;
 import javafx.geometry.Bounds;
-import javafx.scene.control.IndexRange;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
@@ -17,16 +15,14 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
-import org.w3c.dom.ranges.Range;
 import sample.ide.Ide;
 import sample.ide.IdeSpecialParser;
 import sample.test.interpretation.SyntaxManager;
-import sample.test.syntaxPiece.SyntaxPiece;
 import sample.test.syntaxPiece.SyntaxPieceFactory;
-import sample.test.syntaxPiece.effects.EffectFactory;
 
-import java.awt.font.NumericShaper;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,9 +62,10 @@ public class IntegratedTextEditor extends CodeArea {
     private final VBox popupBox = new VBox();
     private final ScrollPane popupScrollPane = new ScrollPane(popupBox);
     private final Popup autoCompletePopup = new Popup();
-    private final ArrayList<IndexRange> selectionQueue = new ArrayList<>();
+    private final ArrayList<String> selectionQueue = new ArrayList<>();
 
     public IntegratedTextEditor() {
+//        System.out.println(PATTERN);
         this.setParagraphGraphicFactory(LineNumberFactory.get(this));
         this.richChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(change -> this.setStyleSpans(0, computeHighlighting(this.getText())));
 
@@ -87,10 +84,8 @@ public class IntegratedTextEditor extends CodeArea {
         this.textProperty().addListener((observableValue, s, t1) -> {
             if (this.getCaretPosition() < t1.length()) {
                 String lastCharacter = this.getText(this.getCaretPosition(), this.getCaretPosition() + 1);
-                System.out.println(lastCharacter);
                 int bracketsBefore = stringOccurrences(s, '{');
                 int bracketsAfter = stringOccurrences(t1, '{');
-                System.out.println(bracketsBefore + " " + bracketsAfter);
                 if (bracketsAfter == bracketsBefore - 1 && lastCharacter.equals("}")) {
                     this.replaceText(this.getCaretPosition(), this.getCaretPosition() + 1, "");
                 } else {
@@ -104,10 +99,13 @@ public class IntegratedTextEditor extends CodeArea {
             Platform.runLater(() -> fillBox(this.getParagraph(this.getCurrentParagraph()).getSegments().get(0)));
         });
 
-        this.addEventFilter( KeyEvent.KEY_PRESSED, keyEvent -> {
+        this.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
             String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
             KeyCode keyCode = keyEvent.getCode();
             String textAfterCaret = this.getText().substring(this.getCaretPosition());
+            if (!selectionQueue.isEmpty() && keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
+                selectionQueue.clear();
+            }
             if (keyCode == KeyCode.ENTER) {
                 Matcher m = whiteSpace.matcher(line);
                 Platform.runLater( () -> this.insertText( this.getCaretPosition(), (m.find() ? m.group() : "") + (line.endsWith(":") ? "  " : "")));
@@ -139,9 +137,18 @@ public class IntegratedTextEditor extends CodeArea {
                     }
                 }
             } else if (keyCode == KeyCode.TAB) {
-                if (autoCompletePopup.isShowing()) {
+                if (autoCompletePopup.isShowing() && this.getSelectedText().equals("")) {
                     keyEvent.consume();
-                    this.insertText(this.getCaretPosition(), factoryOrder.get(0).getNotFilledIn());
+                    String text = factoryOrder.get(0).getNotFilledIn();
+                    this.insertText(this.getCaretPosition(), text);
+                    selectionQueue.clear();
+                    selectNext();
+                } else if (!selectionQueue.isEmpty() && this.getSelectedText().equals("")) {
+                    selectNext();
+                    keyEvent.consume();
+//                    IndexRange indexRange = selectionQueue.get(0);
+//                    selectionQueue.remove(0);
+//                    this.selectRange(indexRange.getStart(), indexRange.getEnd());
                 }
             }
         });
@@ -154,9 +161,7 @@ public class IntegratedTextEditor extends CodeArea {
                 });
             }
         };
-        this.caretBoundsProperty().addListener((observableValue, integer, t1) -> {
-            runWhenChanged.run();
-        });
+        this.caretBoundsProperty().addListener((observableValue, integer, t1) -> runWhenChanged.run());
         this.sceneProperty().addListener((observableValue, scene, t1) -> {
             Window t11 = t1.getWindow();
             t11.xProperty().addListener((observableValue11, number, t111) -> autoCompletePopup.hide());
@@ -164,8 +169,43 @@ public class IntegratedTextEditor extends CodeArea {
             t11.widthProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
             t11.heightProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
         });
-        this.setOnMousePressed(mouseEvent -> autoCompletePopup.hide());
+        this.setOnMousePressed(mouseEvent -> {
+            autoCompletePopup.hide();
+            selectionQueue.clear();
+        });
+    }
 
+    public void selectNext() {
+        StringBuilder builder = new StringBuilder();
+        boolean inPercentageSign = false;
+        int loops = 0;
+        int lineStart = 0;
+        int parenStart = 0;
+        for (int i = this.getCurrentParagraph() - 1; i >= 0; i--) {
+            lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
+        }
+        boolean first = true;
+        String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
+        for (char c : line.toCharArray()) {
+            if (c == '%') {
+                if (inPercentageSign) {
+                    inPercentageSign = false;
+                    builder.append(c);
+                    if (first) {
+                        this.selectRange(parenStart + lineStart, loops + lineStart + 1);
+                        first = false;
+                    } else {
+                        selectionQueue.add(builder.toString());
+                    }
+                    builder = new StringBuilder();
+                } else {
+                    inPercentageSign = true;
+                    builder.append(c);
+                    parenStart = loops;
+                }
+            }
+            loops++;
+        }
     }
 
     private int stringOccurrences(String string, char checkFor) {
@@ -177,20 +217,21 @@ public class IntegratedTextEditor extends CodeArea {
     }
 
     private void fillBox(String line) {
-        if (line.length() > 0) {
+        if (line.trim().length() > 0) {
             factoryOrder.clear();
-            System.out.println("---00--- Searching ---00---");
             ArrayList<SyntaxPieceFactory> allSyntaxPieceFactories = new ArrayList<>();
             allSyntaxPieceFactories.addAll(SyntaxManager.EFFECT_FACTORIES);
             allSyntaxPieceFactories.addAll(SyntaxManager.EVENT_FACTORIES);
 //            allSyntaxPieceFactories.addAll(SyntaxManager.getAllExpressionFactories());
             factoryOrder.addAll(IdeSpecialParser.possibleSyntaxPieces(line, allSyntaxPieceFactories));
-            System.out.println("Got: " + factoryOrder + "(size: " + factoryOrder.size() + ")");
             popupBox.getChildren().clear();
             for (IdeSpecialParser.PossiblePiecePackage<SyntaxPieceFactory> entry : factoryOrder) {
-                Label label = new Label(entry.getSyntaxPieceFactory().getUsage());
-                label.setFont(new Font(16));
-                popupBox.getChildren().add(new HBox(label));
+                Label filledIn = new Label(entry.getFilledIn());
+                Label notFilledIn = new Label(entry.getNotFilledIn());
+                filledIn.getStyleClass().add("highlighted-label");
+                filledIn.setFont(new Font(16));
+                notFilledIn.setFont(new Font(16));
+                popupBox.getChildren().add(new HBox(filledIn, notFilledIn));
             }
             if (!popupBox.getChildren().isEmpty()) {
                 autoCompletePopup.show(this.getScene().getWindow());
@@ -202,7 +243,6 @@ public class IntegratedTextEditor extends CodeArea {
             autoCompletePopup.hide();
         }
     }
-
 
     private <T extends SyntaxPieceFactory> String generateSyntaxPattern(Collection<T> factories) {
         ArrayList<String> patterns = new ArrayList<>();
@@ -228,7 +268,6 @@ public class IntegratedTextEditor extends CodeArea {
         int lastKwEnd = 0;
         StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
         while(matcher.find()) {
-//            System.out.println(matcher.group("EXPRESSION"));
             String styleClass =
                 matcher.group("KEYWORD") != null ? "keyword" :
                 matcher.group("STRING") != null ? "string" :
@@ -246,6 +285,5 @@ public class IntegratedTextEditor extends CodeArea {
         spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
         return spansBuilder.create();
     }
-
 
 }

@@ -7,7 +7,6 @@ import sample.test.syntaxPiece.expressions.ExpressionFactory;
 import sample.test.variable.Variable;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public final class IdeSpecialParser {
 
@@ -56,7 +55,7 @@ public final class IdeSpecialParser {
                 lastWasExpression = isAnExpression;
                 if (codeBuffer.length() == 0) {
                     possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, codeBufferForPiece, lastPiece, i - 1, filledIn.toString(), notFilledInPieces, code));
-                    System.out.println("Continue (0) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
+                    //System.out.println("Continue (0) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                     continue pieces;
                 }
                 piece = "";
@@ -72,7 +71,7 @@ public final class IdeSpecialParser {
                         expressionCode.append(codeBuffer.charAt(0));
                         codeBuffer = codeBuffer.substring(1);
                         if (codeBuffer.equals("") && i < pieces.size() - 1) {
-                            System.out.println("Continue (1) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ") (Before code buffer: " + beforeCodeBuffer + ")");
+                            //System.out.println("Continue (1) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ") (Before code buffer: " + beforeCodeBuffer + ")");
                             continue pieces;
                         }
                     }
@@ -85,16 +84,16 @@ public final class IdeSpecialParser {
                                     .isAssignableFrom(expressionFactory.getGenericClass()) &&
                                     !Variable.class.isAssignableFrom(expressionFactory.getGenericClass())
                                     && expressionFactory.getGenericClass() != Object.class) {
-                                System.out.println("Continue (2) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
+                                //System.out.println("Continue (2) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                                 continue pieces;
                             }
                         } else {
                             possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, true, lastExpression, beforeCodeBuffer, lastPiece, i, filledIn.toString(), notFilledInPieces, code));
-                            System.out.println("Continue (3) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
+                            //System.out.println("Continue (3) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                             continue pieces;
                         }
                     } else {
-                        System.out.println("Continue (4) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
+                        //System.out.println("Continue (4) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                         continue pieces;
                     }
                     expressionTimes++;
@@ -106,16 +105,16 @@ public final class IdeSpecialParser {
                         filledIn.append(codeBufferForPiece);
                         if (pieces.size() - 1 == i) {
                             possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, codeBuffer, lastPiece, i, filledIn.toString(), notFilledInPieces, code));
-                            System.out.println("Continue (5) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
+                            //System.out.println("Continue (5) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                             continue pieces;
                         }
-                        System.out.println("CodeBuffer at this exact moment: " + codeBuffer + "(i: " + i + ")" + " (factory: " + syntaxPieceFactory.getUsage() + ")");
+                        //System.out.println("CodeBuffer at this exact moment: " + codeBuffer + "(i: " + i + ")" + " (factory: " + syntaxPieceFactory.getUsage() + ")");
                     } else {
                         if (codeBuffer.startsWith(piece)) {
                             codeBuffer = codeBuffer.replaceFirst(piece, "");
                             filledIn.append(piece);
                         } else {
-                            System.out.println("Continue (6) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
+                            //System.out.println("Continue (6) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                             continue pieces;
                         }
                     }
@@ -124,10 +123,10 @@ public final class IdeSpecialParser {
                 }
                 notFilledInPieces.remove(0);
             }
-            System.out.println("Down here");
+            //System.out.println("Down here");
             Class<?> aClass = lastWasExpression ? SyntaxManager.SUPPORTED_TYPES.get(piece.replaceAll("%", "")) : null;
             possiblePiecePackages.add(new PossiblePiecePackage<>(syntaxPieceFactory, aClass,
-                    codeBufferForPiece + String.join("", pieces), remainingText, lastWasExpression ? lastExpression : ""));
+                    codeBufferForPiece + String.join("", pieces), remainingText, lastWasExpression ? lastExpression : "", pieces));
 
         }
         return possiblePiecePackages;
@@ -137,11 +136,11 @@ public final class IdeSpecialParser {
         Class<?> aClass = lastWasExpression ? SyntaxManager.SUPPORTED_TYPES.get(lastPiece.replaceAll("%", "")) : null;
         String notFilled = syntaxPieceFactory.getUsage().substring(filledIn.length());
 
-        System.out.println("Code Buffer: " + codeBuffer + " Filled In: " + filledIn);
+        //System.out.println("Code Buffer: " + codeBuffer + " Filled In: " + filledIn);
 
         return new PossiblePiecePackage<>(syntaxPieceFactory, aClass, filledIn,
                 notFilled,
-                lastWasExpression ? lastExpression : "");
+                lastWasExpression ? lastExpression : "", pieces);
     }
 
     public static class PossiblePiecePackage<T extends SyntaxPieceFactory> {
@@ -151,7 +150,16 @@ public final class IdeSpecialParser {
         private String filledIn;
         private String notFilledIn;
         private String expressionText;
+        private ArrayList<String> pieces;
 
+        public PossiblePiecePackage(T syntaxPieceFactory, Class<?> tryingToGet, String filledIn, String notFilledIn, String expressionText, ArrayList<String> pieces) {
+            this.syntaxPieceFactory = syntaxPieceFactory;
+            this.tryingToGet = tryingToGet;
+            this.filledIn = filledIn;
+            this.notFilledIn = notFilledIn;
+            this.expressionText = expressionText;
+            this.pieces = pieces;
+        }
         public PossiblePiecePackage(T syntaxPieceFactory, Class<?> tryingToGet, String filledIn, String notFilledIn, String expressionText) {
             this.syntaxPieceFactory = syntaxPieceFactory;
             this.tryingToGet = tryingToGet;
@@ -187,6 +195,9 @@ public final class IdeSpecialParser {
         public String getExpressionText() {
             return expressionText;
         }
+        public ArrayList<String> getPieces() {
+            return pieces;
+        }
 
         public void setTryingToGet(Class<?> tryingToGet) {
             this.tryingToGet = tryingToGet;
@@ -199,6 +210,9 @@ public final class IdeSpecialParser {
         }
         public void setExpressionText(String expressionText) {
             this.expressionText = expressionText;
+        }
+        public void setPieces(ArrayList<String> pieces) {
+            this.pieces = pieces;
         }
 
         @Override
