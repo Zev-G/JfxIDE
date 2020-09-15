@@ -1,11 +1,15 @@
 package sample.ide.codeEditor;
 
 import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
+import javafx.scene.Node;
+import javafx.scene.control.IndexRange;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -39,7 +43,7 @@ public class IntegratedTextEditor extends CodeArea {
     private final String NUMBER_PATTERN = "[0-9]+";
     private final String VARIABLE_PATTERN = "\\{([^\"\\\\]|\\\\.)*?}";
 
-    private final String EXPRESSION_PATTERN = generateSyntaxPattern(SyntaxManager.getAllExpressionFactories());
+//    private final String EXPRESSION_PATTERN = generateSyntaxPattern(SyntaxManager.getAllExpressionFactories());
     private final String EFFECT_PATTERN = generateSyntaxPattern(SyntaxManager.EFFECT_FACTORIES);
     private final String EVENT_PATTERN = generateSyntaxPattern(SyntaxManager.EVENT_FACTORIES);
 
@@ -50,7 +54,7 @@ public class IntegratedTextEditor extends CodeArea {
             "|(?<VARIABLE>" + VARIABLE_PATTERN + ")" +
             "|(?<NUMBER>" + NUMBER_PATTERN + ")" +
             "|(?<EFFECT>" + EFFECT_PATTERN + ")" +
-            "|(?<EXPRESSION>" + EXPRESSION_PATTERN + ")" +
+//            "|(?<EXPRESSION>" + EXPRESSION_PATTERN + ")" +
             "|(?<EVENT>" + EVENT_PATTERN + ")" +
 //            "|(?<>" +  + ")" +
             "");
@@ -64,8 +68,26 @@ public class IntegratedTextEditor extends CodeArea {
     private final Popup autoCompletePopup = new Popup();
     private final ArrayList<String> selectionQueue = new ArrayList<>();
 
+    private int selectionIndex = 0;
+
+    private final EventHandler<MouseEvent> popupItemEvent = mouseEvent -> {
+        if (mouseEvent.getSource() instanceof Node) {
+            if (selectionIndex == popupBox.getChildren().indexOf((Node) mouseEvent.getSource())) {
+                this.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, false, false, false, false));
+            } else {
+                Node selected = this.popupBox.getChildren().get(selectionIndex);
+                if (selected != null) {
+                    int indexOf = this.popupBox.getChildren().indexOf((Node) mouseEvent.getSource());
+                    selected.getStyleClass().remove("selected-syntax");
+                    popupBox.getChildren().get(indexOf).getStyleClass().add("selected-syntax");
+                    selectionIndex = indexOf;
+                }
+            }
+        }
+    };
+
     public IntegratedTextEditor() {
-//        System.out.println(PATTERN);
+        System.out.println(PATTERN);
         this.setParagraphGraphicFactory(LineNumberFactory.get(this));
         this.richChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(change -> this.setStyleSpans(0, computeHighlighting(this.getText())));
 
@@ -99,26 +121,74 @@ public class IntegratedTextEditor extends CodeArea {
             Platform.runLater(() -> fillBox(this.getParagraph(this.getCurrentParagraph()).getSegments().get(0)));
         });
 
+        this.popupScrollPane.setMaxHeight(300);
+
         this.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
             String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
             KeyCode keyCode = keyEvent.getCode();
             String textAfterCaret = this.getText().substring(this.getCaretPosition());
             if (!selectionQueue.isEmpty() && keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
-                selectionQueue.clear();
+                if (autoCompletePopup.isShowing() && (keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
+                    if (popupBox.getChildren().size() > selectionIndex) {
+                        keyEvent.consume();
+                        Node selected = this.popupBox.getChildren().get(selectionIndex);
+                        if (selected != null) {
+                            int indexOf = this.popupBox.getChildren().indexOf(selected);
+                            if (keyCode == KeyCode.UP) {
+                                indexOf--;
+                            } else {
+                                indexOf++;
+                            }
+                            if (indexOf >= this.popupBox.getChildren().size()) {
+                                indexOf = 0;
+                            } else if (indexOf < 0) {
+                                indexOf = this.popupBox.getChildren().size() - 1;
+                            }
+                            selected.getStyleClass().remove("selected-syntax");
+                            popupBox.getChildren().get(indexOf).getStyleClass().add("selected-syntax");
+                            selectionIndex = indexOf;
+                        }
+                    }
+                } else {
+                    selectionQueue.clear();
+                }
+            }
+            if (this.getSelectedText().length() > 0) {
+                if (keyCode == KeyCode.QUOTE || keyCode == KeyCode.OPEN_BRACKET) {
+                    String selectionText = this.getSelectedText();
+                    IndexRange selected = this.getSelection();
+                    if (keyCode == KeyCode.QUOTE) {
+                        selectionText = "\"" + selectionText + "\"";
+                    } else {
+                        selectionText = "{" + selectionText + "}";
+                    }
+                    System.out.println(selectionText + " " + this.getText());
+                    String finalSelectionText = selectionText;
+                    int start = selected.getStart();
+                    int end = selected.getEnd();
+                    System.out.println("Start: " + start + " End " + end);
+                    this.replaceText(selected.getStart(), selected.getEnd(), finalSelectionText);
+                    Platform.runLater(() -> {
+                        System.out.println(this.getText());
+                        this.replaceText(end + 2, end + 3, "");
+                        this.selectRange(start + 1, end + 1);
+                    });
+                }
+            } else if (keyCode == KeyCode.OPEN_BRACKET && !textAfterCaret.startsWith("}") && !keyEvent.isConsumed()) {
+                System.out.println("Else");
+                Platform.runLater( () -> {
+//                    this.insertText(this.getCaretPosition(), "}");
+                    this.moveTo(this.getCaretPosition() - 1);
+                });
+            } else if (keyCode == KeyCode.QUOTE && !textAfterCaret.startsWith("\"") && !keyEvent.isConsumed()) {
+                Platform.runLater(() -> {
+                    this.insertText(this.getCaretPosition(), "\"");
+                    this.moveTo(this.getCaretPosition() - 1);
+                });
             }
             if (keyCode == KeyCode.ENTER) {
                 Matcher m = whiteSpace.matcher(line);
                 Platform.runLater( () -> this.insertText( this.getCaretPosition(), (m.find() ? m.group() : "") + (line.endsWith(":") ? "  " : "")));
-            } else if (keyCode == KeyCode.OPEN_BRACKET && !textAfterCaret.startsWith("}")) {
-                Platform.runLater( () -> {
-                    this.insertText(this.getCaretPosition(), "}");
-                    this.moveTo(this.getCaretPosition() - 1);
-                });
-            } else if (keyCode == KeyCode.QUOTE && !textAfterCaret.startsWith("\"")) {
-                Platform.runLater( () -> {
-                    this.insertText(this.getCaretPosition(), "\"");
-                    this.moveTo(this.getCaretPosition() - 1);
-                });
             } else if (keyEvent.isShiftDown()) {
                 if (keyCode == KeyCode.TAB) {
                     Matcher matcher = whiteSpace.matcher(line);
@@ -137,18 +207,17 @@ public class IntegratedTextEditor extends CodeArea {
                     }
                 }
             } else if (keyCode == KeyCode.TAB) {
-                if (autoCompletePopup.isShowing() && this.getSelectedText().equals("")) {
-                    keyEvent.consume();
-                    String text = factoryOrder.get(0).getNotFilledIn();
-                    this.insertText(this.getCaretPosition(), text);
-                    selectionQueue.clear();
-                    selectNext();
+                if (!keyEvent.isControlDown() && autoCompletePopup.isShowing() && this.getSelectedText().equals("")) {
+                    if (factoryOrder.size() > selectionIndex) {
+                        keyEvent.consume();
+                        String text = factoryOrder.get(selectionIndex).getNotFilledIn();
+                        this.insertText(this.getCaretPosition(), text);
+                        selectionQueue.clear();
+                        selectNext();
+                    }
                 } else if (!selectionQueue.isEmpty() && this.getSelectedText().equals("")) {
                     selectNext();
                     keyEvent.consume();
-//                    IndexRange indexRange = selectionQueue.get(0);
-//                    selectionQueue.remove(0);
-//                    this.selectRange(indexRange.getStart(), indexRange.getEnd());
                 }
             }
         });
@@ -231,9 +300,14 @@ public class IntegratedTextEditor extends CodeArea {
                 filledIn.getStyleClass().add("highlighted-label");
                 filledIn.setFont(new Font(16));
                 notFilledIn.setFont(new Font(16));
-                popupBox.getChildren().add(new HBox(filledIn, notFilledIn));
+                HBox box = new HBox(filledIn, notFilledIn);
+                box.setOnMousePressed(popupItemEvent);
+                box.setAccessibleText(entry.getNotFilledIn());
+                popupBox.getChildren().add(box);
             }
             if (!popupBox.getChildren().isEmpty()) {
+                popupBox.getChildren().get(0).getStyleClass().add("selected-syntax");
+                selectionIndex = 0;
                 autoCompletePopup.show(this.getScene().getWindow());
                 autoCompletePopup.setHeight(popupScrollPane.getHeight());
             } else {
@@ -274,7 +348,7 @@ public class IntegratedTextEditor extends CodeArea {
                 matcher.group("COMMENT") != null ? "comment" :
                 matcher.group("NUMBER") != null ? "number" :
                 matcher.group("VARIABLE") != null ? "variable" :
-                matcher.group("EXPRESSION") != null ? "expression" :
+//                matcher.group("EXPRESSION") != null ? "expression" :
                 matcher.group("EFFECT") != null ? "effect" :
                 matcher.group("EVENT") != null ? "event" :
                 null;
@@ -284,6 +358,21 @@ public class IntegratedTextEditor extends CodeArea {
         }
         spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
         return spansBuilder.create();
+    }
+
+    private void ensureVisible(Node node) {
+        double width = popupScrollPane.getContent().getBoundsInLocal().getWidth();
+        double height = popupScrollPane.getContent().getBoundsInLocal().getHeight();
+
+        double x = node.getBoundsInParent().getMaxX();
+        double y = node.getBoundsInParent().getMaxY();
+
+        // scrolling values range from 0 to 1
+        popupScrollPane.setVvalue(y/height);
+        popupScrollPane.setHvalue(x/width);
+
+        // just for usability
+        node.requestFocus();
     }
 
 }

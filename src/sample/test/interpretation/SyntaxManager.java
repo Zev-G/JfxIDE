@@ -181,7 +181,6 @@ public class SyntaxManager {
             EFFECT_FACTORIES.add(new EffectFactory("show %stage%", (state, values, args) -> ((Stage) values.get(0)).show()));
             EFFECT_FACTORIES.add(new EffectFactory("print %object%", (state, values, args) -> System.out.println(values.get(0))));
             EFFECT_FACTORIES.add(new EffectFactory("stop program", (state, values, args) -> Platform.exit()));
-            EFFECT_FACTORIES.add(new EffectFactory("set title of %stage% to %string%", (state, values, args) -> ((Stage) values.get(0)).setTitle(values.get(1).toString())));
             EFFECT_FACTORIES.add(new EffectFactory("set fill color of %stage% to %color%", (state, values, args) -> {
                 Stage stage = (Stage) values.get(0);
                 if (stage.getScene() != null) {

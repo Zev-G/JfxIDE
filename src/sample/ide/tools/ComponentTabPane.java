@@ -21,6 +21,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.*;
+import org.fxmisc.flowless.VirtualizedScrollPane;
 import sample.ide.codeEditor.IntegratedTextEditor;
 
 import java.io.File;
@@ -89,7 +90,7 @@ public class ComponentTabPane extends TabPane {
         private Node mainNode;
 
         public ComponentTab(String s, IntegratedTextEditor node) {
-            super("", node);
+            super("", new VirtualizedScrollPane<>(node));
             integratedTextEditor = node;
             label.setText(s);
             init();

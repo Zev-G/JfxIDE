@@ -128,3 +128,15 @@
 .tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
     -fx-border-color: transparent;
 }
+.selected-syntax {
+    -fx-background-color: -darkest-background-color;
+}
+.circle-highlight-background:hover {
+    -fx-fill: -highlight-color;
+}
+.transparent-background {
+    -fx-background-color: transparent;
+}
+.transparent-background:hover {
+    -fx-background-color: transparent;
+}

@@ -6,11 +6,16 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+import org.fxmisc.flowless.VirtualizedScrollPane;
 import sample.betterfx.Console;
 import sample.ide.codeEditor.IntegratedTextEditor;
 import sample.ide.tools.ComponentTabPane;
@@ -26,7 +31,8 @@ public class Ide extends AnchorPane {
     private final ComponentTabPane tabPane = new ComponentTabPane(defaultTab);
 
     private final SVGPath playSvg = new SVGPath();
-    private final HBox topBox = new HBox(playSvg);
+    private final Button playButton = new Button("", playSvg);
+    private final HBox topBox = new HBox(playButton);
     private final Button runTabButton = new Button("_Run");
     private final HBox bottomBox = new HBox(runTabButton);
 
@@ -49,6 +55,8 @@ public class Ide extends AnchorPane {
         playSvg.setContent("M 0 0 L 0 18.9 L 13.5 9.45 L 0 0");
         playSvg.setFill(Color.LIGHTGREEN);
         playSvg.setPickOnBounds(true);
+        playSvg.getStyleClass().add("circle-highlight-background");
+        playButton.getStyleClass().add("transparent-background");
         verticalSplitPane.setOrientation(Orientation.VERTICAL);
         runConsole.disableInput();
         runConsole.setMainBg(Color.valueOf("#1c2532"));
@@ -103,6 +111,8 @@ public class Ide extends AnchorPane {
         Menu newMenu = new Menu("New");
         MenuItem newProject = new MenuItem("New Project");
         MenuItem newFile = new MenuItem("New File");
+        newFile.setAccelerator(new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN));
+        newProject.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
         newMenu.getItems().addAll(newProject, newFile);
         fileMenu.getItems().addAll(newMenu);
         menuBar.getMenus().addAll(fileMenu);
@@ -112,8 +122,12 @@ public class Ide extends AnchorPane {
             stage.setScene(new Scene(new Ide()));
             stage.setTitle("Untitled Project");
             stage.show();
-            stage.setWidth(800);
-            stage.setHeight(600);
+            Window thisWindow = this.getScene().getWindow();
+            stage.setWidth(thisWindow.getWidth());
+            stage.setHeight(thisWindow.getHeight());
+            if (thisWindow instanceof Stage) {
+                stage.setMaximized(((Stage) thisWindow).isMaximized());
+            }
         });
         newFile.setOnAction(actionEvent -> {
             ComponentTabPane.ComponentTab newTab = getNewEditorTab(null);
