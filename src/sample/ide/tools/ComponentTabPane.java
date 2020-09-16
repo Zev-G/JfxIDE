@@ -282,7 +282,7 @@ public class ComponentTabPane extends TabPane {
                 ArrayList<Tab> tabs = new ArrayList<>(this.getTabPane().getTabs());
                 for (Tab tab : tabs) {
                     if (tab instanceof ComponentTab) {
-                        ((ComponentTab) tab).stageHidden();
+                        ((ComponentTab<?>) tab).stageHidden();
                     }
                 }
             });
@@ -314,9 +314,6 @@ public class ComponentTabPane extends TabPane {
         }
         public void setFile(File file) {
             this.file = file;
-            if (value instanceof IntegratedTextEditor && file != null) {
-
-            }
         }
     }
 

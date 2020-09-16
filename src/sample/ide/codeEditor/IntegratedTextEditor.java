@@ -367,19 +367,4 @@ public class IntegratedTextEditor extends CodeArea {
         return spansBuilder.create();
     }
 
-    private void ensureVisible(Node node) {
-        double width = popupScrollPane.getContent().getBoundsInLocal().getWidth();
-        double height = popupScrollPane.getContent().getBoundsInLocal().getHeight();
-
-        double x = node.getBoundsInParent().getMaxX();
-        double y = node.getBoundsInParent().getMaxY();
-
-        // scrolling values range from 0 to 1
-        popupScrollPane.setVvalue(y/height);
-        popupScrollPane.setHvalue(x/width);
-
-        // just for usability
-        node.requestFocus();
-    }
-
 }

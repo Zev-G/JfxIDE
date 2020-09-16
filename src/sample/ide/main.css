@@ -160,3 +160,23 @@
 .transparent-background:hover {
     -fx-background-color: transparent;
 }
+
+.popup-item {
+    -fx-spacing: 10;
+}
+.popup-item .label {
+    -fx-text-alignment: center;
+    -fx-background-color: -darkest-background-color;
+}
+.popup-item .text-field {
+    -fx-background-color: -darkest-background-color;
+    -fx-text-fill: -default-text-color;
+}
+.popup-item .text-field:focused {
+    -fx-border-color: -highlight-color;
+    -fx-border-width: 3;
+    -fx-border-radius: 5;
+}
+.tree-cell .label {
+    -fx-font-size: 16;
+}

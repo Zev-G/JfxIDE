@@ -1,8 +1,10 @@
 package sample.ide;
 
+import javafx.animation.FadeTransition;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -17,10 +19,12 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Duration;
 import sample.betterfx.Console;
 import sample.ide.codeEditor.IntegratedTextEditor;
 import sample.ide.fileTreeView.FileTreeView;
 import sample.ide.tools.ComponentTabPane;
+import sample.ide.tools.Gotten;
 import sample.test.FXScript;
 import sample.test.interpretation.SyntaxManager;
 import sample.test.interpretation.run.CodeChunk;
@@ -49,8 +53,8 @@ public class Ide extends AnchorPane {
 
 
 
-    private final Console runConsole = Console.generateForJava();
-//    private final Console runConsole = new Console();
+//    private final Console runConsole = Console.generateForJava();
+    private final Console runConsole = new Console();
     private final VBox consoleAnchor = new VBox();
     private final SplitPane horizontalSplitPane = new SplitPane(leftTab, rightTab);
 
@@ -60,7 +64,15 @@ public class Ide extends AnchorPane {
     private final SplitPane verticalSplitPane = new SplitPane(topTab, bottomTab);
 
     private final MenuBar menuBar = new MenuBar();
-    private final AnchorPane popupAnchorPane = new AnchorPane();
+    private final BorderPane popupPane = new BorderPane();
+
+    private final Label prompt = new Label();
+    private final TextField inputBox = new TextField();
+    private final HBox textInputBox = new HBox(prompt, inputBox);
+
+    private final Label confirmText = new Label();
+    private final Button confirm = new Button("Confirm");
+    private final HBox confirmBox = new HBox(confirmText, confirm);
 
     private final AnchorPane projectViewAnchorPane = new AnchorPane();
     private FileTreeView projectView;
@@ -71,8 +83,8 @@ public class Ide extends AnchorPane {
     public Ide() {
         projectTabButton.setVisible(false);
         tabPane.getTabs().add(defaultTab);
-        popupAnchorPane.getStyleClass().add("popup-shower");
-        popupAnchorPane.setVisible(false);
+        popupPane.getStyleClass().add("popup-shower");
+        popupPane.setVisible(false);
         bottomTab.setMaxHeight(0);
         leftTab.setMaxWidth(0);
         playSvg.setContent("M 0 0 L 0 18.9 L 13.5 9.45 L 0 0");
@@ -90,6 +102,10 @@ public class Ide extends AnchorPane {
 
         projectTabButton.setLineSpacing(-5);
         projectTabButton.setTextAlignment(TextAlignment.CENTER);
+
+        textInputBox.getStyleClass().add("popup-item");
+        confirmBox.getStyleClass().add("popup-item");
+
 
         bottomTab.getChildren().addListener((ListChangeListener<Node>) change -> {
             if (bottomTab.getChildren().isEmpty()) {
@@ -109,7 +125,7 @@ public class Ide extends AnchorPane {
         makeTabButton(runTabButton, consoleAnchor, bottomTab, verticalSplitPane, 0.8);
         makeTabButton(projectTabButton, projectViewAnchorPane, leftTab, horizontalSplitPane, 0.2);
 
-        this.getChildren().addAll(verticalSplitPane, bottomBox, sideBox, popupAnchorPane, menuBar);
+        this.getChildren().addAll(verticalSplitPane, bottomBox, sideBox, menuBar, popupPane);
         topBox.setFillHeight(true);
         AnchorPane.setTopAnchor(tabPane, 0D); AnchorPane.setBottomAnchor(tabPane, 0D);
         AnchorPane.setRightAnchor(tabPane, 0D); AnchorPane.setLeftAnchor(tabPane, 0D);
@@ -124,8 +140,8 @@ public class Ide extends AnchorPane {
 
         AnchorPane.setTopAnchor(sideBox, 26D); AnchorPane.setLeftAnchor(sideBox, 2D);
 
-        AnchorPane.setTopAnchor(popupAnchorPane, 0D); AnchorPane.setRightAnchor(popupAnchorPane, 0D);
-        AnchorPane.setBottomAnchor(popupAnchorPane, 0D); AnchorPane.setLeftAnchor(popupAnchorPane, 0D);
+        AnchorPane.setTopAnchor(popupPane, 0D); AnchorPane.setRightAnchor(popupPane, 0D);
+        AnchorPane.setBottomAnchor(popupPane, 0D); AnchorPane.setLeftAnchor(popupPane, 0D);
 
         AnchorPane.setTopAnchor(menuBar, 0D); AnchorPane.setLeftAnchor(menuBar, 0D); AnchorPane.setRightAnchor(menuBar, 0D);
 
@@ -202,14 +218,14 @@ public class Ide extends AnchorPane {
         });
 
 
-        tabPane.setOnTabCloseRequested(event -> {
-            if (event.getSource() instanceof ComponentTabPane.ComponentTab) {
-                ComponentTabPane.ComponentTab<IntegratedTextEditor> componentTab = (ComponentTabPane.ComponentTab<IntegratedTextEditor>) event.getSource();
-                if (componentTab.getFile() != null && componentTab.getMainNode() instanceof IntegratedTextEditor) {
-                    // Show close confirmation
-                }
-            }
-        });
+//        tabPane.setOnTabCloseRequested(event -> {
+//            if (event.getSource() instanceof ComponentTabPane.ComponentTab && !popupPane.isVisible()) {
+//                ComponentTabPane.ComponentTab<IntegratedTextEditor> componentTab = (ComponentTabPane.ComponentTab<IntegratedTextEditor>) event.getSource();
+////                if (componentTab.getFile() != null && componentTab.getMainNode() instanceof IntegratedTextEditor) {
+////                    showConfirmation("This file ");
+////                }
+//            }
+//        });
     }
 
     public void loadFile(File file) {
@@ -272,6 +288,45 @@ public class Ide extends AnchorPane {
                 button.getStyleClass().add("active-button");
             }
         });
+    }
+
+    public void showPopupForText(String prompt, String defaultText, Gotten<String> gotten) {
+        this.prompt.setText(prompt);
+        this.inputBox.setText(defaultText);
+        this.inputBox.setOnKeyPressed(keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ENTER) {
+                gotten.gotten(this.inputBox.getText());
+                hidePopup();
+            }
+        });
+        this.popupPane.setCenter(textInputBox);
+        textInputBox.setAlignment(Pos.CENTER);
+        showPopup();
+    }
+    public void showConfirmation(String confirmText, Gotten<Boolean> gotten) {
+        this.confirmText.setText(confirmText);
+        confirm.setOnAction(actionEvent -> {
+            gotten.gotten(true);
+            hidePopup();
+        });
+        this.popupPane.setCenter(confirmBox);
+        confirmBox.setAlignment(Pos.CENTER);
+        showPopup();
+    }
+
+    public void showPopup() {
+        popupPane.setOpacity(0);
+        popupPane.setVisible(true);
+        FadeTransition fadeIn = new FadeTransition(new Duration(200), popupPane);
+        fadeIn.setToValue(1);
+        fadeIn.play();
+        popupPane.setOnMousePressed(mouseEvent -> hidePopup());
+    }
+    public void hidePopup() {
+        FadeTransition fadeOut = new FadeTransition(new Duration(100), popupPane);
+        fadeOut.setToValue(0);
+        fadeOut.play();
+        fadeOut.setOnFinished(actionEvent -> popupPane.setVisible(false));
     }
 
     public static ComponentTabPane.ComponentTab<IntegratedTextEditor> getNewEditorTab(File file) {

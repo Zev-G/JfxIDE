@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1"
+	 id="svg3103" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" inkscape:export-ydpi="31.304348" inkscape:export-xdpi="31.304348" inkscape:export-filename="/Users/a2l/Projects/erlang_icon/erlang_128x128.png" sodipodi:docname="erlang.svg" inkscape:version="0.48.2 r9819"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="357.656px"
+	 height="226.889px" viewBox="4.992 70.555 357.656 226.889" enable-background="new 4.992 70.555 357.656 226.889"
+	 xml:space="preserve">
+<title  id="title4013">Erlang Logotype</title>
+<sodipodi:namedview  fit-margin-left="5" fit-margin-top="30" inkscape:cy="198.41069" inkscape:cx="144.74694" inkscape:zoom="1.9572893" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1" objecttolerance="10" gridtolerance="10" guidetolerance="10" showgrid="false" id="namedview3105" fit-margin-bottom="30" fit-margin-right="5" inkscape:showpageshadow="false" inkscape:current-layer="svg3103" inkscape:window-maximized="0" inkscape:window-y="0" inkscape:window-x="0" inkscape:window-height="1048" inkscape:window-width="1836" inkscape:pageshadow="2" inkscape:pageopacity="0">
+	</sodipodi:namedview>
+<g id="layer2" transform="translate(-7.644394,101.73047)" inkscape:label="bg" sodipodi:insensitive="true" inkscape:groupmode="layer">
+</g>
+<g id="g3125" transform="translate(-7.652887,61.17541)">
+	<path id="path3113" inkscape:connector-curvature="0" sodipodi:nodetypes="ccsc" fill="#9A0000" d="M144.507,61.054l94.291-0.361
+		c0,0,3.411-46.242-47.326-46.242C166.881,14.451,144.507,37.572,144.507,61.054z"/>
+	<path id="path3121" inkscape:connector-curvature="0" sodipodi:nodetypes="ccccc" fill="#9A0000" d="M61.054,9.755h-48.41v226.153
+		l55.274,0.361C67.919,236.269-25.289,133.67,61.054,9.755z"/>
+	<path id="path3123" inkscape:connector-curvature="0" sodipodi:nodetypes="cccccscccc" fill="#9A0000" d="M370.661,9.393
+		l-0.722,226.876h-44.798c0,0,28.18-32.514,31.792-45.52c-34.474-17.706-53.829-26.733-53.829-26.733s-25.331,56.209-84.898,58.887
+		c-64.305,2.89-78.756-75.506-76.95-109.826c76.756,0,115.942,1.084,207.729,1.084c1.807-2.529,5.904-70.039-24.928-104.406
+		C329.403,9.273,370.661,9.393,370.661,9.393z"/>
+</g>
+<g id="layer1" transform="translate(-7.644394,101.73047)" inkscape:label="e_outline" inkscape:groupmode="layer">
+</g>
+</svg>
