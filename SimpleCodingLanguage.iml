@@ -9,5 +9,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="javafx" level="project" />
     <orderEntry type="library" name="richtextfx-fat-0.10.5" level="project" />
+    <orderEntry type="library" name="jfoenix-9.0.10 (2)" level="project" />
   </component>
 </module>

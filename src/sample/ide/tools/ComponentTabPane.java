@@ -3,12 +3,14 @@ package sample.ide.tools;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
-import javafx.scene.*;
+import javafx.scene.Cursor;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -16,11 +18,17 @@ import javafx.scene.control.TabPane;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.*;
-import javafx.scene.layout.*;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
-import javafx.stage.*;
+import javafx.stage.Popup;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.Window;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import sample.ide.codeEditor.IntegratedTextEditor;
 
@@ -42,15 +50,16 @@ public class ComponentTabPane extends TabPane {
         super();
         init();
     }
-    public ComponentTabPane(Tab... tabs) {
-        super(tabs);
-        init();
-    }
+//    public ComponentTabPane(Tab... tabs) {
+//        super(tabs);
+//        init();
+//    }
 
     private void init() {
         this.getStyleClass().add("component-tab-pane");
         ALL_TAB_PANES.add(this);
         this.setTabDragPolicy(TabDragPolicy.REORDER);
+
         this.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
         this.setBackground(new Background(new BackgroundFill(BG_COLOR.darker(), CornerRadii.EMPTY, Insets.EMPTY)));
 
@@ -66,11 +75,11 @@ public class ComponentTabPane extends TabPane {
         this.eventEventHandler = eventHandler;
     }
 
-    public ComponentTab getSelectedTab() {
-        return (ComponentTab) getSelectionModel().getSelectedItem();
+    public ComponentTab<?> getSelectedTab() {
+        return (ComponentTab<?>) getSelectionModel().getSelectedItem();
     }
 
-    public static class ComponentTab extends Tab {
+    public static class ComponentTab<T extends Node> extends Tab {
 
         private final Label label = new Label();
         private final ComponentTabPane individualTabPane = new ComponentTabPane();
@@ -84,14 +93,17 @@ public class ComponentTabPane extends TabPane {
         private final ImageView imageView = new ImageView();
         private final AnchorPane pictureAnchorPane = new AnchorPane(imageView);
         private ComponentTabPane lastTabPane;
-        private final IntegratedTextEditor integratedTextEditor;
+        private final T value;
 
         private File file;
         private Node mainNode;
 
-        public ComponentTab(String s, IntegratedTextEditor node) {
-            super("", new VirtualizedScrollPane<>(node));
-            integratedTextEditor = node;
+        public ComponentTab(String s, T node) {
+            super("");
+            if (node instanceof IntegratedTextEditor) {
+                this.setContent(new VirtualizedScrollPane<>((IntegratedTextEditor) node));
+            }
+            value = node;
             label.setText(s);
             init();
         }
@@ -293,8 +305,8 @@ public class ComponentTabPane extends TabPane {
             }
         }
 
-        public IntegratedTextEditor getIntegratedTextEditor() {
-            return integratedTextEditor;
+        public T getValue() {
+            return value;
         }
 
         public File getFile() {
@@ -302,6 +314,9 @@ public class ComponentTabPane extends TabPane {
         }
         public void setFile(File file) {
             this.file = file;
+            if (value instanceof IntegratedTextEditor && file != null) {
+
+            }
         }
     }
 

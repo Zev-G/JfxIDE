@@ -125,7 +125,7 @@ public class SyntaxManager {
 
         effects: {
             reflect: {
-                EFFECT_FACTORIES.add(new EffectFactory("%object%.%function%", "%object%\\.(.*\\))", (state, values, args) -> {
+                EFFECT_FACTORIES.add(new EffectFactory("IGNORE", "%object%\\.(.*\\))", (state, values, args) -> {
                     String connectedArgs = appendAllArgs(new StringBuilder(), args).toString();
                     Object obj = values.get(0);
                     reflectMethod(state, connectedArgs, obj);
@@ -173,6 +173,10 @@ public class SyntaxManager {
             EFFECT_FACTORIES.add(new EffectFactory("set %variable% to %object%", (state, values, args) -> state.setVariableValue(
                     ((Variable<?>) values.get(0)).getName(),
                     values.get(1))));
+            EFFECT_FACTORIES.add(new EffectFactory("IGNORE", "[^\\s]+(:| =) %object%", (state, values, args) -> {
+                String varName = args[0].replaceAll(":", "").replaceAll("=", "").replaceAll("[{}]", "");
+                state.setVariableValue(varName, values.get(0));
+            }));
             EFFECT_FACTORIES.add(new EffectFactory("remove %object% from %list%", (state, values, args) -> ((List) values.get(1)).removeObject(values.get(0))));
             EFFECT_FACTORIES.add(new EffectFactory("add %object% to %list%", (state, values, args) -> ((List) values.get(1)).add(values.get(0), values.get(0).toString())));
 

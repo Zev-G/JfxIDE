@@ -35,15 +35,15 @@ public class IntegratedTextEditor extends CodeArea {
     // Static Fields
 
     private final ArrayList<String> ADDED_SYNTAX_PATTERNS = new ArrayList<>();
-
+//
     private final String[] KEYWORDS = { "function", "if", "else" };
-    private final String KEYWORD_PATTERN = "(" + String.join("|", KEYWORDS) + ")";
+    private final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
     private final String STRING_PATTERN = "\"([^\"\\\\]|\\\\.)*\"";
     private final String COMMENT_PATTERN = "#[^\\n]*";
     private final String NUMBER_PATTERN = "[0-9]+";
-    private final String VARIABLE_PATTERN = "\\{([^\"\\\\]|\\\\.)*?}";
+    private final String VARIABLE_PATTERN = "\\{([^\"\\\\]|\\\\.)*?}|^[^\\s]+(:| =)";
 
-//    private final String EXPRESSION_PATTERN = generateSyntaxPattern(SyntaxManager.getAllExpressionFactories());
+    private final String EXPRESSION_PATTERN = generateSyntaxPattern(SyntaxManager.getAllExpressionFactories());
     private final String EFFECT_PATTERN = generateSyntaxPattern(SyntaxManager.EFFECT_FACTORIES);
     private final String EVENT_PATTERN = generateSyntaxPattern(SyntaxManager.EVENT_FACTORIES);
 
@@ -53,11 +53,15 @@ public class IntegratedTextEditor extends CodeArea {
             "|(?<STRING>" + STRING_PATTERN + ")" +
             "|(?<VARIABLE>" + VARIABLE_PATTERN + ")" +
             "|(?<NUMBER>" + NUMBER_PATTERN + ")" +
+            "|(?<EXPRESSION>" + EXPRESSION_PATTERN + ")" +
             "|(?<EFFECT>" + EFFECT_PATTERN + ")" +
-//            "|(?<EXPRESSION>" + EXPRESSION_PATTERN + ")" +
             "|(?<EVENT>" + EVENT_PATTERN + ")" +
 //            "|(?<>" +  + ")" +
             "");
+
+
+
+//    private final Pattern PATTERN = Pattern.compile("(?<COMMENT>#[^\\n]*)|(?<KEYWORD>\\b(function|if|else)\\b)|(?<STRING>\"([^\"\\\\]|\\\\.)*\")|(?<VARIABLE>\\{([^\"\\\\]|\\\\.)*?})|(?<NUMBER>[0-9]+)|(?<EXPRESSION>\\b((|new )vbox|title property of|text property of|(|new )label|(|new )stage|(|new )pane|(|new )background colo(u|)red|with corner radius|(|new )button|(|new )hbox|files in|random number between|and|random integer between|children of|web colo(u|)r|blue|red|green|yellow|dark blue|dark red|dark green|light blue|light green|light yellow|aqua|beige|black|brown|cyan|dark grey|grey|light grey|gold|indigo|lime|magenta|maroon|navy|purple|silver|snow|white|teal|violet|without( the|) last character|without( the|) first character|without character (at |)|text of|path of|text in|computer is connected to the internet|free space in|length of|space taken up by|size of|value of|(load file|file loaded) from|is a multiple of|\\!|appended to|true|false)\\b)|(?<EFFECT>\\b(create new file|create new directory|delete|move|to|write|return|set|remove|from|add|set title of|show|print|stop program|set fill color of|put|into|set text of|set background color of|set scale x of|set scale y of|set scale of|set background of|push|to front|to back|set rotation of|set style of|set opacity of|disable|enable|set value of|bind|transition scale of|over|second(s|)|transition x position of|transition y position of|transition position of|transition opacity of|(|set )full screen|(|set )(normal|unfull) screen|(|set )maximize|(|set )un maximize|make|resizable|not resizable|hide|set icon of|visible|invisible|mouse transparent|not mouse transparent|set spacing of vbox|set spacing of hbox)\\b)|(?<EVENT>\\b((when|on)|is pressed|is clicked|(when|on) mouse drag enters|(when|on) mouse drag exits|(when|on) mouse moves over|is released|(when|on) drag is detected for|(when|on) mouse enters|(when|on) mouse exits|(when|on) drag is done for|(when|on) drag is dropped on|(when|on) drag enters|(when|on) drag exits|(when|on) drag is over|(when|on) key is pressed for|(when|on) key is released for|(when|on) key is typed for|changes|$expression (.*?)|in|every|chance of|loop|times)\\b)");
 
 
     // Non Static Fields
@@ -87,7 +91,11 @@ public class IntegratedTextEditor extends CodeArea {
     };
 
     public IntegratedTextEditor() {
-        System.out.println(PATTERN);
+//        System.out.println(PATTERN);
+        popupScrollPane.setOnKeyPressed(keyEvent -> {
+            keyEvent.consume();
+            this.fireEvent(keyEvent);
+        });
         this.setParagraphGraphicFactory(LineNumberFactory.get(this));
         this.richChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(change -> this.setStyleSpans(0, computeHighlighting(this.getText())));
 
@@ -162,22 +170,18 @@ public class IntegratedTextEditor extends CodeArea {
                     } else {
                         selectionText = "{" + selectionText + "}";
                     }
-                    System.out.println(selectionText + " " + this.getText());
                     String finalSelectionText = selectionText;
                     int start = selected.getStart();
                     int end = selected.getEnd();
-                    System.out.println("Start: " + start + " End " + end);
                     this.replaceText(selected.getStart(), selected.getEnd(), finalSelectionText);
                     Platform.runLater(() -> {
-                        System.out.println(this.getText());
                         this.replaceText(end + 2, end + 3, "");
                         this.selectRange(start + 1, end + 1);
                     });
                 }
             } else if (keyCode == KeyCode.OPEN_BRACKET && !textAfterCaret.startsWith("}") && !keyEvent.isConsumed()) {
-                System.out.println("Else");
                 Platform.runLater( () -> {
-//                    this.insertText(this.getCaretPosition(), "}");
+                    this.insertText(this.getCaretPosition(), "}");
                     this.moveTo(this.getCaretPosition() - 1);
                 });
             } else if (keyCode == KeyCode.QUOTE && !textAfterCaret.startsWith("\"") && !keyEvent.isConsumed()) {
@@ -232,11 +236,13 @@ public class IntegratedTextEditor extends CodeArea {
         };
         this.caretBoundsProperty().addListener((observableValue, integer, t1) -> runWhenChanged.run());
         this.sceneProperty().addListener((observableValue, scene, t1) -> {
-            Window t11 = t1.getWindow();
-            t11.xProperty().addListener((observableValue11, number, t111) -> autoCompletePopup.hide());
-            t11.yProperty().addListener((observableValue11, number, t111) -> autoCompletePopup.hide());
-            t11.widthProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
-            t11.heightProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
+            if (t1 != null) {
+                Window t11 = t1.getWindow();
+                t11.xProperty().addListener((observableValue11, number, t111) -> autoCompletePopup.hide());
+                t11.yProperty().addListener((observableValue11, number, t111) -> autoCompletePopup.hide());
+                t11.widthProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
+                t11.heightProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
+            }
         });
         this.setOnMousePressed(mouseEvent -> {
             autoCompletePopup.hide();
@@ -321,14 +327,15 @@ public class IntegratedTextEditor extends CodeArea {
     private <T extends SyntaxPieceFactory> String generateSyntaxPattern(Collection<T> factories) {
         ArrayList<String> patterns = new ArrayList<>();
         for (SyntaxPieceFactory factory : factories) {
-            String[] pieces = factory.getRegex().split("( %(.*?)%|%(.*?)% |%(.*?)%)");
-            for (String piece : pieces) {
-                piece = piece.trim();
-                if (!ADDED_SYNTAX_PATTERNS.contains(piece) &&
-                        !piece.contains("\"") && !piece.contains("[0-9]"))
-                {
-                    patterns.add(piece);
-                    ADDED_SYNTAX_PATTERNS.add(piece);
+            if (!factory.getUsage().contains("IGNORE")) {
+                String[] pieces = factory.getRegex().split("( %(.*?)%|%(.*?)% |%(.*?)%)");
+                for (String piece : pieces) {
+                    piece = piece.trim();
+                    if (!ADDED_SYNTAX_PATTERNS.contains(piece) &&
+                            !piece.contains("\"") && !piece.contains("[0-9]")) {
+                        patterns.add(piece);
+                        ADDED_SYNTAX_PATTERNS.add(piece);
+                    }
                 }
             }
         }
@@ -348,7 +355,7 @@ public class IntegratedTextEditor extends CodeArea {
                 matcher.group("COMMENT") != null ? "comment" :
                 matcher.group("NUMBER") != null ? "number" :
                 matcher.group("VARIABLE") != null ? "variable" :
-//                matcher.group("EXPRESSION") != null ? "expression" :
+                matcher.group("EXPRESSION") != null ? "expression" :
                 matcher.group("EFFECT") != null ? "effect" :
                 matcher.group("EVENT") != null ? "event" :
                 null;

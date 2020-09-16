@@ -13,45 +13,68 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import org.fxmisc.flowless.VirtualizedScrollPane;
 import sample.betterfx.Console;
 import sample.ide.codeEditor.IntegratedTextEditor;
+import sample.ide.fileTreeView.FileTreeView;
 import sample.ide.tools.ComponentTabPane;
 import sample.test.FXScript;
 import sample.test.interpretation.SyntaxManager;
 import sample.test.interpretation.run.CodeChunk;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 public class Ide extends AnchorPane {
 
-    private final ComponentTabPane.ComponentTab defaultTab = getNewEditorTab(null);
-    private final ComponentTabPane tabPane = new ComponentTabPane(defaultTab);
+    public static final String STYLE_SHEET = Ide.class.getResource("main.css").toExternalForm();
+
+    private final ComponentTabPane.ComponentTab<IntegratedTextEditor> defaultTab = getNewEditorTab(null);
+    private final ComponentTabPane tabPane = new ComponentTabPane();
 
     private final SVGPath playSvg = new SVGPath();
     private final Button playButton = new Button("", playSvg);
     private final HBox topBox = new HBox(playButton);
     private final Button runTabButton = new Button("_Run");
+    private final Button projectTabButton = new Button("P\nr\no\nj\ne\nc\nt");
     private final HBox bottomBox = new HBox(runTabButton);
+    private final VBox sideBox = new VBox(projectTabButton);
+
+    private final AnchorPane leftTab = new AnchorPane();
+    private final AnchorPane rightTab = new AnchorPane(tabPane, topBox);
+
+
+
+    private final Console runConsole = Console.generateForJava();
+//    private final Console runConsole = new Console();
+    private final VBox consoleAnchor = new VBox();
+    private final SplitPane horizontalSplitPane = new SplitPane(leftTab, rightTab);
 
     private final AnchorPane bottomTab = new AnchorPane();
-    private final AnchorPane topTab = new AnchorPane(tabPane, topBox);
+    private final AnchorPane topTab = new AnchorPane(horizontalSplitPane);
 
-//    private final Console runConsole = Console.generateForJava();
-    private final Console runConsole = new Console();
-    private final VBox consoleAnchor = new VBox();
     private final SplitPane verticalSplitPane = new SplitPane(topTab, bottomTab);
+
     private final MenuBar menuBar = new MenuBar();
     private final AnchorPane popupAnchorPane = new AnchorPane();
 
+    private final AnchorPane projectViewAnchorPane = new AnchorPane();
+    private FileTreeView projectView;
+
+
+
 
     public Ide() {
-
-        popupAnchorPane.getStyleClass().add(".popup-shower");
+        projectTabButton.setVisible(false);
+        tabPane.getTabs().add(defaultTab);
+        popupAnchorPane.getStyleClass().add("popup-shower");
         popupAnchorPane.setVisible(false);
         bottomTab.setMaxHeight(0);
+        leftTab.setMaxWidth(0);
         playSvg.setContent("M 0 0 L 0 18.9 L 13.5 9.45 L 0 0");
         playSvg.setFill(Color.LIGHTGREEN);
         playSvg.setPickOnBounds(true);
@@ -65,6 +88,8 @@ public class Ide extends AnchorPane {
         consoleAnchor.getChildren().add(runConsole);
         consoleAnchor.setFillWidth(true);
 
+        projectTabButton.setLineSpacing(-5);
+        projectTabButton.setTextAlignment(TextAlignment.CENTER);
 
         bottomTab.getChildren().addListener((ListChangeListener<Node>) change -> {
             if (bottomTab.getChildren().isEmpty()) {
@@ -73,19 +98,31 @@ public class Ide extends AnchorPane {
                 bottomTab.setMaxHeight(Integer.MAX_VALUE);
             }
         });
+        leftTab.getChildren().addListener((ListChangeListener<Node>) change -> {
+            if (leftTab.getChildren().isEmpty()) {
+                leftTab.setMaxWidth(0);
+            } else {
+                leftTab.setMaxWidth(Integer.MAX_VALUE);
+            }
+        });
 
-        makeTabButton(runTabButton, consoleAnchor, bottomTab, verticalSplitPane);
+        makeTabButton(runTabButton, consoleAnchor, bottomTab, verticalSplitPane, 0.8);
+        makeTabButton(projectTabButton, projectViewAnchorPane, leftTab, horizontalSplitPane, 0.2);
 
-        this.getChildren().addAll(verticalSplitPane, bottomBox, popupAnchorPane, menuBar);
+        this.getChildren().addAll(verticalSplitPane, bottomBox, sideBox, popupAnchorPane, menuBar);
         topBox.setFillHeight(true);
         AnchorPane.setTopAnchor(tabPane, 0D); AnchorPane.setBottomAnchor(tabPane, 0D);
         AnchorPane.setRightAnchor(tabPane, 0D); AnchorPane.setLeftAnchor(tabPane, 0D);
 
         AnchorPane.setTopAnchor(verticalSplitPane, 26D); AnchorPane.setBottomAnchor(verticalSplitPane, 35D);
-        AnchorPane.setRightAnchor(verticalSplitPane, 8D); AnchorPane.setLeftAnchor(verticalSplitPane, 8D);
+        AnchorPane.setRightAnchor(verticalSplitPane, 8D); AnchorPane.setLeftAnchor(verticalSplitPane, 14D);
+        AnchorPane.setTopAnchor(horizontalSplitPane, 0D); AnchorPane.setBottomAnchor(horizontalSplitPane, 0D);
+        AnchorPane.setRightAnchor(horizontalSplitPane, 0D); AnchorPane.setLeftAnchor(horizontalSplitPane, 0D);
 
         AnchorPane.setTopAnchor(topBox, 2D); AnchorPane.setRightAnchor(topBox, 2D);
-        AnchorPane.setBottomAnchor(bottomBox, 11D); AnchorPane.setLeftAnchor(bottomBox, 8D);
+        AnchorPane.setBottomAnchor(bottomBox, 11D); AnchorPane.setLeftAnchor(bottomBox, 14D);
+
+        AnchorPane.setTopAnchor(sideBox, 26D); AnchorPane.setLeftAnchor(sideBox, 2D);
 
         AnchorPane.setTopAnchor(popupAnchorPane, 0D); AnchorPane.setRightAnchor(popupAnchorPane, 0D);
         AnchorPane.setBottomAnchor(popupAnchorPane, 0D); AnchorPane.setLeftAnchor(popupAnchorPane, 0D);
@@ -96,7 +133,7 @@ public class Ide extends AnchorPane {
             runConsole.getConsoleText().getChildren().clear();
             FXScript.restart();
             System.out.println("Parsing code...");
-            CodeChunk chunk = SyntaxManager.getCodeChunkFromCode(tabPane.getSelectedTab().getIntegratedTextEditor().getText(), null);
+            CodeChunk chunk = SyntaxManager.getCodeChunkFromCode(((ComponentTabPane.ComponentTab<IntegratedTextEditor>) tabPane.getSelectedTab()).getValue().getText(), null);
             System.out.println("Finished Parsing. Running");
             chunk.run();
             if (runTabButton.getAccessibleText() == null || !runTabButton.getAccessibleText().equals("ACTIVATED")) {
@@ -105,7 +142,7 @@ public class Ide extends AnchorPane {
         });
 
         this.setBackground(new Background(new BackgroundFill(Color.valueOf("#202937"), CornerRadii.EMPTY, Insets.EMPTY)));
-        this.getStylesheets().add(Ide.class.getResource("main.css").toExternalForm());
+        this.getStylesheets().add(STYLE_SHEET);
 
         Menu fileMenu = new Menu("File");
         Menu newMenu = new Menu("New");
@@ -113,8 +150,12 @@ public class Ide extends AnchorPane {
         MenuItem newFile = new MenuItem("New File");
         newFile.setAccelerator(new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN));
         newProject.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
+        Menu openMenu = new Menu("Open");
+        MenuItem openFile = new MenuItem("Open File");
+        MenuItem openProject = new MenuItem("Open Project");
+        openMenu.getItems().addAll(openProject, openFile);
         newMenu.getItems().addAll(newProject, newFile);
-        fileMenu.getItems().addAll(newMenu);
+        fileMenu.getItems().addAll(newMenu, openMenu);
         menuBar.getMenus().addAll(fileMenu);
         // Menu event handling
         newProject.setOnAction(actionEvent -> {
@@ -130,20 +171,68 @@ public class Ide extends AnchorPane {
             }
         });
         newFile.setOnAction(actionEvent -> {
-            ComponentTabPane.ComponentTab newTab = getNewEditorTab(null);
+            ComponentTabPane.ComponentTab<IntegratedTextEditor> newTab = getNewEditorTab(null);
             tabPane.getTabs().add(newTab);
             tabPane.getSelectionModel().select(newTab);
+        });
+        openFile.setOnAction(actionEvent -> {
+            FileChooser fileChooser = new FileChooser();
+            File file = fileChooser.showOpenDialog(this.getScene().getWindow());
+            if (file != null) {
+                loadFile(file);
+            }
+        });
+        openProject.setOnAction(actionEvent -> {
+            FileChooser fileChooser = new FileChooser();
+            File file = fileChooser.showOpenDialog(this.getScene().getWindow());
+            if (file != null) {
+                Stage stage = new Stage();
+                Ide newIde = new Ide();
+                stage.setScene(new Scene(newIde));
+                stage.setTitle(file.isDirectory() ? file.getName() : "Untitled Project");
+                stage.show();
+                Window thisWindow = this.getScene().getWindow();
+                stage.setWidth(thisWindow.getWidth());
+                stage.setHeight(thisWindow.getHeight());
+                if (thisWindow instanceof Stage) {
+                    stage.setMaximized(((Stage) thisWindow).isMaximized());
+                }
+                newIde.loadFile(file);
+            }
         });
 
 
         tabPane.setOnTabCloseRequested(event -> {
             if (event.getSource() instanceof ComponentTabPane.ComponentTab) {
-                ComponentTabPane.ComponentTab componentTab = (ComponentTabPane.ComponentTab) event.getSource();
+                ComponentTabPane.ComponentTab<IntegratedTextEditor> componentTab = (ComponentTabPane.ComponentTab<IntegratedTextEditor>) event.getSource();
                 if (componentTab.getFile() != null && componentTab.getMainNode() instanceof IntegratedTextEditor) {
                     // Show close confirmation
                 }
             }
         });
+    }
+
+    public void loadFile(File file) {
+        if (file != null) {
+            if (projectView == null) {
+                if (file.isDirectory()) {
+                    projectView = new FileTreeView(file, this);
+                } else {
+                    projectView = new FileTreeView(file.getParentFile(), this);
+                }
+                projectTabButton.setVisible(true);
+                projectViewAnchorPane.getChildren().add(projectView);
+                AnchorPane.setTopAnchor(projectView, 0D);
+                AnchorPane.setBottomAnchor(projectView, 0D);
+                AnchorPane.setRightAnchor(projectView, 0D);
+                AnchorPane.setLeftAnchor(projectView, 0D);
+            }
+            if (!file.isDirectory()) {
+                Tab newTab = getNewEditorTab(file);
+                tabPane.getTabs().add(newTab);
+                tabPane.getSelectionModel().select(newTab);
+            }
+        }
     }
 
     public HBox getTopBox() {
@@ -162,7 +251,9 @@ public class Ide extends AnchorPane {
         return bottomBox;
     }
 
-    private void makeTabButton(Button button, Region putInTab, AnchorPane tab, SplitPane divider) {
+
+
+    private void makeTabButton(Button button, Region putInTab, AnchorPane tab, SplitPane divider, double newDividerSpot) {
         tab.getStyleClass().add("darker-background");
         tab.setMinHeight(0);
         button.setMnemonicParsing(true);
@@ -177,16 +268,33 @@ public class Ide extends AnchorPane {
                 tab.getChildren().add(putInTab);
                 AnchorPane.setTopAnchor(putInTab, 0D); AnchorPane.setBottomAnchor(putInTab, 0D);
                 AnchorPane.setRightAnchor(putInTab, 0D); AnchorPane.setLeftAnchor(putInTab, 0D);
-                divider.setDividerPositions(0.8);
+                divider.setDividerPositions(newDividerSpot);
                 button.getStyleClass().add("active-button");
             }
         });
     }
 
-    private ComponentTabPane.ComponentTab getNewEditorTab(File file) {
+    public static ComponentTabPane.ComponentTab<IntegratedTextEditor> getNewEditorTab(File file) {
         String fileName = file != null ? file.getName() : "Untitled";
         IntegratedTextEditor integratedTextEditor = new IntegratedTextEditor();
-        ComponentTabPane.ComponentTab componentTab = new ComponentTabPane.ComponentTab(fileName, integratedTextEditor);
+        if (file != null) {
+            StringBuilder builder = new StringBuilder();
+            try {
+                Scanner scanner = new Scanner(file);
+                boolean first = true;
+                while (scanner.hasNextLine()) {
+                    if (!first) {
+                        builder.append("\n");
+                    }
+                    first = false;
+                    builder.append(scanner.nextLine());
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            integratedTextEditor.replaceText(builder.toString());
+        }
+        ComponentTabPane.ComponentTab<IntegratedTextEditor> componentTab = new ComponentTabPane.ComponentTab<>(fileName, integratedTextEditor);
         componentTab.setFile(file);
         componentTab.setMainNode(integratedTextEditor);
         return componentTab;

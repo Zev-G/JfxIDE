@@ -55,6 +55,21 @@
 .scroll-bar > .decrement-button > .decrement-arrow {
     -fx-background-color: transparent;
 }
+.scroll-pane:focused,
+.split-pane:focused,
+.list-view:focused,
+.tree-view:focused,
+.table-view:focused,
+.tree-table-view:focused {
+    -fx-background-color: -fx-background;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.scroll-pane:focused,
+.split-pane:focused {
+    -fx-background-color: -fx-background;
+}
 .slider .track {
     -fx-background-color: -main-background-color;
     -fx-background-insets: 0 0 -1 0, 0, 1;
@@ -94,6 +109,11 @@
     -fx-background-color: -main-background-color;
 }
 .split-pane {
+    -fx-background-color: -main-background-color;
+    -fx-border-color: -main-background-color;
+}
+
+.tree-view {
     -fx-background-color: -main-background-color;
 }
 
