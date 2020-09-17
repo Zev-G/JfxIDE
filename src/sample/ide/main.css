@@ -5,6 +5,7 @@
     -darkest-background-color: #171d2b;
     -fx-background: #1c2532;
     -default-text-color: #bcc5d2;
+    -light-highlight-color: #e05c5c;
     -highlight-color: #b94646;
 }
 
@@ -177,6 +178,20 @@
     -fx-border-width: 3;
     -fx-border-radius: 5;
 }
-.tree-cell .label {
-    -fx-font-size: 16;
+.tree-cell .text {
+    -fx-font-size: 13;
+    -fx-font-family: "Montserrat";
+    -fx-fill: -default-text-color;
 }
+.tree-cell:selected {
+    -fx-background-color: -lighter-background-color;
+}
+.file-drag-over {
+    -fx-background-color: -main-background-color;
+}
+
+
+.tree-cell:selected .text {
+    -fx-fill: -light-highlight-color;
+}
+

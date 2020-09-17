@@ -18,6 +18,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
@@ -218,29 +219,31 @@ public class ComponentTabPane extends TabPane {
                 }
             });
             this.label.setOnMouseReleased(mouseEvent -> {
-                pictureStage.hide();
-                this.getContent().setOpacity(1);
-                label.getParent().getParent().getParent().setOpacity(1);
-                ComponentTabPane pane = getTopTabPane(mouseEvent);
-                if (pane != this.getTabPane()) {
-                    if (pane == null) {
-                        attachToStage();
-                        this.stage.setX(pictureStage.getX());
-                        this.stage.setY(pictureStage.getY());
-                    } else {
-                        pane.setEffect(null);
-                        if (this.getTabPane() != null) {
-                            this.getTabPane().setEffect(null);
-                            this.getTabPane().getTabs().remove(this);
+                if (mouseEvent.getButton() != MouseButton.MIDDLE) {
+                    pictureStage.hide();
+                    this.getContent().setOpacity(1);
+                    label.getParent().getParent().getParent().setOpacity(1);
+                    ComponentTabPane pane = getTopTabPane(mouseEvent);
+                    if (pane != this.getTabPane()) {
+                        if (pane == null) {
+                            attachToStage();
+                            this.stage.setX(pictureStage.getX());
+                            this.stage.setY(pictureStage.getY());
+                        } else {
+                            pane.setEffect(null);
+                            if (this.getTabPane() != null) {
+                                this.getTabPane().setEffect(null);
+                                this.getTabPane().getTabs().remove(this);
+                            }
+                            stage.setOnHidden(null);
+                            stage.hide();
+                            pane.getTabs().add(this);
+                            pane.getSelectionModel().select(this);
                         }
-                        stage.setOnHidden(null);
-                        stage.hide();
-                        pane.getTabs().add(this);
-                        pane.getSelectionModel().select(this);
                     }
-                }
-                if (lastTabPane != null) {
-                    lastTabPane.setEffect(null);
+                    if (lastTabPane != null) {
+                        lastTabPane.setEffect(null);
+                    }
                 }
             });
         }
@@ -293,6 +296,9 @@ public class ComponentTabPane extends TabPane {
 
         public Label getLabel() {
             return label;
+        }
+        public void setTitle(String text) {
+            this.label.setText(text);
         }
 
         public void stageHidden() {

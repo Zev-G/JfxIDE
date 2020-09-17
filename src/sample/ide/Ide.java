@@ -16,6 +16,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -43,7 +44,7 @@ public class Ide extends AnchorPane {
     private final SVGPath playSvg = new SVGPath();
     private final Button playButton = new Button("", playSvg);
     private final HBox topBox = new HBox(playButton);
-    private final Button runTabButton = new Button("_Run");
+    private final Button runTabButton = new Button("Run");
     private final Button projectTabButton = new Button("P\nr\no\nj\ne\nc\nt");
     private final HBox bottomBox = new HBox(runTabButton);
     private final VBox sideBox = new VBox(projectTabButton);
@@ -106,7 +107,6 @@ public class Ide extends AnchorPane {
         textInputBox.getStyleClass().add("popup-item");
         confirmBox.getStyleClass().add("popup-item");
 
-
         bottomTab.getChildren().addListener((ListChangeListener<Node>) change -> {
             if (bottomTab.getChildren().isEmpty()) {
                 bottomTab.setMaxHeight(0);
@@ -168,8 +168,9 @@ public class Ide extends AnchorPane {
         newProject.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
         Menu openMenu = new Menu("Open");
         MenuItem openFile = new MenuItem("Open File");
+        MenuItem openFolder = new MenuItem("Open Folder");
         MenuItem openProject = new MenuItem("Open Project");
-        openMenu.getItems().addAll(openProject, openFile);
+        openMenu.getItems().addAll(openProject, openFile, openFolder);
         newMenu.getItems().addAll(newProject, newFile);
         fileMenu.getItems().addAll(newMenu, openMenu);
         menuBar.getMenus().addAll(fileMenu);
@@ -198,9 +199,16 @@ public class Ide extends AnchorPane {
                 loadFile(file);
             }
         });
+        openFolder.setOnAction(actionEvent -> {
+            DirectoryChooser fileChooser = new DirectoryChooser();
+            File file = fileChooser.showDialog(this.getScene().getWindow());
+            if (file != null) {
+                loadFile(file);
+            }
+        });
         openProject.setOnAction(actionEvent -> {
-            FileChooser fileChooser = new FileChooser();
-            File file = fileChooser.showOpenDialog(this.getScene().getWindow());
+            DirectoryChooser fileChooser = new DirectoryChooser();
+            File file = fileChooser.showDialog(this.getScene().getWindow());
             if (file != null) {
                 Stage stage = new Stage();
                 Ide newIde = new Ide();
@@ -216,16 +224,6 @@ public class Ide extends AnchorPane {
                 newIde.loadFile(file);
             }
         });
-
-
-//        tabPane.setOnTabCloseRequested(event -> {
-//            if (event.getSource() instanceof ComponentTabPane.ComponentTab && !popupPane.isVisible()) {
-//                ComponentTabPane.ComponentTab<IntegratedTextEditor> componentTab = (ComponentTabPane.ComponentTab<IntegratedTextEditor>) event.getSource();
-////                if (componentTab.getFile() != null && componentTab.getMainNode() instanceof IntegratedTextEditor) {
-////                    showConfirmation("This file ");
-////                }
-//            }
-//        });
     }
 
     public void loadFile(File file) {
