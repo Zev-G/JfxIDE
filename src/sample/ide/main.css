@@ -172,11 +172,21 @@
 .popup-item .text-field {
     -fx-background-color: -darkest-background-color;
     -fx-text-fill: -default-text-color;
+    -fx-background-insets: -2;
+    -fx-background-radius: 5;
 }
 .popup-item .text-field:focused {
     -fx-border-color: -highlight-color;
     -fx-border-width: 3;
     -fx-border-radius: 5;
+}
+.popup-item .button:focused {
+    -fx-border-color: -highlight-color;
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+}
+.popup-item .button {
+    -fx-background-radius: 5;
 }
 .tree-cell .text {
     -fx-font-size: 13;

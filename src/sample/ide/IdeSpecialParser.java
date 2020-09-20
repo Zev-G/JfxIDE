@@ -1,16 +1,41 @@
 package sample.ide;
 
-import sample.test.interpretation.SyntaxManager;
-import sample.test.interpretation.parse.Parser;
-import sample.test.syntaxPiece.SyntaxPieceFactory;
-import sample.test.syntaxPiece.expressions.ExpressionFactory;
-import sample.test.variable.Variable;
+import sample.language.interpretation.SyntaxManager;
+import sample.language.interpretation.parse.Parser;
+import sample.language.syntaxPiece.SyntaxPieceFactory;
+import sample.language.syntaxPiece.expressions.ExpressionFactory;
+import sample.language.variable.Variable;
 
 import java.util.ArrayList;
 
 public final class IdeSpecialParser {
 
+//    public static final HashMap<String, ArrayList<PossiblePiecePackage<?>>> CACHE = new HashMap<>();
+//    private static boolean CHECKED_CACHE = false;
+
     public static <T extends SyntaxPieceFactory> ArrayList<PossiblePiecePackage<T>> possibleSyntaxPieces(String code, ArrayList<T> pickFrom) {
+//        if (!CHECKED_CACHE) {
+//            CHECKED_CACHE = true;
+//            Scanner scanner = new Scanner(IdeSpecialParser.class.getResourceAsStream("saved_cache.txt"));
+//            ArrayList<SyntaxPieceFactory> syntaxPieceFactories = new ArrayList<>();
+//            syntaxPieceFactories.addAll(SyntaxManager.EFFECT_FACTORIES);
+//            syntaxPieceFactories.addAll(SyntaxManager.EVENT_FACTORIES);
+//            while (scanner.hasNextLine()) {
+//                String line = scanner.nextLine();
+//                if (line.contains("===")) {
+//                    String lineCode = line.split("===")[0];
+//                    String usage = line.split("===")[1];
+//                    for (SyntaxPieceFactory factory : syntaxPieceFactories) {
+//                        if (factory.getUsage().equals(usage)) {
+//                            CACHE.put(lineCode, factory);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        if (CACHE.get(code) != null) {
+//            return (ArrayList<PossiblePiecePackage<T>>) CACHE.get(code);
+//        }
         code = code.replaceFirst("^\\s+", "");
 //        System.out.println("CODE: " + code);
         ArrayList<PossiblePiecePackage<T>> possiblePiecePackages = new ArrayList<>();
@@ -41,7 +66,6 @@ public final class IdeSpecialParser {
             if (!usage.endsWith("%")) {
                 pieces.add(builder.toString());
             }
-            ArrayList<String> notFilledInPieces = new ArrayList<>(pieces);
             if (pieces.isEmpty()) pieces.add(usage);
             int expressionTimes = 0;
             String codeBufferForPiece = "";
@@ -55,7 +79,7 @@ public final class IdeSpecialParser {
                 String lastPiece = piece;
                 lastWasExpression = isAnExpression;
                 if (codeBuffer.length() == 0) {
-                    possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, codeBufferForPiece, lastPiece, i - 1, filledIn.toString(), notFilledInPieces, code));
+                    possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, lastPiece, filledIn.toString(), code));
                     //System.out.println("Continue (0) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                     continue pieces;
                 }
@@ -89,7 +113,7 @@ public final class IdeSpecialParser {
                                 continue pieces;
                             }
                         } else if (piece.length() == 0) {
-                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, true, lastExpression, beforeCodeBuffer, lastPiece, i, filledIn.toString(), notFilledInPieces, code));
+                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, true, lastExpression, lastPiece, filledIn.toString(), code));
 //                            System.out.println("Continue (3) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                             continue pieces;
                         }
@@ -105,7 +129,7 @@ public final class IdeSpecialParser {
                         codeBuffer = codeBuffer.replaceFirst(codeBuffer, "");
                         filledIn.append(codeBufferForPiece);
                         if (pieces.size() - 1 == i) {
-                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, codeBuffer, lastPiece, i, filledIn.toString(), notFilledInPieces, code));
+                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, lastPiece, filledIn.toString(), code));
                             //System.out.println("Continue (5) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                             continue pieces;
                         }
@@ -122,7 +146,6 @@ public final class IdeSpecialParser {
                 } else {
                     filledIn.append(piece);
                 }
-                notFilledInPieces.remove(0);
             }
             //System.out.println("Down here");
             Class<?> aClass = lastWasExpression ? SyntaxManager.SUPPORTED_TYPES.get(piece.replaceAll("%", "")) : null;
@@ -133,7 +156,7 @@ public final class IdeSpecialParser {
         return possiblePiecePackages;
     }
 
-    private static <T extends SyntaxPieceFactory> PossiblePiecePackage<T> getPackage(T syntaxPieceFactory, ArrayList<String> pieces, boolean lastWasExpression, String lastExpression, String codeBuffer, String lastPiece, int i, String filledIn, ArrayList<String> notFilledIn, String code) {
+    private static <T extends SyntaxPieceFactory> PossiblePiecePackage<T> getPackage(T syntaxPieceFactory, ArrayList<String> pieces, boolean lastWasExpression, String lastExpression, String lastPiece, String filledIn, String code) {
         Class<?> aClass = lastWasExpression ? SyntaxManager.SUPPORTED_TYPES.get(lastPiece.replaceAll("%", "")) : null;
         String notFilled = syntaxPieceFactory.getUsage().substring(filledIn.length());
 

@@ -1,6 +1,7 @@
 package sample.ide.fileTreeView;
 
 import com.jfoenix.controls.JFXTreeView;
+import javafx.beans.value.ChangeListener;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.scene.SnapshotParameters;
@@ -31,6 +32,7 @@ public class FileTreeView extends JFXTreeView<File> {
         try {
             IMAGE_CACHE.put("default_file", imageFromSvg(FileTreeView.class.getResourceAsStream("icons/default_file.svg")));
             IMAGE_CACHE.put("default_folder", imageFromSvg(FileTreeView.class.getResourceAsStream("icons/default_folder.svg")));
+            IMAGE_CACHE.put("default_folder_opened", imageFromSvg(FileTreeView.class.getResourceAsStream("icons/default_folder_opened.svg")));
         } catch (TranscoderException e) {
             e.printStackTrace();
         }
@@ -64,12 +66,26 @@ public class FileTreeView extends JFXTreeView<File> {
         private ContextMenu contextMenu;
         private MenuItem requireIsFolder;
         private EventHandler<ContextMenuEvent> contextMenuEventEventHandler;
+        private ChangeListener<Boolean> expandedChangeListener;
 
         public CustomCell() {
             itemProperty().addListener((observableValue, treeItem, t1) -> {
                 if (getTreeView() != null && getTreeView() instanceof FileTreeView) {
                     ((FileTreeView) getTreeView()).getFileMap().remove(treeItem);
                     ((FileTreeView) getTreeView()).getFileMap().put(t1, this.getTreeItem());
+                }
+                if (t1 != null && t1.isDirectory() && getTreeItem() != null) {
+                    if (expandedChangeListener != null) {
+                        getTreeItem().expandedProperty().removeListener(expandedChangeListener);
+                    } else {
+                        expandedChangeListener = (observableValue1, aBoolean, t11) -> {
+                            try {
+                                setGraphic(imageViewFromFile(t1));
+                            } catch (TranscoderException e) {
+                                e.printStackTrace();
+                            }
+                        };
+                    }
                 }
             });
             treeItemProperty().addListener((observableValue, fileTreeItem, t1) -> {
@@ -235,6 +251,11 @@ public class FileTreeView extends JFXTreeView<File> {
                         if (!gotten.contains("/") && !gotten.contains("\\")) {
                             File renameTo = new File(this.getItem().getParentFile().getPath() + "\\" + gotten);
                             if (!renameTo.exists()) {
+                                try {
+                                    setGraphic(imageViewFromFile(renameTo));
+                                } catch (TranscoderException e) {
+                                    e.printStackTrace();
+                                }
                                 this.getItem().renameTo(renameTo);
                                 this.setText(gotten);
                                 if (getTreeItem() != null && ((CustomItem) getTreeItem()).getComponentTab() != null) {
@@ -253,7 +274,11 @@ public class FileTreeView extends JFXTreeView<File> {
                             File createdFile = new File(this.getItem().getPath() + "\\" + gotten);
                             if (!createdFile.exists()) {
                                 try {
-                                    createdFile.createNewFile();
+                                    if (gotten.contains(".")) {
+                                        createdFile.createNewFile();
+                                    } else {
+                                        createdFile.mkdir();
+                                    }
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -297,6 +322,32 @@ public class FileTreeView extends JFXTreeView<File> {
             };
         }
 
+        private ImageView imageViewFromFile(File f) throws TranscoderException {
+            String name = "";
+            if (f.isDirectory()) {
+                name = f.getName() + "_folder";
+                if (getTreeItem() != null && getTreeItem().isExpanded()) {
+                    name = name + "_opened";
+                }
+            } else if (f.getName().contains(".")) {
+                name = f.getName().split("\\.")[1].toLowerCase();
+            }
+            Image image = IMAGE_CACHE.get(name);
+            if (image == null) {
+                InputStream resource = FileTreeView.class.getResourceAsStream("icons/" + name + ".svg");
+                if (resource == null) {
+                    image = IMAGE_CACHE.get(f.isDirectory() ? ("default_folder" + (getTreeItem().isExpanded() ? "_opened" : "")) : "default_file");
+                } else {
+                    image = imageFromSvg(resource);
+                    IMAGE_CACHE.put(name, image);
+                }
+            }
+            ImageView imageView = new ImageView(image);
+            imageView.setFitHeight(20);
+            imageView.setPreserveRatio(true);
+
+            return imageView;
+        }
     }
 
     private static class CustomItem extends TreeItem<File> {
@@ -337,29 +388,6 @@ public class FileTreeView extends JFXTreeView<File> {
 
     }
 
-    private static ImageView imageViewFromFile(File f) throws TranscoderException {
-        String name = "";
-        if (f.isDirectory()) {
-            name = f.getName();
-        } else if (f.getName().contains(".")) {
-            name = f.getName().split("\\.")[1];
-        }
-        Image image = IMAGE_CACHE.get(name);
-        if (image == null) {
-            InputStream resource = FileTreeView.class.getResourceAsStream("icons/" + name + ".svg");
-            if (resource == null) {
-                image = IMAGE_CACHE.get(f.isDirectory() ? "default_folder" : "default_file");
-            } else {
-                image = imageFromSvg(resource);
-                IMAGE_CACHE.put(name, image);
-            }
-        }
-        ImageView imageView = new ImageView(image);
-        imageView.setFitHeight(20);
-        imageView.setPreserveRatio(true);
-
-        return imageView;
-    }
 
     public static Image imageFromSvg(InputStream inputStream) throws TranscoderException {
         BufferedImageTranscoder trans = new BufferedImageTranscoder();

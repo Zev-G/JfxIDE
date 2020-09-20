@@ -11,9 +11,9 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Popup;
-import sample.test.interpretation.SyntaxManager;
-import sample.test.interpretation.parse.Parser;
-import sample.test.syntaxPiece.expressions.ExpressionFactory;
+import sample.language.interpretation.SyntaxManager;
+import sample.language.interpretation.parse.Parser;
+import sample.language.syntaxPiece.expressions.ExpressionFactory;
 
 import java.util.ArrayList;
 

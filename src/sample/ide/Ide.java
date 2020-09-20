@@ -26,9 +26,9 @@ import sample.ide.codeEditor.IntegratedTextEditor;
 import sample.ide.fileTreeView.FileTreeView;
 import sample.ide.tools.ComponentTabPane;
 import sample.ide.tools.Gotten;
-import sample.test.FXScript;
-import sample.test.interpretation.SyntaxManager;
-import sample.test.interpretation.run.CodeChunk;
+import sample.language.FXScript;
+import sample.language.interpretation.SyntaxManager;
+import sample.language.interpretation.run.CodeChunk;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -65,6 +65,9 @@ public class Ide extends AnchorPane {
     private final SplitPane verticalSplitPane = new SplitPane(topTab, bottomTab);
 
     private final MenuBar menuBar = new MenuBar();
+
+    private final Pane emptyPopupPane = new Pane();
+    private final VBox insidePopup = new VBox();
     private final BorderPane popupPane = new BorderPane();
 
     private final Label prompt = new Label();
@@ -100,6 +103,21 @@ public class Ide extends AnchorPane {
 
         consoleAnchor.getChildren().add(runConsole);
         consoleAnchor.setFillWidth(true);
+
+        emptyPopupPane.setMinHeight(250);
+        popupPane.setCenter(insidePopup);
+        insidePopup.setAlignment(Pos.CENTER);
+
+        tabPane.getSelectionModel().selectedItemProperty().addListener((observableValue, tab, t1) -> {
+            if (t1 instanceof ComponentTabPane.ComponentTab && getScene().getWindow() instanceof Stage) {
+                ComponentTabPane.ComponentTab<?> componentTab = (ComponentTabPane.ComponentTab<?>) t1;
+                Stage stage = (Stage) getScene().getWindow();
+                if (!stage.getTitle().contains("-")) {
+                    stage.setTitle("Untitled - ");
+                }
+                stage.setTitle(stage.getTitle().split("-")[0] + "- " + componentTab.getLabel().getText());
+            }
+        });
 
         projectTabButton.setLineSpacing(-5);
         projectTabButton.setTextAlignment(TextAlignment.CENTER);
@@ -178,7 +196,7 @@ public class Ide extends AnchorPane {
         newProject.setOnAction(actionEvent -> {
             Stage stage = new Stage();
             stage.setScene(new Scene(new Ide()));
-            stage.setTitle("Untitled Project");
+            stage.setTitle("Untitled Project - " + (getTabPane().getSelectedTab() != null ? getTabPane().getSelectedTab().getLabel().getText() : ""));
             stage.show();
             Window thisWindow = this.getScene().getWindow();
             stage.setWidth(thisWindow.getWidth());
@@ -213,7 +231,7 @@ public class Ide extends AnchorPane {
                 Stage stage = new Stage();
                 Ide newIde = new Ide();
                 stage.setScene(new Scene(newIde));
-                stage.setTitle(file.isDirectory() ? file.getName() : "Untitled Project");
+                stage.setTitle(file.isDirectory() ? file.getName() : "Untitled Project - " + (getTabPane().getSelectedTab() != null ? getTabPane().getSelectedTab().getLabel().getText() : ""));
                 stage.show();
                 Window thisWindow = this.getScene().getWindow();
                 stage.setWidth(thisWindow.getWidth());
@@ -225,6 +243,18 @@ public class Ide extends AnchorPane {
             }
         });
     }
+    public Ide(File file) {
+        this();
+        sceneProperty().addListener((observableValue, scene, t1) -> {
+            if (t1 != null && scene == null) {
+                t1.windowProperty().addListener((observableValue1, window, t11) -> {
+                    if (t11 != null && window == null) {
+                        loadFile(file);
+                    }
+                });
+            }
+        });
+    }
 
     public void loadFile(File file) {
         if (file != null) {
@@ -233,6 +263,9 @@ public class Ide extends AnchorPane {
                     projectView = new FileTreeView(file, this);
                 } else {
                     projectView = new FileTreeView(file.getParentFile(), this);
+                }
+                if (this.getScene().getWindow() instanceof Stage) {
+                    ((Stage) getScene().getWindow()).setTitle(projectView.getFileRoot().getName() + " - " + (getTabPane().getSelectedTab() != null ? getTabPane().getSelectedTab().getLabel().getText() : ""));
                 }
                 projectTabButton.setVisible(true);
                 projectViewAnchorPane.getChildren().add(projectView);
@@ -297,9 +330,10 @@ public class Ide extends AnchorPane {
                 hidePopup();
             }
         });
-        this.popupPane.setCenter(textInputBox);
+        insidePopup.getChildren().add(textInputBox);
         textInputBox.setAlignment(Pos.CENTER);
         showPopup();
+        this.inputBox.requestFocus();
     }
     public void showConfirmation(String confirmText, Gotten<Boolean> gotten) {
         this.confirmText.setText(confirmText);
@@ -307,14 +341,16 @@ public class Ide extends AnchorPane {
             gotten.gotten(true);
             hidePopup();
         });
-        this.popupPane.setCenter(confirmBox);
+        insidePopup.getChildren().add(confirmBox);
         confirmBox.setAlignment(Pos.CENTER);
         showPopup();
+        this.confirm.requestFocus();
     }
 
     public void showPopup() {
         popupPane.setOpacity(0);
         popupPane.setVisible(true);
+        insidePopup.getChildren().add(emptyPopupPane);
         FadeTransition fadeIn = new FadeTransition(new Duration(200), popupPane);
         fadeIn.setToValue(1);
         fadeIn.play();

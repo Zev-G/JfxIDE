@@ -21,12 +21,13 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import sample.ide.Ide;
 import sample.ide.IdeSpecialParser;
-import sample.test.interpretation.SyntaxManager;
-import sample.test.syntaxPiece.SyntaxPieceFactory;
+import sample.language.interpretation.SyntaxManager;
+import sample.language.syntaxPiece.SyntaxPieceFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +42,9 @@ public class IntegratedTextEditor extends CodeArea {
     private final String STRING_PATTERN = "\"([^\"\\\\]|\\\\.)*\"";
     private final String COMMENT_PATTERN = "#[^\\n]*";
     private final String NUMBER_PATTERN = "[0-9]+";
-    private final String VARIABLE_PATTERN = "\\{([^\"\\\\]|\\\\.)*?}|^[^\\s]+(:| =)";
+    private final String VARIABLE_PATTERN = "\\{([^\"\\\\]|\\\\.)*?}|[^\\s]+(: | = )";
+    private final String SPECIAL_PATTERN = "\\b([A-z]+-[A-z]+)\\b";
+    private final String INPUT_PATTERN = "%([^\\s]*?)%";
 
     private final String EXPRESSION_PATTERN = generateSyntaxPattern(SyntaxManager.getAllExpressionFactories());
     private final String EFFECT_PATTERN = generateSyntaxPattern(SyntaxManager.EFFECT_FACTORIES);
@@ -49,13 +52,15 @@ public class IntegratedTextEditor extends CodeArea {
 
     private final Pattern PATTERN = Pattern.compile("" +
             "(?<COMMENT>" + COMMENT_PATTERN + ")" +
-            "|(?<KEYWORD>" + KEYWORD_PATTERN + ")" +
             "|(?<STRING>" + STRING_PATTERN + ")" +
             "|(?<VARIABLE>" + VARIABLE_PATTERN + ")" +
             "|(?<NUMBER>" + NUMBER_PATTERN + ")" +
+            "|(?<SPECIAL>" + SPECIAL_PATTERN + ")" +
+            "|(?<INPUT>" + INPUT_PATTERN + ")" +
             "|(?<EXPRESSION>" + EXPRESSION_PATTERN + ")" +
             "|(?<EFFECT>" + EFFECT_PATTERN + ")" +
             "|(?<EVENT>" + EVENT_PATTERN + ")" +
+            "|(?<KEYWORD>" + KEYWORD_PATTERN + ")" +
 //            "|(?<>" +  + ")" +
             "");
 
@@ -73,6 +78,7 @@ public class IntegratedTextEditor extends CodeArea {
     private final ArrayList<String> selectionQueue = new ArrayList<>();
 
     private int selectionIndex = 0;
+
 
     private final EventHandler<MouseEvent> popupItemEvent = mouseEvent -> {
         if (mouseEvent.getSource() instanceof Node) {
@@ -94,10 +100,20 @@ public class IntegratedTextEditor extends CodeArea {
 //        System.out.println(PATTERN);
         popupScrollPane.setOnKeyPressed(keyEvent -> {
             keyEvent.consume();
-            this.fireEvent(keyEvent);
+            System.out.println(keyEvent.getCode());
+            if (keyEvent.getCode() == KeyCode.TAB) {
+                String text = factoryOrder.get(selectionIndex).getNotFilledIn();
+                this.insertText(this.getCaretPosition(), text);
+                selectionQueue.clear();
+                selectNext();
+            }
         });
         this.setParagraphGraphicFactory(LineNumberFactory.get(this));
-        this.richChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(change -> this.setStyleSpans(0, computeHighlighting(this.getText())));
+        this.richChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(change -> {
+            HighlightingThread highlightingThread = new HighlightingThread();
+            highlightingThread.setText(this.getText());
+            highlightingThread.start();
+        });
 
         this.getStylesheets().add(IntegratedTextEditor.class.getResource("ide.css").toExternalForm());
         popupScrollPane.getStylesheets().add(Ide.class.getResource("main.css").toExternalForm());
@@ -211,15 +227,25 @@ public class IntegratedTextEditor extends CodeArea {
                     }
                 }
             } else if (keyCode == KeyCode.TAB) {
-                if (!keyEvent.isControlDown() && autoCompletePopup.isShowing() && this.getSelectedText().equals("")) {
+                if (!keyEvent.isControlDown() && autoCompletePopup.isShowing()) {
                     if (factoryOrder.size() > selectionIndex) {
+                        System.out.println("Text");
                         keyEvent.consume();
                         String text = factoryOrder.get(selectionIndex).getNotFilledIn();
-                        this.insertText(this.getCaretPosition(), text);
-                        selectionQueue.clear();
-                        selectNext();
+                        if (text.length() > 0 && this.getSelectedText().equals("")) {
+                            this.insertText(this.getCaretPosition(), text);
+                            selectionQueue.clear();
+                            selectNext();
+                        } else {
+                            int lineStart = 0;
+                            for (int i = this.getCurrentParagraph(); i >= 0; i--) {
+                                lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
+                            }
+                            lineStart--;
+                            this.replaceText(lineStart, lineStart, "");
+                        }
                     }
-                } else if (!selectionQueue.isEmpty() && this.getSelectedText().equals("")) {
+                } else if (!keyEvent.isControlDown() && !selectionQueue.isEmpty() && this.getSelectedText().equals("")) {
                     selectNext();
                     keyEvent.consume();
                 }
@@ -344,27 +370,62 @@ public class IntegratedTextEditor extends CodeArea {
         return "\\b(" + pattern + ")\\b";
     }
 
-    private StyleSpans<Collection<String>> computeHighlighting(String text) {
-        Matcher matcher = PATTERN.matcher(text);
-        int lastKwEnd = 0;
-        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-        while(matcher.find()) {
-            String styleClass =
-                matcher.group("KEYWORD") != null ? "keyword" :
-                matcher.group("STRING") != null ? "string" :
-                matcher.group("COMMENT") != null ? "comment" :
-                matcher.group("NUMBER") != null ? "number" :
-                matcher.group("VARIABLE") != null ? "variable" :
-                matcher.group("EXPRESSION") != null ? "expression" :
-                matcher.group("EFFECT") != null ? "effect" :
-                matcher.group("EVENT") != null ? "event" :
-                null;
-            spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
-            spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
-            lastKwEnd = matcher.end();
+
+
+    private class HighlightingThread extends Thread {
+
+        private String text;
+
+        public HighlightingThread() {
+            super();
         }
-        spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
-        return spansBuilder.create();
+
+        @Override
+        public void run() {
+            computeHighlighting(text);
+        }
+
+
+        public String getText() {
+            return text;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        private void computeHighlighting(String text) {
+            Matcher matcher = PATTERN.matcher(text);
+            int lastKwEnd = 0;
+            StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+            while(matcher.find()) {
+                String styleClass =
+                        matcher.group("STRING") != null ? "string" :
+                        matcher.group("COMMENT") != null ? "comment" :
+                        matcher.group("NUMBER") != null ? "number" :
+                        matcher.group("VARIABLE") != null ? "variable" :
+                        matcher.group("SPECIAL") != null ? "special" :
+                        matcher.group("INPUT") != null ? "input" :
+                        matcher.group("EXPRESSION") != null ? "expression" :
+                        matcher.group("EFFECT") != null ? "effect" :
+                        matcher.group("EVENT") != null ? "event" :
+                        matcher.group("KEYWORD") != null ? "keyword" :
+                        null;
+                spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
+                spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
+                lastKwEnd = matcher.end();
+            }
+            spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
+            StyleSpans<Collection<String>> styleSpans = spansBuilder.create();
+            Platform.runLater(() -> {
+                try {
+                    setStyleSpans(0, styleSpans);
+                } catch (IndexOutOfBoundsException ignored) {}
+            });
+        }
+
+
+
     }
 
 }

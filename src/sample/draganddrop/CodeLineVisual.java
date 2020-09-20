@@ -10,9 +10,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import sample.draganddrop.syntaxvisuals.ExpressionVisual;
-import sample.test.interpretation.SyntaxManager;
-import sample.test.interpretation.parse.Parser;
-import sample.test.syntaxPiece.effects.EffectFactory;
+import sample.language.interpretation.SyntaxManager;
+import sample.language.interpretation.parse.Parser;
+import sample.language.syntaxPiece.effects.EffectFactory;
 
 public class CodeLineVisual extends HBox {
 

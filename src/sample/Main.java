@@ -6,9 +6,9 @@ import javafx.stage.Stage;
 import sample.betterfx.CommandConsole;
 import sample.ide.Ide;
 import sample.panel.RunPanel;
-import sample.test.FXScript;
-import sample.test.interpretation.SyntaxManager;
-import sample.test.interpretation.run.CodeChunk;
+import sample.language.FXScript;
+import sample.language.interpretation.SyntaxManager;
+import sample.language.interpretation.run.CodeChunk;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,7 +30,7 @@ public class Main extends Application {
         CommandConsole console = new CommandConsole();
         SyntaxManager.setPrintConsole(console);
 //        primaryStage.setScene(new Scene(console));
-        primaryStage.setScene(new Scene(new Ide()));
+        primaryStage.setScene(new Scene(new Ide(new File("C:\\Users\\Zev\\IdeaProjects\\SimpleCodingLanguage"))));
         primaryStage.show();
         primaryStage.setWidth(800);
         primaryStage.setHeight(600);
