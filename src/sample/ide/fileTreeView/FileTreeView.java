@@ -17,6 +17,8 @@ import sample.ide.Ide;
 import sample.ide.tools.ComponentTabPane;
 
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -224,7 +226,8 @@ public class FileTreeView extends JFXTreeView<File> {
             MenuItem rename = new MenuItem("Rename");
             MenuItem openInFileExplorer = new MenuItem("Open in File Explorer");
             MenuItem run = new MenuItem("Run File");
-            contextMenu.getItems().addAll(newFile, rename, deleteItem, openInFileExplorer, run);
+            MenuItem copyPath = new MenuItem("Copy Path");
+            contextMenu.getItems().addAll(newFile, rename, deleteItem, openInFileExplorer, run, copyPath);
             requireIsFolder = newFile;
             run.setOnAction(actionEvent -> {
                 if (getItem() != null) {
@@ -269,7 +272,7 @@ public class FileTreeView extends JFXTreeView<File> {
             newFile.setOnAction(actionEvent -> {
                 if (this.getTreeView() instanceof FileTreeView) {
                     FileTreeView fileTreeView = (FileTreeView) this.getTreeView();
-                    fileTreeView.getIde().showPopupForText("", "", gotten -> {
+                    fileTreeView.getIde().showPopupForText("Input the name of the new file.\nLeave no file type if you want to create a folder.", "", gotten -> {
                         if (!gotten.contains("/") && !gotten.contains("\\")) {
                             File createdFile = new File(this.getItem().getPath() + "\\" + gotten);
                             if (!createdFile.exists()) {
@@ -303,6 +306,13 @@ public class FileTreeView extends JFXTreeView<File> {
                         DELETE_ON_EXIT.add(getItem());
                         this.getItem().deleteOnExit();
                     });
+                }
+            });
+            copyPath.setOnAction(actionEvent -> {
+                if (getItem() != null) {
+                    StringSelection stringSelection = new StringSelection(getItem().getAbsolutePath());
+                    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                    clipboard.setContents(stringSelection, null);
                 }
             });
             return contextMenu;

@@ -21,67 +21,30 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import sample.ide.Ide;
 import sample.ide.IdeSpecialParser;
-import sample.language.interpretation.SyntaxManager;
-import sample.language.syntaxPiece.SyntaxPieceFactory;
+import sample.ide.codeEditor.languages.LanguageSupport;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class IntegratedTextEditor extends CodeArea {
 
-    // Static Fields
 
-    private final ArrayList<String> ADDED_SYNTAX_PATTERNS = new ArrayList<>();
-//
-    private final String[] KEYWORDS = { "function", "if", "else" };
-    private final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
-    private final String STRING_PATTERN = "\"([^\"\\\\]|\\\\.)*\"";
-    private final String COMMENT_PATTERN = "#[^\\n]*";
-    private final String NUMBER_PATTERN = "[0-9]+";
-    private final String VARIABLE_PATTERN = "\\{([^\"\\\\]|\\\\.)*?}|[^\\s]+(: | = )";
-    private final String SPECIAL_PATTERN = "\\b([A-z]+-[A-z]+)\\b";
-    private final String INPUT_PATTERN = "%([^\\s]*?)%";
+    private final LanguageSupport language;
 
-    private final String EXPRESSION_PATTERN = generateSyntaxPattern(SyntaxManager.getAllExpressionFactories());
-    private final String EFFECT_PATTERN = generateSyntaxPattern(SyntaxManager.EFFECT_FACTORIES);
-    private final String EVENT_PATTERN = generateSyntaxPattern(SyntaxManager.EVENT_FACTORIES);
-
-    private final Pattern PATTERN = Pattern.compile("" +
-            "(?<COMMENT>" + COMMENT_PATTERN + ")" +
-            "|(?<STRING>" + STRING_PATTERN + ")" +
-            "|(?<VARIABLE>" + VARIABLE_PATTERN + ")" +
-            "|(?<NUMBER>" + NUMBER_PATTERN + ")" +
-            "|(?<SPECIAL>" + SPECIAL_PATTERN + ")" +
-            "|(?<INPUT>" + INPUT_PATTERN + ")" +
-            "|(?<EXPRESSION>" + EXPRESSION_PATTERN + ")" +
-            "|(?<EFFECT>" + EFFECT_PATTERN + ")" +
-            "|(?<EVENT>" + EVENT_PATTERN + ")" +
-            "|(?<KEYWORD>" + KEYWORD_PATTERN + ")" +
-//            "|(?<>" +  + ")" +
-            "");
-
-
-
-//    private final Pattern PATTERN = Pattern.compile("(?<COMMENT>#[^\\n]*)|(?<KEYWORD>\\b(function|if|else)\\b)|(?<STRING>\"([^\"\\\\]|\\\\.)*\")|(?<VARIABLE>\\{([^\"\\\\]|\\\\.)*?})|(?<NUMBER>[0-9]+)|(?<EXPRESSION>\\b((|new )vbox|title property of|text property of|(|new )label|(|new )stage|(|new )pane|(|new )background colo(u|)red|with corner radius|(|new )button|(|new )hbox|files in|random number between|and|random integer between|children of|web colo(u|)r|blue|red|green|yellow|dark blue|dark red|dark green|light blue|light green|light yellow|aqua|beige|black|brown|cyan|dark grey|grey|light grey|gold|indigo|lime|magenta|maroon|navy|purple|silver|snow|white|teal|violet|without( the|) last character|without( the|) first character|without character (at |)|text of|path of|text in|computer is connected to the internet|free space in|length of|space taken up by|size of|value of|(load file|file loaded) from|is a multiple of|\\!|appended to|true|false)\\b)|(?<EFFECT>\\b(create new file|create new directory|delete|move|to|write|return|set|remove|from|add|set title of|show|print|stop program|set fill color of|put|into|set text of|set background color of|set scale x of|set scale y of|set scale of|set background of|push|to front|to back|set rotation of|set style of|set opacity of|disable|enable|set value of|bind|transition scale of|over|second(s|)|transition x position of|transition y position of|transition position of|transition opacity of|(|set )full screen|(|set )(normal|unfull) screen|(|set )maximize|(|set )un maximize|make|resizable|not resizable|hide|set icon of|visible|invisible|mouse transparent|not mouse transparent|set spacing of vbox|set spacing of hbox)\\b)|(?<EVENT>\\b((when|on)|is pressed|is clicked|(when|on) mouse drag enters|(when|on) mouse drag exits|(when|on) mouse moves over|is released|(when|on) drag is detected for|(when|on) mouse enters|(when|on) mouse exits|(when|on) drag is done for|(when|on) drag is dropped on|(when|on) drag enters|(when|on) drag exits|(when|on) drag is over|(when|on) key is pressed for|(when|on) key is released for|(when|on) key is typed for|changes|$expression (.*?)|in|every|chance of|loop|times)\\b)");
-
-
-    // Non Static Fields
-
-    private final ArrayList<IdeSpecialParser.PossiblePiecePackage<SyntaxPieceFactory>> factoryOrder = new ArrayList<>();
+    private final ArrayList<String> factoryOrder = new ArrayList<>();
     private final VBox popupBox = new VBox();
-    private final ScrollPane popupScrollPane = new ScrollPane(popupBox);
+    private final ScrollPane popupScrollPane = new SmoothishScrollpane(popupBox);
     private final Popup autoCompletePopup = new Popup();
     private final ArrayList<String> selectionQueue = new ArrayList<>();
 
     private int selectionIndex = 0;
 
-
     private final EventHandler<MouseEvent> popupItemEvent = mouseEvent -> {
         if (mouseEvent.getSource() instanceof Node) {
+            mouseEvent.consume();
             if (selectionIndex == popupBox.getChildren().indexOf((Node) mouseEvent.getSource())) {
                 this.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, false, false, false, false));
             } else {
@@ -97,56 +60,30 @@ public class IntegratedTextEditor extends CodeArea {
     };
 
     public IntegratedTextEditor() {
-//        System.out.println(PATTERN);
-        popupScrollPane.setOnKeyPressed(keyEvent -> {
-            keyEvent.consume();
-            System.out.println(keyEvent.getCode());
-            if (keyEvent.getCode() == KeyCode.TAB) {
-                String text = factoryOrder.get(selectionIndex).getNotFilledIn();
-                this.insertText(this.getCaretPosition(), text);
-                selectionQueue.clear();
-                selectNext();
-            }
-        });
-        this.setParagraphGraphicFactory(LineNumberFactory.get(this));
+        this(LanguageSupport.getSFS());
+    }
+    public IntegratedTextEditor(LanguageSupport languageSupport) {
+        language = languageSupport;
+
+        // Highlighting
         this.richChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(change -> {
             HighlightingThread highlightingThread = new HighlightingThread();
             highlightingThread.setText(this.getText());
             highlightingThread.start();
         });
 
-        this.getStylesheets().add(IntegratedTextEditor.class.getResource("ide.css").toExternalForm());
-        popupScrollPane.getStylesheets().add(Ide.class.getResource("main.css").toExternalForm());
-        autoCompletePopup.getContent().add(popupScrollPane);
-
-        this.addEventHandler( KeyEvent.KEY_PRESSED, keyEvent -> {
-            if (keyEvent.isControlDown() && keyEvent.getCode() == KeyCode.W) {
-                keyEvent.consume();
-                this.selectWord();
-            }
-        });
-        Pattern whiteSpace = Pattern.compile( "^\\s+" );
-
-        this.textProperty().addListener((observableValue, s, t1) -> {
-            if (this.getCaretPosition() < t1.length()) {
-                String lastCharacter = this.getText(this.getCaretPosition(), this.getCaretPosition() + 1);
-                int bracketsBefore = stringOccurrences(s, '{');
-                int bracketsAfter = stringOccurrences(t1, '{');
-                if (bracketsAfter == bracketsBefore - 1 && lastCharacter.equals("}")) {
-                    this.replaceText(this.getCaretPosition(), this.getCaretPosition() + 1, "");
-                } else {
-                    int quotesBefore = stringOccurrences(s, '"');
-                    int quotesAfter = stringOccurrences(t1, '"');
-                    if (quotesAfter == quotesBefore - 1 && lastCharacter.equals("\"")) {
-                        this.replaceText(this.getCaretPosition(), this.getCaretPosition() + 1, "");
-                    }
-                }
-            }
-            Platform.runLater(() -> fillBox(this.getParagraph(this.getCurrentParagraph()).getSegments().get(0)));
-        });
-
+        // Value tweaking and value setting
         this.popupScrollPane.setMaxHeight(300);
+        this.getStylesheets().add(IntegratedTextEditor.class.getResource("ide.css").toExternalForm());
+        this.getStylesheets().add(language.getStyleSheet());
+        popupScrollPane.getStylesheets().add(Ide.class.getResource("styles/main.css").toExternalForm());
+        autoCompletePopup.getContent().add(popupScrollPane);
+        autoCompletePopup.setAutoHide(true);
+        this.setParagraphGraphicFactory(LineNumberFactory.get(this));
 
+
+        // This event handlers
+        Pattern whiteSpace = Pattern.compile( "^\\s+" );
         this.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
             String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
             KeyCode keyCode = keyEvent.getCode();
@@ -178,7 +115,7 @@ public class IntegratedTextEditor extends CodeArea {
                 }
             }
             if (this.getSelectedText().length() > 0) {
-                if (keyCode == KeyCode.QUOTE || keyCode == KeyCode.OPEN_BRACKET) {
+                if (keyEvent.isShiftDown() && (keyCode == KeyCode.QUOTE || keyCode == KeyCode.OPEN_BRACKET)) {
                     String selectionText = this.getSelectedText();
                     IndexRange selected = this.getSelection();
                     if (keyCode == KeyCode.QUOTE) {
@@ -195,12 +132,12 @@ public class IntegratedTextEditor extends CodeArea {
                         this.selectRange(start + 1, end + 1);
                     });
                 }
-            } else if (keyCode == KeyCode.OPEN_BRACKET && !textAfterCaret.startsWith("}") && !keyEvent.isConsumed()) {
+            } else if (keyEvent.isShiftDown() && keyCode == KeyCode.OPEN_BRACKET && !textAfterCaret.startsWith("}") && !keyEvent.isConsumed()) {
                 Platform.runLater( () -> {
                     this.insertText(this.getCaretPosition(), "}");
                     this.moveTo(this.getCaretPosition() - 1);
                 });
-            } else if (keyCode == KeyCode.QUOTE && !textAfterCaret.startsWith("\"") && !keyEvent.isConsumed()) {
+            } else if (keyEvent.isShiftDown() && keyCode == KeyCode.QUOTE && !textAfterCaret.startsWith("\"") && !keyEvent.isConsumed()) {
                 Platform.runLater(() -> {
                     this.insertText(this.getCaretPosition(), "\"");
                     this.moveTo(this.getCaretPosition() - 1);
@@ -208,7 +145,7 @@ public class IntegratedTextEditor extends CodeArea {
             }
             if (keyCode == KeyCode.ENTER) {
                 Matcher m = whiteSpace.matcher(line);
-                Platform.runLater( () -> this.insertText( this.getCaretPosition(), (m.find() ? m.group() : "") + (line.endsWith(":") ? "  " : "")));
+                Platform.runLater( () -> this.insertText(this.getCaretPosition(), (line.trim().startsWith("#") ? "#" : "") + (m.find() ? m.group() : "") + (line.endsWith(":") ? "  " : "")));
             } else if (keyEvent.isShiftDown()) {
                 if (keyCode == KeyCode.TAB) {
                     Matcher matcher = whiteSpace.matcher(line);
@@ -229,13 +166,10 @@ public class IntegratedTextEditor extends CodeArea {
             } else if (keyCode == KeyCode.TAB) {
                 if (!keyEvent.isControlDown() && autoCompletePopup.isShowing()) {
                     if (factoryOrder.size() > selectionIndex) {
-                        System.out.println("Text");
                         keyEvent.consume();
-                        String text = factoryOrder.get(selectionIndex).getNotFilledIn();
+                        String text = factoryOrder.get(selectionIndex);
                         if (text.length() > 0 && this.getSelectedText().equals("")) {
-                            this.insertText(this.getCaretPosition(), text);
-                            selectionQueue.clear();
-                            selectNext();
+                            insertAutocomplete();
                         } else {
                             int lineStart = 0;
                             for (int i = this.getCurrentParagraph(); i >= 0; i--) {
@@ -274,6 +208,50 @@ public class IntegratedTextEditor extends CodeArea {
             autoCompletePopup.hide();
             selectionQueue.clear();
         });
+        this.textProperty().addListener((observableValue, s, t1) -> {
+            if (this.getCaretPosition() < t1.length()) {
+                String lastCharacter = this.getText(this.getCaretPosition(), this.getCaretPosition() + 1);
+                int bracketsBefore = stringOccurrences(s, '{');
+                int bracketsAfter = stringOccurrences(t1, '{');
+                if (bracketsAfter == bracketsBefore - 1 && lastCharacter.equals("}")) {
+                    this.replaceText(this.getCaretPosition(), this.getCaretPosition() + 1, "");
+                } else {
+                    int quotesBefore = stringOccurrences(s, '"');
+                    int quotesAfter = stringOccurrences(t1, '"');
+                    if (quotesAfter == quotesBefore - 1 && lastCharacter.equals("\"")) {
+                        this.replaceText(this.getCaretPosition(), this.getCaretPosition() + 1, "");
+                    }
+                }
+            }
+            Platform.runLater(() -> fillBox(this.getParagraph(this.getCurrentParagraph()).getSegments().get(0)));
+        });
+        // Other event handlers
+        popupScrollPane.setOnKeyPressed(keyEvent -> {
+            keyEvent.consume();
+            if (autoCompletePopup.isFocused()) {
+                this.fireEvent(new KeyEvent(this, this, keyEvent.getEventType(), keyEvent.getCharacter(), keyEvent.getText(), keyEvent.getCode(), keyEvent.isShiftDown(), keyEvent.isControlDown(), keyEvent.isAltDown(), keyEvent.isMetaDown()));
+            }
+            if (keyEvent.getCode() == KeyCode.TAB) {
+                insertAutocomplete();
+            }
+        });
+    }
+
+    public void insertAutocomplete() {
+        String text = factoryOrder.get(selectionIndex);
+        int lineStart = 0;
+        for (int i = this.getCurrentParagraph() - 1; i >= 0; i--) {
+            lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
+        }
+        String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
+        Pattern whiteSpace = Pattern.compile( "^\\s+" );
+        Matcher matcher = whiteSpace.matcher(line);
+        if (matcher.find()) {
+            text = matcher.group() + text;
+        }
+        this.replaceText(lineStart, this.getCaretPosition(), text);
+        selectionQueue.clear();
+        selectNext();
     }
 
     public void selectNext() {
@@ -320,28 +298,30 @@ public class IntegratedTextEditor extends CodeArea {
     private void fillBox(String line) {
         if (line.trim().length() > 0) {
             factoryOrder.clear();
-            ArrayList<SyntaxPieceFactory> allSyntaxPieceFactories = new ArrayList<>();
-            allSyntaxPieceFactories.addAll(SyntaxManager.EFFECT_FACTORIES);
-            allSyntaxPieceFactories.addAll(SyntaxManager.EVENT_FACTORIES);
-//            allSyntaxPieceFactories.addAll(SyntaxManager.getAllExpressionFactories());
-            factoryOrder.addAll(IdeSpecialParser.possibleSyntaxPieces(line, allSyntaxPieceFactories));
             popupBox.getChildren().clear();
-            for (IdeSpecialParser.PossiblePiecePackage<SyntaxPieceFactory> entry : factoryOrder) {
-                Label filledIn = new Label(entry.getFilledIn());
-                Label notFilledIn = new Label(entry.getNotFilledIn());
-                filledIn.getStyleClass().add("highlighted-label");
-                filledIn.setFont(new Font(16));
-                notFilledIn.setFont(new Font(16));
-                HBox box = new HBox(filledIn, notFilledIn);
-                box.setOnMousePressed(popupItemEvent);
-                box.setAccessibleText(entry.getNotFilledIn());
-                popupBox.getChildren().add(box);
-            }
-            if (!popupBox.getChildren().isEmpty()) {
-                popupBox.getChildren().get(0).getStyleClass().add("selected-syntax");
-                selectionIndex = 0;
-                autoCompletePopup.show(this.getScene().getWindow());
-                autoCompletePopup.setHeight(popupScrollPane.getHeight());
+            ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = language.getPossiblePieces(line);
+            if (possiblePiecePackages != null && !possiblePiecePackages.isEmpty()) {
+                for (IdeSpecialParser.PossiblePiecePackage entry : language.getPossiblePieces(line)) {
+                    factoryOrder.add(entry.getPutIn());
+                    Label filledIn = new Label(entry.getFilledIn());
+                    Label notFilledIn = new Label(entry.getNotFilledIn());
+                    filledIn.getStyleClass().add("highlighted-label");
+                    filledIn.setFont(new Font(16));
+                    notFilledIn.setFont(new Font(16));
+                    HBox box = new HBox(filledIn, notFilledIn);
+                    box.setOnMousePressed(popupItemEvent);
+                    box.setAccessibleText(entry.getPutIn());
+                    popupBox.getChildren().add(box);
+                }
+                if (!popupBox.getChildren().isEmpty()) {
+                    popupBox.getChildren().get(0).getStyleClass().add("selected-syntax");
+                    selectionIndex = 0;
+                    autoCompletePopup.show(this.getScene().getWindow());
+                    autoCompletePopup.setHeight(popupScrollPane.getHeight());
+                    popupScrollPane.setVvalue(0);
+                } else {
+                    autoCompletePopup.hide();
+                }
             } else {
                 autoCompletePopup.hide();
             }
@@ -350,27 +330,6 @@ public class IntegratedTextEditor extends CodeArea {
         }
     }
 
-    private <T extends SyntaxPieceFactory> String generateSyntaxPattern(Collection<T> factories) {
-        ArrayList<String> patterns = new ArrayList<>();
-        for (SyntaxPieceFactory factory : factories) {
-            if (!factory.getUsage().contains("IGNORE")) {
-                String[] pieces = factory.getRegex().split("( %(.*?)%|%(.*?)% |%(.*?)%)");
-                for (String piece : pieces) {
-                    piece = piece.trim();
-                    if (!ADDED_SYNTAX_PATTERNS.contains(piece) &&
-                            !piece.contains("\"") && !piece.contains("[0-9]")) {
-                        patterns.add(piece);
-                        ADDED_SYNTAX_PATTERNS.add(piece);
-                    }
-                }
-            }
-        }
-        String pattern = String.join("|", patterns);
-        pattern = pattern.replaceAll("\\|\\|", "|");
-        return "\\b(" + pattern + ")\\b";
-    }
-
-
 
     private class HighlightingThread extends Thread {
 
@@ -378,6 +337,7 @@ public class IntegratedTextEditor extends CodeArea {
 
         public HighlightingThread() {
             super();
+            this.setDaemon(true);
         }
 
         @Override
@@ -395,22 +355,11 @@ public class IntegratedTextEditor extends CodeArea {
         }
 
         private void computeHighlighting(String text) {
-            Matcher matcher = PATTERN.matcher(text);
+            Matcher matcher = language.generatePattern().matcher(text);
             int lastKwEnd = 0;
             StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
             while(matcher.find()) {
-                String styleClass =
-                        matcher.group("STRING") != null ? "string" :
-                        matcher.group("COMMENT") != null ? "comment" :
-                        matcher.group("NUMBER") != null ? "number" :
-                        matcher.group("VARIABLE") != null ? "variable" :
-                        matcher.group("SPECIAL") != null ? "special" :
-                        matcher.group("INPUT") != null ? "input" :
-                        matcher.group("EXPRESSION") != null ? "expression" :
-                        matcher.group("EFFECT") != null ? "effect" :
-                        matcher.group("EVENT") != null ? "event" :
-                        matcher.group("KEYWORD") != null ? "keyword" :
-                        null;
+                String styleClass = language.styleClass(matcher);
                 spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
                 spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
                 lastKwEnd = matcher.end();

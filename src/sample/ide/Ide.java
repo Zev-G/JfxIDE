@@ -32,13 +32,14 @@ import sample.language.interpretation.run.CodeChunk;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Ide extends AnchorPane {
 
-    public static final String STYLE_SHEET = Ide.class.getResource("main.css").toExternalForm();
+    public static final String STYLE_SHEET = Ide.class.getResource("styles/main.css").toExternalForm();
 
-    private final ComponentTabPane.ComponentTab<IntegratedTextEditor> defaultTab = getNewEditorTab(null);
     private final ComponentTabPane tabPane = new ComponentTabPane();
 
     private final SVGPath playSvg = new SVGPath();
@@ -81,12 +82,13 @@ public class Ide extends AnchorPane {
     private final AnchorPane projectViewAnchorPane = new AnchorPane();
     private FileTreeView projectView;
 
+    private final VBox notificationPane = new VBox();
+
 
 
 
     public Ide() {
         projectTabButton.setVisible(false);
-        tabPane.getTabs().add(defaultTab);
         popupPane.getStyleClass().add("popup-shower");
         popupPane.setVisible(false);
         bottomTab.setMaxHeight(0);
@@ -112,10 +114,12 @@ public class Ide extends AnchorPane {
             if (t1 instanceof ComponentTabPane.ComponentTab && getScene().getWindow() instanceof Stage) {
                 ComponentTabPane.ComponentTab<?> componentTab = (ComponentTabPane.ComponentTab<?>) t1;
                 Stage stage = (Stage) getScene().getWindow();
-                if (!stage.getTitle().contains("-")) {
-                    stage.setTitle("Untitled - ");
+                if (stage.getTitle() != null) {
+                    if (!stage.getTitle().contains("-")) {
+                        stage.setTitle("Untitled - ");
+                    }
+                    stage.setTitle(stage.getTitle().split("-")[0] + "- " + componentTab.getLabel().getText());
                 }
-                stage.setTitle(stage.getTitle().split("-")[0] + "- " + componentTab.getLabel().getText());
             }
         });
 
@@ -143,8 +147,10 @@ public class Ide extends AnchorPane {
         makeTabButton(runTabButton, consoleAnchor, bottomTab, verticalSplitPane, 0.8);
         makeTabButton(projectTabButton, projectViewAnchorPane, leftTab, horizontalSplitPane, 0.2);
 
-        this.getChildren().addAll(verticalSplitPane, bottomBox, sideBox, menuBar, popupPane);
+        this.getChildren().addAll(verticalSplitPane, bottomBox, sideBox, menuBar, notificationPane, popupPane);
         topBox.setFillHeight(true);
+        AnchorPane.setTopAnchor(notificationPane, 13D); AnchorPane.setRightAnchor(notificationPane, 13D);
+
         AnchorPane.setTopAnchor(tabPane, 0D); AnchorPane.setBottomAnchor(tabPane, 0D);
         AnchorPane.setRightAnchor(tabPane, 0D); AnchorPane.setLeftAnchor(tabPane, 0D);
 
@@ -191,7 +197,18 @@ public class Ide extends AnchorPane {
         openMenu.getItems().addAll(openProject, openFile, openFolder);
         newMenu.getItems().addAll(newProject, newFile);
         fileMenu.getItems().addAll(newMenu, openMenu);
-        menuBar.getMenus().addAll(fileMenu);
+
+        Menu tabMenu = new Menu("Tab");
+        MenuItem save = new MenuItem("Save");
+        save.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN));
+        MenuItem close = new MenuItem("Close");
+        close.setAccelerator(new KeyCodeCombination(KeyCode.W, KeyCombination.CONTROL_DOWN));
+        MenuItem openInNewWindow = new MenuItem("Open in New Window");
+        openInNewWindow.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
+        tabMenu.getItems().addAll(save, close, openInNewWindow);
+
+        menuBar.getMenus().addAll(fileMenu, tabMenu);
+        tabPane.getTabs().addListener((ListChangeListener<Tab>) change -> tabMenu.setDisable(change.getList().isEmpty()));
         // Menu event handling
         newProject.setOnAction(actionEvent -> {
             Stage stage = new Stage();
@@ -240,6 +257,47 @@ public class Ide extends AnchorPane {
                     stage.setMaximized(((Stage) thisWindow).isMaximized());
                 }
                 newIde.loadFile(file);
+            }
+        });
+
+        save.setOnAction(actionEvent -> {
+            ComponentTabPane.ComponentTab<?> selectedTab = tabPane.getSelectedTab();
+            if (selectedTab != null && selectedTab.getValue() instanceof IntegratedTextEditor && selectedTab.getFile() != null && selectedTab.getFile().exists()) {
+                IntegratedTextEditor selectedTextEditor = (IntegratedTextEditor) selectedTab.getValue();
+                try {
+                    FileWriter fileWriter = new FileWriter(selectedTab.getFile());
+                    fileWriter.write(selectedTextEditor.getText());
+                    fileWriter.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        close.setOnAction(actionEvent -> {
+            ComponentTabPane.ComponentTab<?> componentTab = tabPane.getSelectedTab();
+            if (componentTab != null && componentTab.getFile() != null) {
+                tabPane.getTabs().remove(componentTab);
+            }
+        });
+        openInNewWindow.setOnAction(actionEvent -> {
+            ComponentTabPane.ComponentTab<?> componentTab = tabPane.getSelectedTab();
+            if (componentTab != null) {
+                tabPane.getTabs().remove(componentTab);
+                Ide ide = new Ide();
+                Stage stage = new Stage();
+                stage.setScene(new Scene(ide));
+                stage.show();
+                stage.setHeight(500);
+                stage.setWidth(800);
+                if (componentTab.getFile() != null) {
+                    ide.loadFile(componentTab.getFile());
+                } else {
+                    String text = ((IntegratedTextEditor) componentTab.getValue()).getText();
+                    IntegratedTextEditor newIntegratedTextEditor = new IntegratedTextEditor();
+                    newIntegratedTextEditor.replaceText(text);
+                    ComponentTabPane.ComponentTab<IntegratedTextEditor> dupedTab = new ComponentTabPane.ComponentTab<>(componentTab.getLabel().getText(), newIntegratedTextEditor);
+                    ide.getTabPane().getTabs().add(dupedTab);
+                }
             }
         });
     }
@@ -330,6 +388,7 @@ public class Ide extends AnchorPane {
                 hidePopup();
             }
         });
+        insidePopup.getChildren().clear();
         insidePopup.getChildren().add(textInputBox);
         textInputBox.setAlignment(Pos.CENTER);
         showPopup();
@@ -341,6 +400,7 @@ public class Ide extends AnchorPane {
             gotten.gotten(true);
             hidePopup();
         });
+        insidePopup.getChildren().clear();
         insidePopup.getChildren().add(confirmBox);
         confirmBox.setAlignment(Pos.CENTER);
         showPopup();

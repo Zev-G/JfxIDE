@@ -1,8 +1,9 @@
 * {
     -default-text-color: #808da7;
     -editor-background-color: #273245;
+    -selected-line: #222d3b;
     -fx-background: #273245;
-    -editor-selection: rgba(200, 200, 200, 0.1);
+    -editor-selection: rgba(117, 183, 255, 0.13);
 }
 
 @font-face {
@@ -10,36 +11,7 @@
     src: url('Montserrat-Regular.ttf');
 }
 
-.keyword {
-    -fx-fill: #c678dd !important;
-}
-.string {
-    -fx-fill: #88d258 !important;
-}
-.comment {
-    -fx-fill: #5f636b !important;
-}
-.number {
-    -fx-fill: #f3af3a !important;
-}
-.special {
-    -fx-fill: #b0780c !important;
-}
-.variable {
-    -fx-fill: #ff475b !important;
-}
-.expression {
-    -fx-fill: #a960c1 !important;
-}
-.effect {
-    -fx-fill: #ab54b0 !important;
-}
-.event {
-    -fx-fill: #a473db !important;
-}
-.input {
-    -fx-fill: #24f8cd !important;
-}
+
 
 .code-area {
     -fx-background-color: -editor-background-color;
@@ -72,3 +44,6 @@
     -fx-stroke: white;
 }
 
+.paragraph-box:has-caret {
+    -fx-background-color: -selected-line;
+}

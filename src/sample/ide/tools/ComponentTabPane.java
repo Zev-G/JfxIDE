@@ -11,15 +11,11 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -31,9 +27,12 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import org.fxmisc.flowless.VirtualizedScrollPane;
+import sample.ide.Ide;
 import sample.ide.codeEditor.IntegratedTextEditor;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class ComponentTabPane extends TabPane {
@@ -106,6 +105,7 @@ public class ComponentTabPane extends TabPane {
             }
             value = node;
             label.setText(s);
+            label.setContextMenu(makeContextMenu());
             init();
         }
 
@@ -133,6 +133,51 @@ public class ComponentTabPane extends TabPane {
                     mainNode = t1;
                 }
             });
+        }
+
+        private ContextMenu makeContextMenu() {
+            MenuItem save = new MenuItem("Save");
+            MenuItem close = new MenuItem("Close");
+            MenuItem openInNewWindow = new MenuItem("Open in New Window");
+
+            save.setOnAction(actionEvent -> {
+                if (file != null && getValue() != null && getValue() instanceof IntegratedTextEditor) {
+                    String text = ((IntegratedTextEditor) getValue()).getText();
+                    try {
+                        FileWriter fileWriter = new FileWriter(file);
+                        fileWriter.write(text);
+                        fileWriter.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            close.setOnAction(actionEvent -> {
+                if (getTabPane() != null) {
+                    getTabPane().getTabs().remove(this);
+                }
+            });
+            openInNewWindow.setOnAction(actionEvent -> {
+                if (getValue() instanceof IntegratedTextEditor && getTabPane() != null) {
+                    Ide ide = new Ide();
+                    Stage stage = new Stage();
+                    stage.setScene(new Scene(ide));
+                    stage.show();
+                    stage.setHeight(500);
+                    stage.setWidth(800);
+                    if (file != null) {
+                        ide.loadFile(getFile());
+                    } else {
+                        String text = ((IntegratedTextEditor) getValue()).getText();
+                        IntegratedTextEditor newIntegratedTextEditor = new IntegratedTextEditor();
+                        newIntegratedTextEditor.replaceText(text);
+                        ComponentTab<IntegratedTextEditor> dupedTab = new ComponentTab<>(label.getText(), newIntegratedTextEditor);
+                        ide.getTabPane().getTabs().add(dupedTab);
+                    }
+                }
+            });
+
+            return new ContextMenu(save, close, openInNewWindow);
         }
 
         public void makeDraggable() {

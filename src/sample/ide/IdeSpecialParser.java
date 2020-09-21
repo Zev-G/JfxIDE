@@ -10,37 +10,13 @@ import java.util.ArrayList;
 
 public final class IdeSpecialParser {
 
-//    public static final HashMap<String, ArrayList<PossiblePiecePackage<?>>> CACHE = new HashMap<>();
-//    private static boolean CHECKED_CACHE = false;
 
-    public static <T extends SyntaxPieceFactory> ArrayList<PossiblePiecePackage<T>> possibleSyntaxPieces(String code, ArrayList<T> pickFrom) {
-//        if (!CHECKED_CACHE) {
-//            CHECKED_CACHE = true;
-//            Scanner scanner = new Scanner(IdeSpecialParser.class.getResourceAsStream("saved_cache.txt"));
-//            ArrayList<SyntaxPieceFactory> syntaxPieceFactories = new ArrayList<>();
-//            syntaxPieceFactories.addAll(SyntaxManager.EFFECT_FACTORIES);
-//            syntaxPieceFactories.addAll(SyntaxManager.EVENT_FACTORIES);
-//            while (scanner.hasNextLine()) {
-//                String line = scanner.nextLine();
-//                if (line.contains("===")) {
-//                    String lineCode = line.split("===")[0];
-//                    String usage = line.split("===")[1];
-//                    for (SyntaxPieceFactory factory : syntaxPieceFactories) {
-//                        if (factory.getUsage().equals(usage)) {
-//                            CACHE.put(lineCode, factory);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        if (CACHE.get(code) != null) {
-//            return (ArrayList<PossiblePiecePackage<T>>) CACHE.get(code);
-//        }
+    public static <T extends SyntaxPieceFactory> ArrayList<PossiblePiecePackage> possibleSyntaxPieces(String code, ArrayList<T> pickFrom) {
         code = code.replaceFirst("^\\s+", "");
 //        System.out.println("CODE: " + code);
-        ArrayList<PossiblePiecePackage<T>> possiblePiecePackages = new ArrayList<>();
+        ArrayList<PossiblePiecePackage> possiblePiecePackages = new ArrayList<>();
         pieces: for (T syntaxPieceFactory : pickFrom) {
-            if (syntaxPieceFactory.getRegex().startsWith("$") || syntaxPieceFactory.getUsage().contains("IGNORE")) {
+            if (syntaxPieceFactory.getUsage().contains("IGNORE")) {
                 continue;
             }
             String codeBuffer = code;
@@ -69,17 +45,15 @@ public final class IdeSpecialParser {
             if (pieces.isEmpty()) pieces.add(usage);
             int expressionTimes = 0;
             String codeBufferForPiece = "";
-            String piece = "";
-            String lastExpression = "";
+            String piece;
             String remainingText = usage;
             StringBuilder filledIn = new StringBuilder();
             boolean isAnExpression = false;
-            boolean lastWasExpression = false;
+            boolean lastWasExpression;
             for (int i = 0; i < pieces.size() + 1; i++) {
-                String lastPiece = piece;
                 lastWasExpression = isAnExpression;
                 if (codeBuffer.length() == 0) {
-                    possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, lastPiece, filledIn.toString(), code));
+                    possiblePiecePackages.add(getPackage(syntaxPieceFactory, filledIn.toString()));
                     //System.out.println("Continue (0) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                     continue pieces;
                 }
@@ -101,7 +75,6 @@ public final class IdeSpecialParser {
                         }
                     }
                     String chosen = (expressionCode.toString().length() > 0 ? expressionCode.toString() : beforeCodeBuffer);
-                    lastExpression = chosen;
                     ExpressionFactory<?> expressionFactory = Parser.parseExpression(chosen, null, 0);
                     if (expressionFactory != null) {
                         if (argTypes.size() > expressionTimes && SyntaxManager.SUPPORTED_TYPES.get(argTypes.get(expressionTimes)) != null) {
@@ -113,7 +86,7 @@ public final class IdeSpecialParser {
                                 continue pieces;
                             }
                         } else if (piece.length() == 0) {
-                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, true, lastExpression, lastPiece, filledIn.toString(), code));
+                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, filledIn.toString()));
 //                            System.out.println("Continue (3) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                             continue pieces;
                         }
@@ -129,7 +102,7 @@ public final class IdeSpecialParser {
                         codeBuffer = codeBuffer.replaceFirst(codeBuffer, "");
                         filledIn.append(codeBufferForPiece);
                         if (pieces.size() - 1 == i) {
-                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, pieces, lastWasExpression, lastExpression, lastPiece, filledIn.toString(), code));
+                            possiblePiecePackages.add(getPackage(syntaxPieceFactory, filledIn.toString()));
                             //System.out.println("Continue (5) " + usage + " (piece: " + piece + ") (code buffer: " + codeBuffer + ")");
                             continue pieces;
                         }
@@ -148,106 +121,57 @@ public final class IdeSpecialParser {
                 }
             }
             //System.out.println("Down here");
-            Class<?> aClass = lastWasExpression ? SyntaxManager.SUPPORTED_TYPES.get(piece.replaceAll("%", "")) : null;
-            possiblePiecePackages.add(new PossiblePiecePackage<>(syntaxPieceFactory, aClass,
-                    codeBufferForPiece + String.join("", pieces), remainingText, lastWasExpression ? lastExpression : "", pieces));
+            possiblePiecePackages.add(new PossiblePiecePackage(codeBufferForPiece + String.join("", pieces), remainingText));
 
         }
         return possiblePiecePackages;
     }
 
-    private static <T extends SyntaxPieceFactory> PossiblePiecePackage<T> getPackage(T syntaxPieceFactory, ArrayList<String> pieces, boolean lastWasExpression, String lastExpression, String lastPiece, String filledIn, String code) {
-        Class<?> aClass = lastWasExpression ? SyntaxManager.SUPPORTED_TYPES.get(lastPiece.replaceAll("%", "")) : null;
-        String notFilled = syntaxPieceFactory.getUsage().substring(filledIn.length());
-
-//        System.out.println("Code Buffer: " + codeBuffer + " Filled In: " + filledIn);
-
-        return new PossiblePiecePackage<>(syntaxPieceFactory, aClass, filledIn,
-                notFilled,
-                lastWasExpression ? lastExpression : "", pieces);
+    private static <T extends SyntaxPieceFactory> PossiblePiecePackage getPackage(T syntaxPieceFactory, String filledIn) {
+        return new PossiblePiecePackage(filledIn,
+                syntaxPieceFactory.getUsage().substring(filledIn.length()));
     }
 
-    public static class PossiblePiecePackage<T extends SyntaxPieceFactory> {
+    public static class PossiblePiecePackage {
 
-        private final T syntaxPieceFactory;
-        private Class<?> tryingToGet;
-        private String filledIn;
-        private String notFilledIn;
-        private String expressionText;
-        private ArrayList<String> pieces;
+        private final String filledIn;
+        private final String notFilledIn;
+        private final String putIn;
 
-        public PossiblePiecePackage(T syntaxPieceFactory, Class<?> tryingToGet, String filledIn, String notFilledIn, String expressionText, ArrayList<String> pieces) {
-            this.syntaxPieceFactory = syntaxPieceFactory;
-            this.tryingToGet = tryingToGet;
+        private boolean putInIfNotFilledInIsEmpty = false;
+
+        public PossiblePiecePackage(String filledIn, String notFilledIn) {
             this.filledIn = filledIn;
             this.notFilledIn = notFilledIn;
-            this.expressionText = expressionText;
-            this.pieces = pieces;
+            this.putIn = filledIn + notFilledIn;
         }
-        public PossiblePiecePackage(T syntaxPieceFactory, Class<?> tryingToGet, String filledIn, String notFilledIn, String expressionText) {
-            this.syntaxPieceFactory = syntaxPieceFactory;
-            this.tryingToGet = tryingToGet;
+        public PossiblePiecePackage(String filledIn, String notFilledIn, String putIn) {
             this.filledIn = filledIn;
             this.notFilledIn = notFilledIn;
-            this.expressionText = expressionText;
+            this.putIn = putIn;
         }
-        public PossiblePiecePackage(T syntaxPieceFactory, Class<?> tryingToGet, String filledIn, String notFilledIn) {
-            this(syntaxPieceFactory, tryingToGet, filledIn, notFilledIn, null);
-        }
-        public PossiblePiecePackage(T syntaxPieceFactory, String filledIn, String notFilledIn) {
-            this(syntaxPieceFactory, null, filledIn, notFilledIn, null);
-        }
-        public PossiblePiecePackage(T syntaxPieceFactory, String filledIn) {
-            this(syntaxPieceFactory, null, filledIn, null, null);
-        }
-        public PossiblePiecePackage(T syntaxPieceFactory) {
-            this(syntaxPieceFactory, null, null, null, null);
+        public PossiblePiecePackage(String filledIn, String notFilledIn, String putIn, boolean putInIfFilledIn) {
+            this.filledIn = filledIn;
+            this.notFilledIn = notFilledIn;
+            this.putIn = putIn;
+            this.putInIfNotFilledInIsEmpty = putInIfFilledIn;
         }
 
-        public T getSyntaxPieceFactory() {
-            return syntaxPieceFactory;
-        }
-        public Class<?> getTryingToGet() {
-            return tryingToGet;
-        }
         public String getFilledIn() {
             return filledIn;
         }
         public String getNotFilledIn() {
             return notFilledIn;
         }
-        public String getExpressionText() {
-            return expressionText;
-        }
-        public ArrayList<String> getPieces() {
-            return pieces;
+        public String getPutIn() {
+            return (notFilledIn.length() > 0 || putInIfNotFilledInIsEmpty) ? putIn : "";
         }
 
-        public void setTryingToGet(Class<?> tryingToGet) {
-            this.tryingToGet = tryingToGet;
+        public boolean putInIfFilledIn() {
+            return putInIfNotFilledInIsEmpty;
         }
-        public void setFilledIn(String filledIn) {
-            this.filledIn = filledIn;
-        }
-        public void setNotFilledIn(String notFilledIn) {
-            this.notFilledIn = notFilledIn;
-        }
-        public void setExpressionText(String expressionText) {
-            this.expressionText = expressionText;
-        }
-        public void setPieces(ArrayList<String> pieces) {
-            this.pieces = pieces;
-        }
-
-        @Override
-        public String toString() {
-            return "PossiblePiecePackage{" +
-                    "syntaxPieceFactory=" + syntaxPieceFactory.getRegex() +
-                    ", tryingToGet=" + tryingToGet +
-                    ", filledIn='" + filledIn + '\'' +
-                    ", notFilledIn='" + notFilledIn + '\'' +
-                    ", expressionText='" + expressionText + '\'' +
-                    '}';
+        public void setPutInIfFilledIn(boolean putInIfFilledIn) {
+            putInIfNotFilledInIsEmpty = putInIfFilledIn;
         }
     }
 

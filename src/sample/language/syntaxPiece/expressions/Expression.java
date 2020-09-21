@@ -17,11 +17,9 @@ public abstract class Expression<T> extends SyntaxPiece<Expression<?>> {
         return thisClass;
     }
 
-    public Object activate() { return null; }
+    public abstract Object activate();
 
-    public Object activateForValue(String input, Object... args) {
-        return null;
-    }
+    public abstract Object activateForValue(String input, Object... args);
 
     public void setCode(String code) {
         this.code = code;

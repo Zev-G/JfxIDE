@@ -15,13 +15,9 @@ public abstract class Effect extends SyntaxPiece<Effect> {
         return code;
     }
 
-    public void activate(String inputtedString, Object... args) {
+    public abstract void activate(String inputtedString, Object... args);
 
-    }
-
-    public void activate() {
-
-    }
+    public abstract void activate();
 
     public void setParent(CodePiece parent) {
         this.parent = parent;

@@ -1,0 +1,25 @@
+.string {
+    -fx-fill: #88d258 !important;
+}
+.comment {
+    -fx-fill: #5f636b !important;
+}
+.number {
+    -fx-fill: #f3af3a !important;
+}
+.keyword {
+    -fx-fill: #bb76f1 !important;
+    -fx-font-style: italic;
+}
+.paren {
+    -fx-fill: #5e7fc1 !important;
+}
+.bracket {
+    -fx-fill: #bd73bf !important;
+}
+.semicolon {
+    -fx-fill: #7399f3 !important;
+}
+.brace {
+    -fx-fill: #ec3f41 !important;
+}

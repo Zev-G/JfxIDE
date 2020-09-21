@@ -11,7 +11,7 @@
 
 @font-face {
     font-family: Montserrat;
-    src: url('codeEditor/Montserrat-Regular.ttf');
+    src: url('../codeEditor/Montserrat-Regular.ttf');
 }
 
 .label {
@@ -128,12 +128,13 @@
 .menu-item {
     -fx-background-color: -darkest-background-color;
 }
+
 .menu-item:hover {
     -fx-background-color: -fx-background;
 }
 
 .popup-shower {
-    -fx-background-color: rgba(30, 30, 30, 0.5);
+    -fx-background-color: rgba(30, 30, 30, 0.7);
 }
 
 .context-menu {
@@ -199,8 +200,6 @@
 .file-drag-over {
     -fx-background-color: -main-background-color;
 }
-
-
 .tree-cell:selected .text {
     -fx-fill: -light-highlight-color;
 }

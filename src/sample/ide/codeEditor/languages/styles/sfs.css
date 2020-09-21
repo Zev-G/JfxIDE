@@ -1,0 +1,38 @@
+.keyword {
+    -fx-fill: #c678dd !important;
+}
+.string {
+    -fx-fill: #88d258 !important;
+}
+.comment {
+    -fx-fill: #5f636b !important;
+}
+.number {
+    -fx-fill: #f3af3a !important;
+}
+.special {
+    -fx-fill: #ffa200 !important;
+}
+.variable {
+    -fx-fill: #ff475b !important;
+}
+.expression {
+    -fx-fill: #a960c1 !important;
+}
+.effect {
+    -fx-fill: #ab54b0 !important;
+}
+.event {
+    -fx-fill: #a473db !important;
+}
+.input {
+    -fx-fill: #24f8cd !important;
+}
+.syntax-start {
+    -fx-fill: #e94a9a !important;
+    -fx-font-weight: bold !important;
+}
+.syntax-finish {
+    -fx-fill: #be5fbd !important;
+    -fx-font-weight: bold !important;
+}

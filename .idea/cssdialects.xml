@@ -3,6 +3,8 @@
   <component name="CssDialectMappings">
     <file url="file://$PROJECT_DIR$/src/sample/betterfx/scrollpane.css" dialect="JavaFX" />
     <file url="file://$PROJECT_DIR$/src/sample/ide/codeEditor/ide.css" dialect="JavaFX" />
-    <file url="file://$PROJECT_DIR$/src/sample/ide/main.css" dialect="JavaFX" />
+    <file url="file://$PROJECT_DIR$/src/sample/ide/codeEditor/languages/styles/java.css" dialect="CLASSIC" />
+    <file url="file://$PROJECT_DIR$/src/sample/ide/styles/light.css" dialect="JavaFX" />
+    <file url="file://$PROJECT_DIR$/src/sample/ide/styles/main.css" dialect="JavaFX" />
   </component>
 </project>

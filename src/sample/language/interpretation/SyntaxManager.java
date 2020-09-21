@@ -124,6 +124,27 @@ public class SyntaxManager {
         EXPRESSIONS.put(ExpressionPriority.HIGHEST, HIGHEST);
 
         effects: {
+
+            addons: {
+                EFFECT_FACTORIES.add(new EffectFactory("run code in %file%", (state, values, args) -> {
+                    File file = (File) values.get(0);
+                    try {
+                        SyntaxManager.getCodeChunkFromCode(file).run();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }));
+                EFFECT_FACTORIES.add(new EffectFactory("import %file%","$import %file%", (state, values, args) -> {
+                    File file = (File) values.get(0);
+                    System.out.println("Running file: " + file);
+                    try {
+                        SyntaxManager.getCodeChunkFromCode(file).run();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }));
+            }
+
             reflect: {
                 EFFECT_FACTORIES.add(new EffectFactory("IGNORE", "%object%\\.(.*\\))", (state, values, args) -> {
                     String connectedArgs = appendAllArgs(new StringBuilder(), args).toString();
@@ -288,7 +309,7 @@ public class SyntaxManager {
             EVENT_FACTORIES.add(new WhenEventFactory("when %string-property% changes:","(when|on) %string-property% changes", (state, values, event, args) -> ((StringProperty) values.get(0)).addListener((observableValue, s, t1) -> event.run())));
 
             special: {
-                EVENT_FACTORIES.add(new WhenEventFactory("expression ","$expression (.*?)", (state, values, event, args) -> {
+                EVENT_FACTORIES.add(new WhenEventFactory("expression %type% -> %text%:","$expression [^\\s]+? -> (.*?)", (state, values, event, args) -> {
                     StringBuilder builder = new StringBuilder();
                     appendAllArgs(builder, args);
                     String returnType = args[1];
@@ -296,7 +317,7 @@ public class SyntaxManager {
                     if (returnClass == null) {
                         System.err.println("Can't add expression for text: " + builder.toString() + " because type: " + returnType + " isn't a valid type. Valid types are: " + SUPPORTED_TYPES.keySet());
                     } else {
-                        ExpressionFactory<Object> expressionFactory = new ExpressionFactory<>(builder.toString().replaceFirst("(.*?) ", "").replaceFirst("(.*?) ", ""), (state1, values1, args1) -> {
+                        ExpressionFactory<Object> expressionFactory = new ExpressionFactory<>(builder.toString().replaceFirst("expression ", "").replaceFirst("(.*?) -> ", ""), (state1, values1, args1) -> {
                             event.getRunChunk().getLocalExpressions().clear();
                             int i = 0;
                             for (Object obj : values1) {
@@ -308,6 +329,20 @@ public class SyntaxManager {
                         }, Object.class);
                         LOW.get(returnClass).add(expressionFactory);
                     }
+                }));
+                EVENT_FACTORIES.add(new WhenEventFactory("effect -> %text%:","$effect -> (.*?)", (state, values, event, args) -> {
+                    StringBuilder builder = new StringBuilder();
+                    appendAllArgs(builder, args);
+                    EffectFactory effectFactory = new EffectFactory(builder.toString().replaceFirst("effect -> ", ""), (state1, values1, args1) -> {
+                        event.getRunChunk().getLocalExpressions().clear();
+                        int i = 0;
+                        for (Object obj : values1) {
+                            i++;
+                            event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>(String.valueOf(i), (state2, values2, args2) -> obj, Object.class));
+                        }
+                        event.run();
+                    });
+                    EFFECT_FACTORIES.add(effectFactory);
                 }));
                 EVENT_FACTORIES.add(new WhenEventFactory("in %number% seconds:", "in %number% second(s|)", (state, values, event, args) -> new Timer().schedule(new TimerTask() {
                                          @Override
@@ -746,6 +781,14 @@ public class SyntaxManager {
         return piece;
     }
 
+    public static CodeChunk getCodeChunkFromCode(File file) throws FileNotFoundException {
+        StringBuilder builder = new StringBuilder();
+        Scanner scanner = new Scanner(file);
+        while (scanner.hasNextLine()) {
+            builder.append(scanner.nextLine()).append('\n');
+        }
+        return getCodeChunkFromCode(builder.toString(), file);
+    }
     public static CodeChunk getCodeChunkFromCode(String code, File file) {
         return Parser.parseChunk(code, file);
     }

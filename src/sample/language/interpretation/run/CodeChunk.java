@@ -27,7 +27,7 @@ public class CodeChunk extends CodeState {
         finished = false;
         for (CodePiece piece : pieces) {
             if (!finished) {
-//                System.out.println("-=-Running Piece: (" + piece.getCode() + ") -=-");
+                System.out.println("-=-Running Piece: (" + piece.getCode() + ") -=-");
                 piece.setCodeChunk(this);
                 piece.run();
             }

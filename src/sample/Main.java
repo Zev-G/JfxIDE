@@ -30,7 +30,7 @@ public class Main extends Application {
         CommandConsole console = new CommandConsole();
         SyntaxManager.setPrintConsole(console);
 //        primaryStage.setScene(new Scene(console));
-        primaryStage.setScene(new Scene(new Ide(new File("C:\\Users\\Zev\\IdeaProjects\\SimpleCodingLanguage"))));
+        primaryStage.setScene(new Scene(new Ide(new File("D:\\Users\\Windows\\Desktop\\FileTreeIssueFinding"))));
         primaryStage.show();
         primaryStage.setWidth(800);
         primaryStage.setHeight(600);

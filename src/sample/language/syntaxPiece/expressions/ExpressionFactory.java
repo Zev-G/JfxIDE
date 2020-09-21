@@ -81,11 +81,12 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
         while (chunk == null) {
             if (loopParent instanceof Effect) {
                 chunk = ((Effect) loopParent).getParent().getCodeChunk();
+                break;
             } else if (loopParent instanceof Expression<?>) {
                 loopParent = ((Expression<?>) loopParent).getParent();
             } else if (loopParent instanceof Event) {
                 chunk = ((Event) loopParent).getParent().getCodeChunk();
-                if (CodeChunk.printing) System.out.println("Chunk: " + chunk);
+                break;
             } else {
                 break;
             }

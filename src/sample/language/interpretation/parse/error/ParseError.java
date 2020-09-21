@@ -137,7 +137,7 @@ public class ParseError {
     public String createLongErrorMessage() {
         String topText = (errorPrefix != null ? errorInfo : "") + "Error: " + (errorInfo != null ? errorInfo : "un defined name");
         String lineText = "\tOn Line: " + line + (lineNumber > 0 ? "\n\t\tNumber: " + lineNumber + "" : "");
-        String fileText = "\tIn File: " + (file != null ? file.getName() : "Undefined file. This could be due to the expression being parsed in a place other than a normal file. If this is happening without any addons installed please contact TheMisterWolf on github");
+        String fileText = "\tIn File: " + (file != null ? file.getName() : "Undefined file.");
         return topText + "\n" + lineText + "\n" + fileText;
     }
     public String createShortErrorMessage() {

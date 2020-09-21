@@ -7,6 +7,7 @@ import sample.language.interpretation.run.CodePiece;
 import sample.language.syntaxPiece.SyntaxPiece;
 import sample.language.syntaxPiece.SyntaxPieceFactory;
 import sample.language.syntaxPiece.effects.Effect;
+import sample.language.syntaxPiece.effects.EffectFactory;
 import sample.language.syntaxPiece.events.Event;
 import sample.language.syntaxPiece.events.Function;
 import sample.language.syntaxPiece.events.WhenEventFactory;
@@ -52,6 +53,9 @@ public final class Parser {
                 if (!line.startsWith("\t") && !line.endsWith(":")) {
                     addPiece = SyntaxManager.genCodePieceFromCode(line.trim(), file, i + 1);
                     addPiece.setCodeChunk(parent);
+                    if (addPiece.getEffect() != null && ((EffectFactory) addPiece.getEffect()).getRegex().startsWith("$")) {
+                        addPiece.run();
+                    }
                 }
                 if (line.startsWith("\t")) {
                     inEvent = true;
@@ -121,7 +125,7 @@ public final class Parser {
             String codeBuffer = code;
             ArrayList<String> pieces = new ArrayList<>();
             StringBuilder builder = new StringBuilder();
-            String regex = syntaxPieceFactory.getRegex().replaceFirst("\\$", "");
+            String regex = syntaxPieceFactory.getRegex().startsWith("$") ? syntaxPieceFactory.getRegex().substring(1) : syntaxPieceFactory.getRegex();
             ArrayList<String> argTypes = new ArrayList<>();
             boolean lastWasExpression = false;
             // Split into pieces separated by whether or not they're an expression

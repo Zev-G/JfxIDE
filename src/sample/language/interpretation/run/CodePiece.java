@@ -16,6 +16,7 @@ public class CodePiece {
     }
 
     public void run() {
+        System.out.println("Running: " + code);
         if (effect != null) {
             effect.activate();
         } else if (event != null) {
