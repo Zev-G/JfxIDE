@@ -15,7 +15,7 @@ import java.util.HashMap;
  * <br/>
  * <pre>
  *     static {
- *         {@link SyntaxManager#ADDON_CLASSES}.add(YOUR_CLASS);
+ *         {@link SyntaxManager#ADDON_CLASSES}.add({@code YOUR_ADDON.class} );
  *     }
  * </pre>
  */

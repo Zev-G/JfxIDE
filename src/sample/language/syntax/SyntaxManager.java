@@ -99,11 +99,6 @@ public class SyntaxManager {
         EXPRESSIONS.put(ExpressionPriority.HIGH, HIGH);
         EXPRESSIONS.put(ExpressionPriority.HIGHEST, HIGHEST);
 
-        // Load syntax from addons
-        for (AddonBase addonBase : ADDONS) {
-            addonBase.addSyntax();
-        }
-
         effects: {
 
             addons: {
@@ -417,6 +412,10 @@ public class SyntaxManager {
             }
         }
 
+        // Load syntax from addons
+        for (AddonBase addonBase : ADDONS) {
+            addonBase.addSyntax();
+        }
 
     }
 

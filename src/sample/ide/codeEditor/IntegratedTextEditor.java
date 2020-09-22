@@ -148,19 +148,29 @@ public class IntegratedTextEditor extends CodeArea {
                 Platform.runLater( () -> this.insertText(this.getCaretPosition(), (line.trim().startsWith("#") ? "#" : "") + (m.find() ? m.group() : "") + (line.endsWith(":") ? "  " : "")));
             } else if (keyEvent.isShiftDown()) {
                 if (keyCode == KeyCode.TAB) {
-                    Matcher matcher = whiteSpace.matcher(line);
-                    if (matcher.find()) {
-                        String whiteSpaceInLine = matcher.group();
-                        if (whiteSpaceInLine.startsWith("\t") || whiteSpaceInLine.startsWith("  ")) {
-                            String replaced = (whiteSpaceInLine.startsWith("\t") ? whiteSpaceInLine.replaceFirst("\t", "") : whiteSpaceInLine.replaceFirst(" {2}", ""));
-                            int lineStart = 0;
-                            for (int i = this.getCurrentParagraph() - 1; i >= 0; i--) {
-                                lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
+                    if (this.getSelectedText().length() <= 1) {
+                        Matcher matcher = whiteSpace.matcher(line);
+                        if (matcher.find()) {
+                            String whiteSpaceInLine = matcher.group();
+                            if (whiteSpaceInLine.startsWith("\t") || whiteSpaceInLine.startsWith("  ")) {
+                                String replaced = (whiteSpaceInLine.startsWith("\t") ? whiteSpaceInLine.replaceFirst("\t", "") : whiteSpaceInLine.replaceFirst(" {2}", ""));
+                                int lineStart = 0;
+                                for (int i = this.getCurrentParagraph() - 1; i >= 0; i--) {
+                                    lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
+                                }
+                                int textEnd = lineStart + whiteSpaceInLine.length();
+                                int finalLineStart = lineStart;
+                                Platform.runLater(() -> this.replaceText(finalLineStart, textEnd, replaced));
                             }
-                            int textEnd = lineStart + whiteSpaceInLine.length();
-                            int finalLineStart = lineStart;
-                            Platform.runLater(() -> this.replaceText(finalLineStart, textEnd, replaced));
                         }
+                    } else {
+                        int start = this.getSelection().getStart();
+                        int end = this.getSelection().getEnd();
+                        String indentedBackwards = indentBackwards(getSelectedText());
+                        this.replaceText(start, end, indentedBackwards);
+                        this.selectRange(start,
+                                end + (indentedBackwards.length() - (end - start))
+                                );
                     }
                 }
             } else if (keyCode == KeyCode.TAB) {
@@ -182,6 +192,15 @@ public class IntegratedTextEditor extends CodeArea {
                 } else if (!keyEvent.isControlDown() && !selectionQueue.isEmpty() && this.getSelectedText().equals("")) {
                     selectNext();
                     keyEvent.consume();
+                } else if (!keyEvent.isControlDown() && selectionQueue.isEmpty() && !this.getSelectedText().equals("")) {
+                    keyEvent.consume();
+                    int start = this.getSelection().getStart();
+                    int end = this.getSelection().getEnd();
+                    String indentForwards = indentForwards(getSelectedText());
+                    this.replaceText(start, end, indentForwards);
+                    this.selectRange(start,
+                            end + (indentForwards.length() - (end - start))
+                    );
                 }
             }
         });
@@ -252,6 +271,7 @@ public class IntegratedTextEditor extends CodeArea {
         this.replaceText(lineStart, this.getCaretPosition(), text);
         selectionQueue.clear();
         selectNext();
+
     }
 
     public void selectNext() {
@@ -328,6 +348,82 @@ public class IntegratedTextEditor extends CodeArea {
         } else {
             autoCompletePopup.hide();
         }
+    }
+
+    public void insertTextWithIndentation(int insertAt, String text) {
+//        this.insertText(insertAt, properlyIndentString(text));
+    }
+    public String properlyIndentString(String text) {
+        String[] lines = text.split("\n");
+        String indentCharacter = "  ";
+        for (String line : lines) {
+            if (line.startsWith("\t")) {
+                indentCharacter = "\t";
+                break;
+            } else if (line.startsWith("  ")) {
+                break;
+            }
+        }
+        int minimumIndent = 999;
+        for (String line : lines) {
+            int lineIndent = 0;
+            while (line.startsWith(indentCharacter)) {
+                lineIndent++;
+                line = line.substring(indentCharacter.length());
+            }
+            if (lineIndent < minimumIndent) {
+                minimumIndent = lineIndent;
+            }
+        }
+        StringBuilder newVersion = new StringBuilder();
+        for (String line : lines) {
+            newVersion.append(line.substring(minimumIndent)).append("\n");
+        }
+        String newString = newVersion.toString();
+        return newString.substring(0, newString.length() - 1);
+    }
+    public String indentBackwards(String text) {
+        if (text.length() <= 1) {
+            return text;
+        }
+        String[] lines = text.split("\n");
+        String indentCharacter = "  ";
+        for (String line : lines) {
+            if (line.startsWith("\t")) {
+                indentCharacter = "\t";
+                break;
+            } else if (line.startsWith("  ")) {
+                break;
+            }
+        }
+        StringBuilder newString = new StringBuilder();
+        for (String line : lines) {
+            if (line.startsWith(indentCharacter)) {
+                line = line.substring(indentCharacter.length());
+            }
+            newString.append("\n").append(line);
+        }
+        return newString.substring(1);
+    }
+    public String indentForwards(String text) {
+        String[] lines = text.split("\n");
+        String indentCharacter = "  ";
+        for (String line : lines) {
+            if (line.startsWith("\t")) {
+                indentCharacter = "\t";
+                break;
+            } else if (line.startsWith("  ")) {
+                break;
+            }
+        }
+        if (text.length() <= 1) {
+            return indentCharacter + text;
+        }
+        StringBuilder newString = new StringBuilder();
+        for (String line : lines) {
+            newString.append("\n").append(indentCharacter).append(line);
+        }
+        return newString.substring(1);
     }
 
 
