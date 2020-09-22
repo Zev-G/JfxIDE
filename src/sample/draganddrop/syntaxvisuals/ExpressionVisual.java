@@ -12,8 +12,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Popup;
 import sample.language.FXScript;
-import sample.language.interpretation.SyntaxManager;
-import sample.language.interpretation.parse.Parser;
+import sample.language.syntax.SyntaxManager;
 import sample.language.syntaxPiece.expressions.ExpressionFactory;
 
 import java.util.ArrayList;

@@ -1,7 +1,7 @@
 package sample.ide.codeEditor.languages;
 
 import sample.ide.IdeSpecialParser;
-import sample.language.interpretation.SyntaxManager;
+import sample.language.syntax.SyntaxManager;
 import sample.language.syntaxPiece.SyntaxPieceFactory;
 
 import java.util.ArrayList;

@@ -1,7 +1,7 @@
 package sample.language.syntaxPiece.expressions;
 
 import sample.language.interpretation.run.CodeChunk;
-import sample.language.interpretation.SyntaxManager;
+import sample.language.syntax.SyntaxManager;
 import sample.language.syntaxPiece.SyntaxPiece;
 import sample.language.syntaxPiece.SyntaxPieceFactory;
 import sample.language.syntaxPiece.effects.Effect;

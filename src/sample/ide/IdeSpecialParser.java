@@ -1,8 +1,7 @@
 package sample.ide;
 
 import sample.language.FXScript;
-import sample.language.interpretation.SyntaxManager;
-import sample.language.interpretation.parse.Parser;
+import sample.language.syntax.SyntaxManager;
 import sample.language.syntaxPiece.SyntaxPieceFactory;
 import sample.language.syntaxPiece.expressions.ExpressionFactory;
 import sample.language.variable.Variable;

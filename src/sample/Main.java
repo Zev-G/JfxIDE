@@ -7,7 +7,7 @@ import sample.betterfx.CommandConsole;
 import sample.ide.Ide;
 import sample.panel.RunPanel;
 import sample.language.FXScript;
-import sample.language.interpretation.SyntaxManager;
+import sample.language.syntax.SyntaxManager;
 import sample.language.interpretation.run.CodeChunk;
 
 import java.io.File;
@@ -30,7 +30,7 @@ public class Main extends Application {
         CommandConsole console = new CommandConsole();
         SyntaxManager.setPrintConsole(console);
 //        primaryStage.setScene(new Scene(console));
-        primaryStage.setScene(new Scene(new Ide(new File("C:\\Users\\Zev\\OneDrive\\Desktop"))));
+        primaryStage.setScene(new Scene(new Ide(new File(Main.class.getResource("ide").getFile()))));
         primaryStage.show();
         primaryStage.setWidth(800);
         primaryStage.setHeight(600);

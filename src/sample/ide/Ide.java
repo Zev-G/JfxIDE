@@ -27,7 +27,7 @@ import sample.ide.fileTreeView.FileTreeView;
 import sample.ide.tools.ComponentTabPane;
 import sample.ide.tools.Gotten;
 import sample.language.FXScript;
-import sample.language.interpretation.SyntaxManager;
+import sample.language.syntax.SyntaxManager;
 import sample.language.interpretation.run.CodeChunk;
 
 import java.io.File;

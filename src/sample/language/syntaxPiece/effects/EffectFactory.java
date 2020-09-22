@@ -1,6 +1,6 @@
 package sample.language.syntaxPiece.effects;
 
-import sample.language.interpretation.SyntaxManager;
+import sample.language.syntax.SyntaxManager;
 import sample.language.interpretation.run.CodeChunk;
 import sample.language.syntaxPiece.SyntaxPiece;
 import sample.language.syntaxPiece.SyntaxPieceFactory;

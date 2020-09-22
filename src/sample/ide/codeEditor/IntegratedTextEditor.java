@@ -22,13 +22,12 @@ import org.fxmisc.richtext.model.StyleSpansBuilder;
 import sample.ide.Ide;
 import sample.ide.IdeSpecialParser;
 import sample.ide.codeEditor.languages.LanguageSupport;
-import sample.language.interpretation.parse.Parser;
-import sample.language.interpretation.parse.error.ParseError;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 public class IntegratedTextEditor extends CodeArea {
 
@@ -67,7 +66,7 @@ public class IntegratedTextEditor extends CodeArea {
         language = languageSupport;
 
         // Highlighting
-        this.richChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(change -> {
+        this.plainTextChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(change -> {
             HighlightingThread highlightingThread = new HighlightingThread();
             highlightingThread.setText(this.getText());
             highlightingThread.start();
@@ -361,42 +360,17 @@ public class IntegratedTextEditor extends CodeArea {
             StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
             while(matcher.find()) {
                 String styleClass = language.styleClass(matcher);
-                System.out.println("Matched, start: " + matcher.start() + " end: " + matcher.end() + " group: " + matcher.group());
                 spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
                 spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
                 lastKwEnd = matcher.end();
             }
-            spansBuilder.add(Collections.emptyList(), lastKwEnd);
+            spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
             StyleSpans<Collection<String>> styleSpans = spansBuilder.create();
-            System.out.println(Arrays.toString(styleSpans.stream().toArray()));
             Platform.runLater(() -> {
                 try {
                     setStyleSpans(0, styleSpans);
                 } catch (IndexOutOfBoundsException ignored) {}
             });
-            HashMap<Integer, ParseError> parseErrorMap = new HashMap<>();
-            Parser parser = new Parser(gotten -> parseErrorMap.put(gotten.getLineNumber(), gotten));
-            parser.parseChunk(text, null);
-            if (!parseErrorMap.isEmpty()) {
-                int position = 0;
-                int lineNum = 0;
-                int lastFound = 0;
-                for (String line : text.split("\n")) {
-                    lineNum++;
-                    if (parseErrorMap.containsKey(lineNum)) {
-                        int finalPosition = position;
-                        int finalPosition1 = position;
-                        Platform.runLater(() -> setStyleClass(finalPosition, finalPosition1 + line.length(), "error"));
-//                        int length1 = position - lastFound;
-//                        int length2 = line.length();
-//                        spansBuilder.add(Collections.emptyList(), length1);
-//                        spansBuilder.add(Collections.singleton("error"), length2);
-//                        lastFound = position + line.length() + 1;
-//                        System.out.println("Length1: " + length1 + " Length2: " + length2 + " Line: " + line);
-                    }
-                    position += line.length() + 1;
-                }
-            }
         }
 
 

@@ -1,6 +1,5 @@
 package sample.language.interpretation.run;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

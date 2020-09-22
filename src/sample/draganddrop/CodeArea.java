@@ -1,7 +1,7 @@
 package sample.draganddrop;
 
 import javafx.scene.layout.Pane;
-import sample.language.interpretation.SyntaxManager;
+import sample.language.syntax.SyntaxManager;
 
 public class CodeArea extends Pane {
 

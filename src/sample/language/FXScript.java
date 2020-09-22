@@ -1,7 +1,6 @@
 package sample.language;
 
-
-import sample.language.interpretation.SyntaxManager;
+import sample.language.syntax.SyntaxManager;
 import sample.language.interpretation.parse.Parser;
 import sample.language.interpretation.run.CodeChunk;
 import sample.language.syntaxPiece.events.Function;

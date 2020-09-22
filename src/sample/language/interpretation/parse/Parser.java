@@ -1,8 +1,7 @@
 package sample.language.interpretation.parse;
 
 import sample.ide.tools.Gotten;
-import sample.language.FXScript;
-import sample.language.interpretation.SyntaxManager;
+import sample.language.syntax.SyntaxManager;
 import sample.language.interpretation.parse.error.ParseError;
 import sample.language.interpretation.run.CodeChunk;
 import sample.language.interpretation.run.CodePiece;
@@ -30,11 +29,10 @@ public final class Parser {
     private Gotten<ParseError> errorHandler;
 
     public Parser() {
-        System.out.println("123");
-//        errorHandler = gotten -> {
-//            gotten.print();
-//            System.out.println("Printer from here");
-//        };
+        errorHandler = gotten -> {
+            gotten.print();
+            System.out.println("Printer from here");
+        };
     }
     public Parser(Gotten<ParseError> errorHandler) {
         this.errorHandler = errorHandler;

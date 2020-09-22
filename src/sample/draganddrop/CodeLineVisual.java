@@ -11,8 +11,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import sample.draganddrop.syntaxvisuals.ExpressionVisual;
 import sample.language.FXScript;
-import sample.language.interpretation.SyntaxManager;
-import sample.language.interpretation.parse.Parser;
+import sample.language.syntax.SyntaxManager;
 import sample.language.syntaxPiece.effects.EffectFactory;
 
 public class CodeLineVisual extends HBox {
