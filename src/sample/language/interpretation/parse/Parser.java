@@ -1,5 +1,7 @@
 package sample.language.interpretation.parse;
 
+import sample.ide.tools.Gotten;
+import sample.language.FXScript;
 import sample.language.interpretation.SyntaxManager;
 import sample.language.interpretation.parse.error.ParseError;
 import sample.language.interpretation.run.CodeChunk;
@@ -25,6 +27,28 @@ import java.util.regex.Pattern;
 
 public final class Parser {
 
+    private Gotten<ParseError> errorHandler;
+
+    public Parser() {
+        System.out.println("123");
+//        errorHandler = gotten -> {
+//            gotten.print();
+//            System.out.println("Printer from here");
+//        };
+    }
+    public Parser(Gotten<ParseError> errorHandler) {
+        this.errorHandler = errorHandler;
+    }
+
+    public Gotten<ParseError> getErrorHandler() {
+        return errorHandler;
+    }
+    public void setErrorHandler(Gotten<ParseError> errorHandler) {
+        System.out.println("So this got called: " + this.errorHandler);
+        this.errorHandler = errorHandler;
+        System.out.println("And under neath: " + this.errorHandler);
+    }
+
     public static boolean PRINTING_CHUNK_PARSING_INFO = false;
 
     /**
@@ -32,8 +56,8 @@ public final class Parser {
      * @param code The code from which the CodeChunk is parsed.
      * @return A parsed CodeChunk that is ready to be ran.
      */
-    public static CodeChunk parseChunk(String code, File file) { return parseChunk(code, null, file); }
-    public static CodeChunk parseChunk(String code, CodeChunk parent, File file) {
+    public final CodeChunk parseChunk(String code, File file) { return parseChunk(code, null, file); }
+    public final CodeChunk parseChunk(String code, CodeChunk parent, File file) {
         CodeChunk chunk = new CodeChunk();
         chunk.setCode("Top");
         boolean inEvent = false;
@@ -51,7 +75,7 @@ public final class Parser {
             if (!line.replaceAll("\\s", "").startsWith("#") && !line.equals("")) {
                 CodePiece addPiece = null;
                 if (!line.startsWith("\t") && !line.endsWith(":")) {
-                    addPiece = SyntaxManager.genCodePieceFromCode(line.trim(), file, i + 1);
+                    addPiece = parsePiece(line.trim(), file, i + 1);
                     addPiece.setCodeChunk(parent);
                     if (addPiece.getEffect() != null && ((EffectFactory) addPiece.getEffect()).getRegex().startsWith("$")) {
                         addPiece.run();
@@ -65,7 +89,7 @@ public final class Parser {
                     if (inEvent) {
                         if (PRINTING_CHUNK_PARSING_INFO) System.out.println("Exiting event");
                         assert lastEvent != null;
-                        CodeChunk runChunk = SyntaxManager.getCodeChunkFromCode(eventCode.toString(), file);
+                        CodeChunk runChunk = parseChunk(eventCode.toString(), file);
                         runChunk.setCode(lastEventCode);
                         runChunk.setParent(chunk);
                         lastEvent.setRunChunk(runChunk);
@@ -95,6 +119,15 @@ public final class Parser {
         return chunk;
     }
 
+    public final CodePiece parsePiece(String code, File file, int lineNum) {
+        Effect effect = parseLine(code, file, lineNum);
+        CodePiece piece = new CodePiece(code);
+        if (effect != null) {
+            piece.setEffect(effect);
+        }
+        return piece;
+    }
+
 
     /**
      * <b>How it works:</b>
@@ -116,7 +149,7 @@ public final class Parser {
      * @param possiblePieces The SyntaxPieceFactories that will be tested.
      * @return A parsed syntax piece. This could be a Event, Effect or Expression.
      */
-    public static <T extends SyntaxPieceFactory> T parseSyntaxPiece(String code, ArrayList<T> possiblePieces, File file, int line) {
+    public <T extends SyntaxPieceFactory> T parseSyntaxPiece(String code, ArrayList<T> possiblePieces, File file, int line) {
         code = code.trim();
         if (CodeChunk.printing) System.out.println("Parsing syntax piece: " + code + " with possible pieces: " + possiblePieces);
         pieces: for (SyntaxPieceFactory syntaxPieceFactory : possiblePieces) {
@@ -226,7 +259,7 @@ public final class Parser {
         }
         return null;
     }
-    public static <T extends SyntaxPieceFactory> T parseSyntaxPiece(String code, ArrayList<T> possiblePieces) {
+    public <T extends SyntaxPieceFactory> T parseSyntaxPiece(String code, ArrayList<T> possiblePieces) {
         return parseSyntaxPiece(code, possiblePieces, null, 0);
     }
 
@@ -235,14 +268,14 @@ public final class Parser {
      * @param code The code which will be parsed and the effect will be extracted from.
      * @return The effect that is parsed from the given code.
      */
-    public static Effect parseLine(String code, File file, int lineNum) {
+    public Effect parseLine(String code, File file, int lineNum) {
         Effect parsedEffect = parseSyntaxPiece(code.trim(), SyntaxManager.EFFECT_FACTORIES, file, lineNum);
         if (parsedEffect == null) {
-            new ParseError(lineNum, 0, code, "Unrecognized Effect", null, file).print();
+            errorHandler.gotten(new ParseError(lineNum, 0, code, "Unrecognized Effect", null, file));
         }
         return parsedEffect;
     }
-    public static Effect parseLine(String code) {
+    public Effect parseLine(String code) {
         return parseLine(code, null, 0);
     }
 
@@ -251,7 +284,7 @@ public final class Parser {
      * @param code The code from which the Event is parsed. Should be only one line. For example: "when {button} is pressed:"
      * @return A parsed event that doesn't contain it's CodeChunk.
      */
-    public static Event parseEvent(String code, File file, int lineNum) {
+    public Event parseEvent(String code, File file, int lineNum) {
         // Different types of Events:
         //  * If statements
         //  * Else statements
@@ -308,7 +341,7 @@ public final class Parser {
             WhenEventFactory syntaxPiece = parseSyntaxPiece(justCode, SyntaxManager.EVENT_FACTORIES, file, lineNum);
             // Error Handling
             if (syntaxPiece == null) {
-                new ParseError(lineNum, 0, code, "Unrecognized Event", null, file).print();
+                errorHandler.gotten(new ParseError(lineNum, 0, code, "Unrecognized Event", null, file));
                 return null;
             }
             if (code.startsWith("$") || syntaxPiece.getRegex().startsWith("$")) {
@@ -318,10 +351,10 @@ public final class Parser {
             }
             return syntaxPiece;
         }
-        new ParseError(lineNum, 0, code, "Unrecognized Event", null, file).print();
+        errorHandler.gotten(new ParseError(lineNum, 0, code, "Unrecognized Event", null, file));
         return null;
     }
-    public static Event parseEvent(String code) {
+    public Event parseEvent(String code) {
         return parseEvent(code, null, 0);
     }
 
@@ -330,7 +363,7 @@ public final class Parser {
      * @param code Inputted code, should already be trimmed and improved.
      * @return The parsed Expression. Will return null if it isn't a valid Expression.
      */
-    public static ExpressionFactory<?> parseExpression(String code, File file, int lineNum) {
+    public ExpressionFactory<?> parseExpression(String code, File file, int lineNum) {
         code = code.trim();
         if (CodeChunk.printing) System.out.println("--Parsing Expression (code: " + code +")--");
         HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> fullMap = new HashMap<>();
@@ -343,7 +376,7 @@ public final class Parser {
         fullMap.values().forEach(allExpressions::addAll);
         return parseSyntaxPiece(code, allExpressions, file, lineNum);
     }
-    public static ExpressionFactory<?> parseExpression(String code) {
+    public ExpressionFactory<?> parseExpression(String code) {
         return parseExpression(code, null, 0);
     }
 
@@ -353,7 +386,7 @@ public final class Parser {
      * @param addFrom The HashMap that is added to addTo
      * @param <T> The type of object stored in the arraylist
      */
-    private static <T> void addHashMapToHashMap(HashMap<Class<?>, ArrayList<T>> addTo, HashMap<Class<?>, ArrayList<T>> addFrom) {
+    private <T> void addHashMapToHashMap(HashMap<Class<?>, ArrayList<T>> addTo, HashMap<Class<?>, ArrayList<T>> addFrom) {
         for (Class<?> loopClass : addFrom.keySet()) {
             addTo.computeIfAbsent(loopClass, k -> new ArrayList<>());
             addTo.get(loopClass).addAll(addFrom.get(loopClass));
@@ -365,7 +398,7 @@ public final class Parser {
      * @param code The different expressions will be separated from this string
      * @return A {@code ArrayList} of strings where the expressions start and end with a %
      */
-    public static ArrayList<String> generateExpressionPiecesFromString(String code) {
+    public ArrayList<String> generateExpressionPiecesFromString(String code) {
         ArrayList<String> separatedStrings = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
         for (char character : code.toCharArray()) {

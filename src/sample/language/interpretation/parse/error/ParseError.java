@@ -4,6 +4,7 @@ import sample.language.interpretation.run.CodeState;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ParseError {
 
@@ -151,6 +152,7 @@ public class ParseError {
     }
     public void print() {
         System.err.println(createLongErrorMessage());
+        System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
     }
 
     public void sendShortError() {

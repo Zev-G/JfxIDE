@@ -10,6 +10,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import sample.draganddrop.syntaxvisuals.ExpressionVisual;
+import sample.language.FXScript;
 import sample.language.interpretation.SyntaxManager;
 import sample.language.interpretation.parse.Parser;
 import sample.language.syntaxPiece.effects.EffectFactory;
@@ -46,7 +47,7 @@ public class CodeLineVisual extends HBox {
     public void setNodesForEffect() { setNodesForEffect(effect); }
     public void setNodesForEffect(EffectFactory effect) { setNodesForEffect(effect.getRegex()); }
     public void setNodesForEffect(String code) {
-        for (String typePiece : Parser.generateExpressionPiecesFromString(code)) {
+        for (String typePiece : FXScript.PARSER.generateExpressionPiecesFromString(code)) {
             boolean isExpression = typePiece.startsWith("%");
             if (isExpression) {
                 getChildren().add(new ExpressionVisual<>(SyntaxManager.SUPPORTED_TYPES.get(typePiece.replaceAll("%", ""))));

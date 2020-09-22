@@ -6,6 +6,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import sample.language.FXScript;
 import sample.language.interpretation.SyntaxManager;
 import sample.language.interpretation.parse.Parser;
 import sample.language.interpretation.run.CodeChunk;
@@ -92,7 +93,7 @@ public class RunPanel extends AnchorPane {
             HBox hBox = new HBox(code, setValue);
             hBox.setSpacing(8);
             setValue.setOnAction(actionEvent -> {
-                ExpressionFactory<?> expressionFactory = Parser.parseExpression(code.getText());
+                ExpressionFactory<?> expressionFactory = FXScript.PARSER.parseExpression(code.getText());
                 expressionFactory.setState((CodeChunk) state);
                 newValue.setValue(expressionFactory.activate());
             });

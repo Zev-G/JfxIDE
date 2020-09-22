@@ -2,10 +2,13 @@ package sample.language;
 
 
 import sample.language.interpretation.SyntaxManager;
+import sample.language.interpretation.parse.Parser;
 import sample.language.interpretation.run.CodeChunk;
 import sample.language.syntaxPiece.events.Function;
 
 public final class FXScript {
+
+    public static final Parser PARSER = new Parser();
 
     public static void restart() {
         Function.ALL_FUNCTIONS.clear();
@@ -19,6 +22,7 @@ public final class FXScript {
         SyntaxManager.LOW.clear();
         SyntaxManager.LOWEST.clear();
         SyntaxManager.init();
+
         stop();
         CodeChunk.ALL_CHUNKS.clear();
     }

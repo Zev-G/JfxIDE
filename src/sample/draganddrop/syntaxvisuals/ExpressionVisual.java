@@ -11,6 +11,7 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Popup;
+import sample.language.FXScript;
 import sample.language.interpretation.SyntaxManager;
 import sample.language.interpretation.parse.Parser;
 import sample.language.syntaxPiece.expressions.ExpressionFactory;
@@ -65,7 +66,7 @@ public class ExpressionVisual<T> extends SyntaxVisual<ExpressionFactory<?>> {
 
     public void setNodes(ExpressionFactory<?> expressionFactory) { setNodes(expressionFactory.getRegex()); }
     public void setNodes(String regex) {
-        ArrayList<String> typePieces = Parser.generateExpressionPiecesFromString(regex);
+        ArrayList<String> typePieces = FXScript.PARSER.generateExpressionPiecesFromString(regex);
         for (String typePiece : typePieces) {
             boolean isExpression = typePiece.startsWith("%");
             if (isExpression) {

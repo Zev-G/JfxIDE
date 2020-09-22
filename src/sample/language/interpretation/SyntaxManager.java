@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 import sample.betterfx.Console;
+import sample.language.FXScript;
 import sample.language.interpretation.parse.Parser;
 import sample.language.interpretation.run.CodeChunk;
 import sample.language.interpretation.run.CodePiece;
@@ -512,7 +513,7 @@ public class SyntaxManager {
                         ArrayList<Object> objects = new ArrayList<>();
                         for (String argument : arguments) {
                             if (argument.length() > 0) {
-                                ExpressionFactory<?> expressionFactory = Parser.parseExpression(argument);
+                                ExpressionFactory<?> expressionFactory = FXScript.PARSER.parseExpression(argument);
                                 expressionFactory.setState((CodeChunk) state);
                                 expressionFactory.forChildren(expressionFactory1 -> expressionFactory1.setState(expressionFactory.getState()));
                                 objects.add(expressionFactory.activate());
@@ -678,7 +679,7 @@ public class SyntaxManager {
             argument = argument.trim();
             System.out.println("On argument: (" + argument + ")");
             if (argument.length() > 0) {
-                ExpressionFactory<?> expressionFactory = Parser.parseExpression(argument);
+                ExpressionFactory<?> expressionFactory = FXScript.PARSER.parseExpression(argument);
                 expressionFactory.setState((CodeChunk) state);
                 expressionFactory.forChildren(expressionFactory1 -> expressionFactory1.setState(expressionFactory.getState()));
                 Object objFromExpression = expressionFactory.activate();
@@ -773,7 +774,7 @@ public class SyntaxManager {
      * @return A CodePiece interpreted and parsed from the inputted code. Note that this piece is not yet attached to a code chunk.
      */
     public static CodePiece genCodePieceFromCode(String code, File file, int lineNum) {
-        Effect effect = Parser.parseLine(code, file, lineNum);
+        Effect effect = FXScript.PARSER.parseLine(code, file, lineNum);
         CodePiece piece = new CodePiece(code);
         if (effect != null) {
             piece.setEffect(effect);
@@ -790,7 +791,7 @@ public class SyntaxManager {
         return getCodeChunkFromCode(builder.toString(), file);
     }
     public static CodeChunk getCodeChunkFromCode(String code, File file) {
-        return Parser.parseChunk(code, file);
+        return FXScript.PARSER.parseChunk(code, file);
     }
 
     public static void setPrintConsole(Console printConsole) {

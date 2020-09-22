@@ -1,5 +1,6 @@
 package sample.ide;
 
+import sample.language.FXScript;
 import sample.language.interpretation.SyntaxManager;
 import sample.language.interpretation.parse.Parser;
 import sample.language.syntaxPiece.SyntaxPieceFactory;
@@ -75,7 +76,7 @@ public final class IdeSpecialParser {
                         }
                     }
                     String chosen = (expressionCode.toString().length() > 0 ? expressionCode.toString() : beforeCodeBuffer);
-                    ExpressionFactory<?> expressionFactory = Parser.parseExpression(chosen, null, 0);
+                    ExpressionFactory<?> expressionFactory = FXScript.PARSER.parseExpression(chosen, null, 0);
                     if (expressionFactory != null) {
                         if (argTypes.size() > expressionTimes && SyntaxManager.SUPPORTED_TYPES.get(argTypes.get(expressionTimes)) != null) {
                             if (!SyntaxManager.SUPPORTED_TYPES.get(argTypes.get(expressionTimes).replaceAll("%", ""))
