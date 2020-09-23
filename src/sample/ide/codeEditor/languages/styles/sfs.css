@@ -36,7 +36,3 @@
     -fx-fill: #be5fbd !important;
     -fx-font-weight: bold !important;
 }
-.error {
-    -fx-fill: red !important;
-    -fx-font-weight: bold !important;
-}
