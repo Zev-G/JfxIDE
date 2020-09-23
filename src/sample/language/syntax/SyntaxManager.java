@@ -1,6 +1,5 @@
 package sample.language.syntax;
 
-import sample.betterfx.Console;
 import sample.language.FXScript;
 import sample.language.interpretation.run.CodeChunk;
 import sample.language.interpretation.run.CodePiece;
@@ -31,9 +30,10 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
+/**
+ *
+ */
 public class SyntaxManager {
-
-    public static Console PRINT_CONSOLE = null;
 
     public static final HashMap<String, Class<?>> SUPPORTED_TYPES = new HashMap<>();
 
@@ -98,11 +98,6 @@ public class SyntaxManager {
         EXPRESSIONS.put(ExpressionPriority.MEDIUM, MEDIUM);
         EXPRESSIONS.put(ExpressionPriority.HIGH, HIGH);
         EXPRESSIONS.put(ExpressionPriority.HIGHEST, HIGHEST);
-
-        // Load syntax from addons
-        for (AddonBase addonBase : ADDONS) {
-            addonBase.addSyntax();
-        }
 
         effects: {
 
@@ -417,6 +412,11 @@ public class SyntaxManager {
             }
         }
 
+        // Load syntax from addons
+        for (AddonBase addonBase : ADDONS) {
+            addonBase.addSyntax();
+        }
+
 
     }
 
@@ -548,10 +548,6 @@ public class SyntaxManager {
     }
     public static CodeChunk getCodeChunkFromCode(String code, File file) {
         return FXScript.PARSER.parseChunk(code, file);
-    }
-
-    public static void setPrintConsole(Console printConsole) {
-        PRINT_CONSOLE = printConsole;
     }
 
     public static boolean checkPrefix(String check, String... prefixes) {
