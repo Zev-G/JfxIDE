@@ -20,6 +20,8 @@ public final class FXScript {
         SyntaxManager.MEDIUM.clear();
         SyntaxManager.LOW.clear();
         SyntaxManager.LOWEST.clear();
+        SyntaxManager.ADDONS.clear();
+        SyntaxManager.ADDON_CLASSES.clear();
         SyntaxManager.init();
 
         stop();

@@ -37,7 +37,7 @@ public class SyntaxManager {
 
     public static final HashMap<String, Class<?>> SUPPORTED_TYPES = new HashMap<>();
 
-    public static final HashMap<ExpressionPriority, HashMap<Class<?>, ArrayList<ExpressionFactory<?>>>> EXPRESSIONS = new HashMap<>();
+    public static final EnumMap<ExpressionPriority, HashMap<Class<?>, ArrayList<ExpressionFactory<?>>>> EXPRESSIONS = new EnumMap<>(ExpressionPriority.class);
     public static final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> LOWEST = new HashMap<>();
     public static final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> LOW = new HashMap<>();
     public static final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> MEDIUM = new HashMap<>();
@@ -82,7 +82,8 @@ public class SyntaxManager {
 
         // Load from addons
         for (AddonBase addonBase : ADDONS) {
-            addonBase.addTypes();
+            HashMap<String, Class<?>> hashMap = addonBase.addTypes();
+            SUPPORTED_TYPES.putAll(hashMap);
         }
 
         for (Class<?> loopClass : SUPPORTED_TYPES.values()) {
@@ -98,11 +99,6 @@ public class SyntaxManager {
         EXPRESSIONS.put(ExpressionPriority.MEDIUM, MEDIUM);
         EXPRESSIONS.put(ExpressionPriority.HIGH, HIGH);
         EXPRESSIONS.put(ExpressionPriority.HIGHEST, HIGHEST);
-
-        // Load syntax from addons
-        for (AddonBase addonBase : ADDONS) {
-            addonBase.addSyntax();
-        }
 
         effects: {
 
@@ -417,6 +413,17 @@ public class SyntaxManager {
             }
         }
 
+        // Load syntax from addons
+        for (AddonBase addonBase : ADDONS) {
+            EnumMap<ExpressionPriority, HashMap<Class<?>, ArrayList<ExpressionFactory<?>>>> expressionsMap = addonBase.addExpressions(SUPPORTED_TYPES.values());
+            for (Map.Entry<ExpressionPriority, HashMap<Class<?>, ArrayList<ExpressionFactory<?>>>> entry : expressionsMap.entrySet()) {
+                for (Map.Entry<Class<?>, ArrayList<ExpressionFactory<?>>> entry1 : entry.getValue().entrySet()) {
+                    EXPRESSIONS.get(entry.getKey()).get(entry1.getKey()).addAll(entry1.getValue());
+                }
+            }
+            EVENT_FACTORIES.addAll(addonBase.addEvents());
+            EFFECT_FACTORIES.addAll(addonBase.addEffects());
+        }
 
     }
 

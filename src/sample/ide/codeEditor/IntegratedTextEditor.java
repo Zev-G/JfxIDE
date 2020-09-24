@@ -350,9 +350,6 @@ public class IntegratedTextEditor extends CodeArea {
         }
     }
 
-    public void insertTextWithIndentation(int insertAt, String text) {
-//        this.insertText(insertAt, properlyIndentString(text));
-    }
     public String properlyIndentString(String text) {
         String[] lines = text.split("\n");
         String indentCharacter = "  ";
