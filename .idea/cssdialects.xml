@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CssDialectMappings">
-    <file url="file://$PROJECT_DIR$/src/sample/betterfx/scrollpane.css" dialect="JavaFX" />
-    <file url="file://$PROJECT_DIR$/src/sample/ide/codeEditor/ide.css" dialect="JavaFX" />
-    <file url="file://$PROJECT_DIR$/src/sample/ide/codeEditor/languages/styles/java.css" dialect="CLASSIC" />
-    <file url="file://$PROJECT_DIR$/src/sample/ide/styles/light.css" dialect="JavaFX" />
-    <file url="file://$PROJECT_DIR$/src/sample/ide/styles/main.css" dialect="JavaFX" />
+    <file url="file://$PROJECT_DIR$/src/tmw/me/com/betterfx/scrollpane.css" dialect="JavaFX" />
+    <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/codeEditor/ide.css" dialect="JavaFX" />
+    <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/codeEditor/languages/styles/java.css" dialect="CLASSIC" />
+    <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/styles/light.css" dialect="JavaFX" />
+    <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/styles/main.css" dialect="JavaFX" />
   </component>
 </project>
