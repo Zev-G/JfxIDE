@@ -20,7 +20,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
-import tmw.me.com.language.interpretation.run.CodeState;
+import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntaxPiece.effects.EffectFactory;
 import tmw.me.com.language.syntaxPiece.events.WhenEventFactory;
 import tmw.me.com.language.syntaxPiece.expressions.ExpressionFactory;
@@ -157,6 +157,8 @@ public class JavaFXAddon extends AddonBase {
     public ArrayList<WhenEventFactory> addEvents() {
         
         ArrayList<WhenEventFactory> eventFactories = new ArrayList<>();
+
+        eventFactories.add(new WhenEventFactory("javafx:", "(|run on )javafx( thread|)", (state, values, event, args) -> Platform.runLater(event::run)));
         
         // Mouse Events
         eventFactories.add(new WhenEventFactory("when %node% is pressed:", "(when|on) %node% is pressed", (state, values, event, args) -> ((Node) values.get(0)).setOnMousePressed(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
@@ -305,7 +307,7 @@ public class JavaFXAddon extends AddonBase {
         return end;
     }
 
-    private static void addMouseEventExpressions(MouseEvent mouseEvent, CodeState state) {
+    private static void addMouseEventExpressions(MouseEvent mouseEvent, CodeChunk state) {
         state.getLocalExpressions().clear();
         state.getLocalExpressions().add(new ExpressionFactory<>("mouse-button", (state1, values, args) -> mouseEvent.getButton(), MouseButton.class));
         state.getLocalExpressions().add(new ExpressionFactory<>("click-count", (state1, values, args) -> mouseEvent.getClickCount(), Number.class));
@@ -320,7 +322,7 @@ public class JavaFXAddon extends AddonBase {
         state.getLocalExpressions().add(new ExpressionFactory<>("source", (state1, values, args) -> mouseEvent.getSource(), Object.class));
     }
 
-    public static void addKeyEventExpressions(KeyEvent keyEvent, CodeState state) {
+    public static void addKeyEventExpressions(KeyEvent keyEvent, CodeChunk state) {
         state.getLocalExpressions().clear();
         state.getLocalExpressions().add(new ExpressionFactory<>("character", (state1, values, args) -> keyEvent.getCharacter(), String.class));
         state.getLocalExpressions().add(new ExpressionFactory<>("key-code", (state1, values, args) -> keyEvent.getCode().toString(), String.class));
@@ -328,7 +330,7 @@ public class JavaFXAddon extends AddonBase {
         state.getLocalExpressions().add(new ExpressionFactory<>("source", (state1, values, args) -> keyEvent.getSource(), Object.class));
     }
 
-    public static void addDragEventExpressions(DragEvent dragEvent, CodeState state) {
+    public static void addDragEventExpressions(DragEvent dragEvent, CodeChunk state) {
         state.getLocalExpressions().clear();
         // Not 100% complete
         state.getLocalExpressions().add(new ExpressionFactory<>("pick-result", (state1, values, args) -> dragEvent.getPickResult(), PickResult.class));
@@ -344,7 +346,7 @@ public class JavaFXAddon extends AddonBase {
         state.getLocalExpressions().add(new ExpressionFactory<>("gesture-source", (state1, values, args) -> dragEvent.getGestureSource(), Object.class));
     }
 
-    public static void addEventExpressions(Event event, CodeState state) {
+    public static void addEventExpressions(Event event, CodeChunk state) {
         state.getLocalExpressions().clear();
         state.getLocalExpressions().add(new ExpressionFactory<>("source", (state1, values, args) -> event.getSource(), Object.class));
     }

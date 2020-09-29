@@ -49,7 +49,7 @@ public class CodeLineVisual extends HBox {
         for (String typePiece : FXScript.PARSER.generateExpressionPiecesFromString(code)) {
             boolean isExpression = typePiece.startsWith("%");
             if (isExpression) {
-                getChildren().add(new ExpressionVisual<>(SyntaxManager.SUPPORTED_TYPES.get(typePiece.replaceAll("%", ""))));
+                getChildren().add(new ExpressionVisual<>(SyntaxManager.SYNTAX_MANAGER.SUPPORTED_TYPES.get(typePiece.replaceAll("%", ""))));
             } else {
                 getChildren().add(defaultText(typePiece));
             }

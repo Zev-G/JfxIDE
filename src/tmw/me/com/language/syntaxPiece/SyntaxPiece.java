@@ -1,5 +1,6 @@
 package tmw.me.com.language.syntaxPiece;
 
+import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 
 public abstract class SyntaxPiece<T extends SyntaxPiece<?>> {
@@ -8,7 +9,8 @@ public abstract class SyntaxPiece<T extends SyntaxPiece<?>> {
     protected CodeChunk state;
     protected String text;
 
-    public T duplicate() { return null; }
+    public abstract T duplicate();
+    public abstract void parsed(Parser parser);
 
     public String getCode() {
         return code;
@@ -29,4 +31,6 @@ public abstract class SyntaxPiece<T extends SyntaxPiece<?>> {
     public String getText() {
         return text;
     }
+
+
 }

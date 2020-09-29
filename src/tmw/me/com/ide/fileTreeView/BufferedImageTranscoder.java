@@ -5,6 +5,9 @@ import org.apache.batik.transcoder.image.ImageTranscoder;
 
 import java.awt.image.BufferedImage;
 
+/**
+ * This is a utility class for creating buffered images from svgs using batik.
+ */
 public class BufferedImageTranscoder extends ImageTranscoder {
 
     private BufferedImage img = null;

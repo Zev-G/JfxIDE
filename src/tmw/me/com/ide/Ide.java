@@ -1,8 +1,8 @@
 package tmw.me.com.ide;
 
+import com.jfoenix.controls.JFXCheckBox;
 import javafx.animation.FadeTransition;
 import javafx.collections.ListChangeListener;
-import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -21,21 +21,26 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 import tmw.me.com.betterfx.Console;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.fileTreeView.FileTreeView;
 import tmw.me.com.ide.tools.ComponentTabPane;
-import tmw.me.com.ide.tools.Gotten;
-import tmw.me.com.language.FXScript;
-import tmw.me.com.language.syntax.SyntaxManager;
-import tmw.me.com.language.interpretation.run.CodeChunk;
+import tmw.me.com.ide.tooltip.ToolTipBuilder;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Scanner;
+import java.io.*;
+import java.util.function.Consumer;
 
+/**
+ * This is the container that puts together all the different Components.
+ * <p>For more information on particular components see:</p>
+ * <ul>
+ *     <li>File View: {@link FileTreeView}</li>
+ *     <li>Text Editor: {@link IntegratedTextEditor}</li>
+ *     <li>Language Powers: {@link LanguageSupport}</li>
+ * </ul>
+ */
 public class Ide extends AnchorPane {
 
     public static final String STYLE_SHEET = Ide.class.getResource("styles/main.css").toExternalForm();
@@ -44,7 +49,9 @@ public class Ide extends AnchorPane {
 
     private final SVGPath playSvg = new SVGPath();
     private final Button playButton = new Button("", playSvg);
-    private final HBox topBox = new HBox(playButton);
+    private final ChoiceBox<ComponentTabPane.ComponentTab<IntegratedTextEditor>> runSelector = new ChoiceBox<>();
+    private final JFXCheckBox autoSelect = new JFXCheckBox();
+    private final HBox topBox = new HBox(autoSelect, runSelector, playButton);
     private final Button runTabButton = new Button("Run");
     private final Button projectTabButton = new Button("P\nr\no\nj\ne\nc\nt");
     private final HBox bottomBox = new HBox(runTabButton);
@@ -84,71 +91,60 @@ public class Ide extends AnchorPane {
 
     private final VBox notificationPane = new VBox();
 
-
-
-
     public Ide() {
+        // Booleans
+        runSelector.setDisable(true);
         projectTabButton.setVisible(false);
-        popupPane.getStyleClass().add("popup-shower");
         popupPane.setVisible(false);
-        bottomTab.setMaxHeight(0);
-        leftTab.setMaxWidth(0);
-        playSvg.setContent("M 0 0 L 0 18.9 L 13.5 9.45 L 0 0");
-        playSvg.setFill(Color.LIGHTGREEN);
         playSvg.setPickOnBounds(true);
-        playSvg.getStyleClass().add("circle-highlight-background");
-        playButton.getStyleClass().add("transparent-background");
-        verticalSplitPane.setOrientation(Orientation.VERTICAL);
-        runConsole.disableInput();
-        runConsole.setMainBg(Color.valueOf("#1c2532"));
-        runConsole.setFont(new Font("Terminal", 16));
-
-        consoleAnchor.getChildren().add(runConsole);
         consoleAnchor.setFillWidth(true);
 
-        emptyPopupPane.setMinHeight(250);
-        popupPane.setCenter(insidePopup);
+        // Alignments
+        topBox.setAlignment(Pos.CENTER_LEFT);
         insidePopup.setAlignment(Pos.CENTER);
-
-        tabPane.getSelectionModel().selectedItemProperty().addListener((observableValue, tab, t1) -> {
-            if (t1 instanceof ComponentTabPane.ComponentTab && getScene().getWindow() instanceof Stage) {
-                ComponentTabPane.ComponentTab<?> componentTab = (ComponentTabPane.ComponentTab<?>) t1;
-                Stage stage = (Stage) getScene().getWindow();
-                if (stage.getTitle() != null) {
-                    if (!stage.getTitle().contains("-")) {
-                        stage.setTitle("Untitled - ");
-                    }
-                    stage.setTitle(stage.getTitle().split("-")[0] + "- " + componentTab.getLabel().getText());
-                }
-            }
-        });
-
-        projectTabButton.setLineSpacing(-5);
         projectTabButton.setTextAlignment(TextAlignment.CENTER);
 
+        // Style
+        popupPane.getStyleClass().add("popup-shower");
+        playSvg.getStyleClass().add("circle-highlight-background");
+        playButton.getStyleClass().add("transparent-background");
+        runSelector.getStyleClass().add("run-selector");
         textInputBox.getStyleClass().add("popup-item");
         confirmBox.getStyleClass().add("popup-item");
+        autoSelect.getStyleClass().add("auto-select");
+        this.getStyleClass().add("ide");
+        this.getStylesheets().add(STYLE_SHEET);
 
-        bottomTab.getChildren().addListener((ListChangeListener<Node>) change -> {
-            if (bottomTab.getChildren().isEmpty()) {
-                bottomTab.setMaxHeight(0);
-            } else {
-                bottomTab.setMaxHeight(Integer.MAX_VALUE);
-            }
-        });
-        leftTab.getChildren().addListener((ListChangeListener<Node>) change -> {
-            if (leftTab.getChildren().isEmpty()) {
-                leftTab.setMaxWidth(0);
-            } else {
-                leftTab.setMaxWidth(Integer.MAX_VALUE);
-            }
-        });
+        // Colors
+        playSvg.setFill(Color.LIGHTGREEN);
+        runConsole.setMainBg(Color.valueOf("#1c2532"));
 
+        // Fonts
+        runConsole.setFont(new Font("Terminal", 16));
+
+        // Void method calls
+        runConsole.disableInput();
         makeTabButton(runTabButton, consoleAnchor, bottomTab, verticalSplitPane, 0.8);
         makeTabButton(projectTabButton, projectViewAnchorPane, leftTab, horizontalSplitPane, 0.2);
 
-        this.getChildren().addAll(verticalSplitPane, bottomBox, sideBox, menuBar, notificationPane, popupPane);
+        // Size
+        bottomTab.setMaxHeight(0);
+        leftTab.setMaxWidth(0);
+        emptyPopupPane.setMinHeight(250);
+
+        // Other Values
+        playSvg.setContent("M 0 0 L 0 18.9 L 13.5 9.45 L 0 0");
+        verticalSplitPane.setOrientation(Orientation.VERTICAL);
+        projectTabButton.setLineSpacing(-5);
         topBox.setFillHeight(true);
+        topBox.setSpacing(8);
+
+        // Children
+        consoleAnchor.getChildren().add(runConsole);
+        popupPane.setCenter(insidePopup);
+        this.getChildren().addAll(verticalSplitPane, bottomBox, sideBox, menuBar, notificationPane, popupPane);
+
+        // Layout
         AnchorPane.setTopAnchor(notificationPane, 13D); AnchorPane.setRightAnchor(notificationPane, 13D);
 
         AnchorPane.setTopAnchor(tabPane, 0D); AnchorPane.setBottomAnchor(tabPane, 0D);
@@ -169,21 +165,84 @@ public class Ide extends AnchorPane {
 
         AnchorPane.setTopAnchor(menuBar, 0D); AnchorPane.setLeftAnchor(menuBar, 0D); AnchorPane.setRightAnchor(menuBar, 0D);
 
-        playSvg.setOnMousePressed(mouseEvent -> {
-            runConsole.getConsoleText().getChildren().clear();
-            FXScript.restart();
-            System.out.println("Parsing code...");
-            CodeChunk chunk = SyntaxManager.getCodeChunkFromCode(((ComponentTabPane.ComponentTab<IntegratedTextEditor>) tabPane.getSelectedTab()).getValue().getText(), null);
-            System.out.println("Finished Parsing. Running");
-            chunk.run();
-            if (runTabButton.getAccessibleText() == null || !runTabButton.getAccessibleText().equals("ACTIVATED")) {
-                runTabButton.fire();
+        // Listeners
+        heightProperty().addListener((observableValue, number, t1) -> emptyPopupPane.setMinHeight(t1.doubleValue() / 5));
+        tabPane.getSelectionModel().selectedItemProperty().addListener((observableValue, tab, t1) -> {
+            if (t1 instanceof ComponentTabPane.ComponentTab && getScene().getWindow() instanceof Stage) {
+                ComponentTabPane.ComponentTab<?> componentTab = (ComponentTabPane.ComponentTab<?>) t1;
+                Stage stage = (Stage) getScene().getWindow();
+                if (stage.getTitle() != null) {
+                    if (!stage.getTitle().contains("-")) {
+                        stage.setTitle("Untitled - ");
+                    }
+                    stage.setTitle(stage.getTitle().split("-")[0] + "- " + componentTab.getLabel().getText());
+                }
+            }
+            if (t1 instanceof ComponentTabPane.ComponentTab && runSelector.isDisable()) {
+                runSelector.getSelectionModel().select((ComponentTabPane.ComponentTab<IntegratedTextEditor>) t1);
+            }
+        });
+        tabPane.getTabs().addListener((ListChangeListener<Tab>) change -> {
+            while (change.next()) {
+                for (Tab componentTab : change.getRemoved()) {
+                    assert componentTab instanceof ComponentTabPane.ComponentTab;
+                    runSelector.getItems().remove(componentTab);
+                }
+                for (Tab componentTab : change.getAddedSubList()) {
+                    assert componentTab instanceof ComponentTabPane.ComponentTab;
+                    runSelector.getItems().add((ComponentTabPane.ComponentTab<IntegratedTextEditor>) componentTab);
+                }
+            }
+        });
+        bottomTab.getChildren().addListener((ListChangeListener<Node>) change -> {
+            if (bottomTab.getChildren().isEmpty()) {
+                bottomTab.setMaxHeight(0);
+            } else {
+                bottomTab.setMaxHeight(Integer.MAX_VALUE);
+            }
+        });
+        leftTab.getChildren().addListener((ListChangeListener<Node>) change -> {
+            if (leftTab.getChildren().isEmpty()) {
+                leftTab.setMaxWidth(0);
+            } else {
+                leftTab.setMaxWidth(Integer.MAX_VALUE);
+            }
+        });
+        sceneProperty().addListener((observableValue, scene, t1) -> {
+            if (t1 != null) {
+                t1.windowProperty().addListener((observableValue1, window, t11) -> {
+                    if (t11 instanceof Stage) {
+                        // TODO Find a good icon to put on the stage here
+                    }
+                });
             }
         });
 
-        this.setBackground(new Background(new BackgroundFill(Color.valueOf("#202937"), CornerRadii.EMPTY, Insets.EMPTY)));
-        this.getStylesheets().add(STYLE_SHEET);
+        // Events
+        runSelector.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(ComponentTabPane.ComponentTab<IntegratedTextEditor> integratedTextEditorComponentTab) {
+                return integratedTextEditorComponentTab != null ? integratedTextEditorComponentTab.getLabel().getText() : "";
+            }
 
+            @Override
+            public ComponentTabPane.ComponentTab<IntegratedTextEditor> fromString(String s) {
+                return null;
+            }
+        });
+        playSvg.setOnMousePressed(mouseEvent -> {
+            ComponentTabPane.ComponentTab<IntegratedTextEditor> tab = runSelector.getSelectionModel().getSelectedItem();
+            tab.getValue().getLanguage().runCalled(tab.getValue(), this);
+        });
+        autoSelect.setOnAction(actionEvent -> {
+            runSelector.setDisable(!autoSelect.isSelected());
+            if (!autoSelect.isSelected()) {
+                runSelector.getSelectionModel().select((ComponentTabPane.ComponentTab<IntegratedTextEditor>) tabPane.getSelectionModel().getSelectedItem());
+            }
+        });
+
+
+        // Context Menu
         Menu fileMenu = new Menu("File");
         Menu newMenu = new Menu("New");
         MenuItem newProject = new MenuItem("New Project");
@@ -300,6 +359,26 @@ public class Ide extends AnchorPane {
                 }
             }
         });
+
+
+        // Tooltips
+        autoSelect.setTooltip(
+                ToolTipBuilder.create().setHeader("Toggle AutoSelect").setMainText("Toggles whether or not the run tab selector\nautomatically switches to the selected tab.").build()
+        );
+        playButton.setTooltip(
+                ToolTipBuilder.create().setHeader("Run Button").setMainText("Runs the tab selected in the run tab selector").build()
+        );
+        runSelector.setTooltip(
+                ToolTipBuilder.create().setHeader("Run Tab Selector").setMainText("The selected tab will be ran\nwhen the Run Button is pressed.").build()
+        );
+        runTabButton.setTooltip(
+                ToolTipBuilder.create().setHeader("Run Tab").setMainText("Toggles the view of the Run Tab Console.").build()
+        );
+        projectTabButton.setTooltip(
+                ToolTipBuilder.create().setHeader("Project Tab").setMainText("Toggles the view of the File Tree.").build()
+        );
+
+
     }
     public Ide(File file) {
         this();
@@ -379,12 +458,12 @@ public class Ide extends AnchorPane {
         });
     }
 
-    public void showPopupForText(String prompt, String defaultText, Gotten<String> gotten) {
+    public void showPopupForText(String prompt, String defaultText, Consumer<String> gotten) {
         this.prompt.setText(prompt);
         this.inputBox.setText(defaultText);
         this.inputBox.setOnKeyPressed(keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER) {
-                gotten.gotten(this.inputBox.getText());
+                gotten.accept(this.inputBox.getText());
                 hidePopup();
             }
         });
@@ -394,10 +473,10 @@ public class Ide extends AnchorPane {
         showPopup();
         this.inputBox.requestFocus();
     }
-    public void showConfirmation(String confirmText, Gotten<Boolean> gotten) {
+    public void showConfirmation(String confirmText, Consumer<Boolean> gotten) {
         this.confirmText.setText(confirmText);
         confirm.setOnAction(actionEvent -> {
-            gotten.gotten(true);
+            gotten.accept(true);
             hidePopup();
         });
         insidePopup.getChildren().clear();
@@ -425,23 +504,19 @@ public class Ide extends AnchorPane {
 
     public static ComponentTabPane.ComponentTab<IntegratedTextEditor> getNewEditorTab(File file) {
         String fileName = file != null ? file.getName() : "Untitled";
-        IntegratedTextEditor integratedTextEditor = new IntegratedTextEditor();
+        IntegratedTextEditor integratedTextEditor = new IntegratedTextEditor(LanguageSupport.getLanguageFromFile(file));
+
         if (file != null) {
-            StringBuilder builder = new StringBuilder();
+            String result = "";
             try {
-                Scanner scanner = new Scanner(file);
-                boolean first = true;
-                while (scanner.hasNextLine()) {
-                    if (!first) {
-                        builder.append("\n");
-                    }
-                    first = false;
-                    builder.append(scanner.nextLine());
-                }
-            } catch (FileNotFoundException e) {
+                FileInputStream fileInputStream = new FileInputStream(file);
+                byte[] fileContent = new byte[(int) file.length()];
+                fileInputStream.read(fileContent);
+                result = new String(fileContent);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-            integratedTextEditor.replaceText(builder.toString());
+            integratedTextEditor.replaceText(result);
         }
         ComponentTabPane.ComponentTab<IntegratedTextEditor> componentTab = new ComponentTabPane.ComponentTab<>(fileName, integratedTextEditor);
         componentTab.setFile(file);
@@ -449,4 +524,111 @@ public class Ide extends AnchorPane {
         return componentTab;
     }
 
+    public SVGPath getPlaySvg() {
+        return playSvg;
+    }
+
+    public Button getPlayButton() {
+        return playButton;
+    }
+
+    public ChoiceBox<ComponentTabPane.ComponentTab<IntegratedTextEditor>> getRunSelector() {
+        return runSelector;
+    }
+
+    public JFXCheckBox getAutoSelect() {
+        return autoSelect;
+    }
+
+    public Button getRunTabButton() {
+        return runTabButton;
+    }
+
+    public Button getProjectTabButton() {
+        return projectTabButton;
+    }
+
+    public VBox getSideBox() {
+        return sideBox;
+    }
+
+    public AnchorPane getLeftTab() {
+        return leftTab;
+    }
+
+    public AnchorPane getRightTab() {
+        return rightTab;
+    }
+
+    public Console getRunConsole() {
+        return runConsole;
+    }
+
+    public VBox getConsoleAnchor() {
+        return consoleAnchor;
+    }
+
+    public SplitPane getHorizontalSplitPane() {
+        return horizontalSplitPane;
+    }
+
+    public AnchorPane getBottomTab() {
+        return bottomTab;
+    }
+
+    public AnchorPane getTopTab() {
+        return topTab;
+    }
+
+    public MenuBar getMenuBar() {
+        return menuBar;
+    }
+
+    public Pane getEmptyPopupPane() {
+        return emptyPopupPane;
+    }
+
+    public VBox getInsidePopup() {
+        return insidePopup;
+    }
+
+    public BorderPane getPopupPane() {
+        return popupPane;
+    }
+
+    public Label getPrompt() {
+        return prompt;
+    }
+
+    public TextField getInputBox() {
+        return inputBox;
+    }
+
+    public HBox getTextInputBox() {
+        return textInputBox;
+    }
+
+    public Label getConfirmText() {
+        return confirmText;
+    }
+
+    public Button getConfirm() {
+        return confirm;
+    }
+
+    public HBox getConfirmBox() {
+        return confirmBox;
+    }
+
+    public AnchorPane getProjectViewAnchorPane() {
+        return projectViewAnchorPane;
+    }
+
+    public FileTreeView getProjectView() {
+        return projectView;
+    }
+
+    public VBox getNotificationPane() {
+        return notificationPane;
+    }
 }

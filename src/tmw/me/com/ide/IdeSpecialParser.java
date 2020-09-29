@@ -6,11 +6,22 @@ import tmw.me.com.language.syntaxPiece.SyntaxPieceFactory;
 import tmw.me.com.language.syntaxPiece.expressions.ExpressionFactory;
 import tmw.me.com.language.variable.Variable;
 
+import java.io.File;
 import java.util.ArrayList;
 
+/**
+ * This utility class is just used for two things, It's {@link PossiblePiecePackage} class and it's {@link IdeSpecialParser#possibleSyntaxPieces(String, ArrayList)} method.
+ */
 public final class IdeSpecialParser {
 
 
+    /**
+     * This heavily changed version of {@link tmw.me.com.language.interpretation.parse.Parser#parseSyntaxPiece(String, ArrayList, File, int)} is used to populate the AutoComplete used in {@link tmw.me.com.ide.codeEditor.languages.SfsLanguage}
+     * @param code The code from which the possible pieces are created.
+     * @param pickFrom The list of possible pieces.
+     * @param <T> The type of possible pieces used.
+     * @return A list of {@link PossiblePiecePackage}
+     */
     public static <T extends SyntaxPieceFactory> ArrayList<PossiblePiecePackage> possibleSyntaxPieces(String code, ArrayList<T> pickFrom) {
         code = code.replaceFirst("^\\s+", "");
 //        System.out.println("CODE: " + code);
@@ -77,8 +88,8 @@ public final class IdeSpecialParser {
                     String chosen = (expressionCode.toString().length() > 0 ? expressionCode.toString() : beforeCodeBuffer);
                     ExpressionFactory<?> expressionFactory = FXScript.PARSER.parseExpression(chosen, null, 0);
                     if (expressionFactory != null) {
-                        if (argTypes.size() > expressionTimes && SyntaxManager.SUPPORTED_TYPES.get(argTypes.get(expressionTimes)) != null) {
-                            if (!SyntaxManager.SUPPORTED_TYPES.get(argTypes.get(expressionTimes).replaceAll("%", ""))
+                        if (argTypes.size() > expressionTimes && SyntaxManager.SYNTAX_MANAGER.SUPPORTED_TYPES.get(argTypes.get(expressionTimes)) != null) {
+                            if (!SyntaxManager.SYNTAX_MANAGER.SUPPORTED_TYPES.get(argTypes.get(expressionTimes).replaceAll("%", ""))
                                     .isAssignableFrom(expressionFactory.getGenericClass()) &&
                                     !Variable.class.isAssignableFrom(expressionFactory.getGenericClass())
                                     && expressionFactory.getGenericClass() != Object.class) {
@@ -132,12 +143,31 @@ public final class IdeSpecialParser {
                 syntaxPieceFactory.getUsage().substring(filledIn.length()));
     }
 
+    /**
+     * This class contains information that is used in {@link tmw.me.com.ide.codeEditor.IntegratedTextEditor}'s autocomplete system.
+     */
     public static class PossiblePiecePackage {
 
+        /**
+         * The code that the user has yet to fill in.
+         */
         private final String filledIn;
+        /**
+         * The code that the user has filled in.
+         */
         private final String notFilledIn;
+        /**
+         * The code that will be put in by the auto complete; by default is equal to {@link PossiblePiecePackage#notFilledIn}
+         */
         private final String putIn;
+        /**
+         * Determines whether or not the whole line is replaced.
+         */
+        private boolean replaceLine = true;
 
+        /**
+         * Decides whether or not the code should be put in by the auto complete if it has been completely filled in.
+         */
         private boolean putInIfNotFilledInIsEmpty = false;
 
         public PossiblePiecePackage(String filledIn, String notFilledIn) {
@@ -157,21 +187,52 @@ public final class IdeSpecialParser {
             this.putInIfNotFilledInIsEmpty = putInIfFilledIn;
         }
 
+        /**
+         *
+         * @return The value of {@link PossiblePiecePackage#filledIn}
+         */
         public String getFilledIn() {
             return filledIn;
         }
+        /**
+         *
+         * @return The value of {@link PossiblePiecePackage#notFilledIn}
+         */
         public String getNotFilledIn() {
             return notFilledIn;
         }
+        /**
+         *
+         * @return The value of {@link PossiblePiecePackage#putIn}
+         */
         public String getPutIn() {
             return (notFilledIn.length() > 0 || putInIfNotFilledInIsEmpty) ? putIn : "";
         }
-
+        /**
+         *
+         * @return The value of {@link PossiblePiecePackage#putInIfNotFilledInIsEmpty}
+         */
         public boolean putInIfFilledIn() {
             return putInIfNotFilledInIsEmpty;
         }
+        /**
+         * Sets the value of {@link PossiblePiecePackage#putInIfNotFilledInIsEmpty}
+         */
         public void setPutInIfFilledIn(boolean putInIfFilledIn) {
             putInIfNotFilledInIsEmpty = putInIfFilledIn;
+        }
+        /**
+         * Sets the value of {@link PossiblePiecePackage#replaceLine}
+         */
+        public void setReplaceLine(boolean replaceLine) {
+            this.replaceLine = replaceLine;
+        }
+        /**
+         *
+         * @return The value of {@link PossiblePiecePackage#replaceLine}
+         */
+        public boolean isReplaceLine() {
+            return replaceLine;
         }
     }
 

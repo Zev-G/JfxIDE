@@ -45,16 +45,6 @@ public abstract class Event extends SyntaxPiece<Event> {
 
 
 
-    @Override
-    public Event duplicate() {
-        Event event = new Event(){};
-        event.setRunChunk(runChunk);
-        event.setParent(parent);
-        event.setTopLevel(isTopLevel);
-        return event;
-    }
 
-    public Object clone() {
-        return duplicate();
-    }
+
 }

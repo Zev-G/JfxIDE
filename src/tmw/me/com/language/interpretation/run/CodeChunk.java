@@ -1,10 +1,13 @@
 package tmw.me.com.language.interpretation.run;
 
+import tmw.me.com.language.syntaxPiece.events.Event;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.function.Consumer;
 
-public class CodeChunk extends CodeState {
+public class CodeChunk extends CodeChunkBase {
 
     public static final ArrayList<CodeChunk> ALL_CHUNKS = new ArrayList<>();
 
@@ -13,6 +16,7 @@ public class CodeChunk extends CodeState {
     private final ArrayList<CodePiece> pieces = new ArrayList<>();
     private boolean finished = false;
 
+    private Consumer<CodePiece> ranPiece;
 
     public CodeChunk(CodePiece... pieces) {
         this(Arrays.asList(pieces));
@@ -24,13 +28,18 @@ public class CodeChunk extends CodeState {
 
     public void run() {
         finished = false;
+//        System.out.println("Running run chunk: " + this);
+//        System.out.println("Variables Before: " + variables);
         for (CodePiece piece : pieces) {
             if (!finished) {
-                System.out.println("-=-Running Piece: (" + piece.getCode() + ") -=-");
+//                System.out.println("-=-Running Piece: (" + piece.getCode() + ") -=-");
+                if (ranPiece != null) ranPiece.accept(piece);
                 piece.setCodeChunk(this);
                 piece.run();
             }
         }
+//        System.out.println("Variables After (" + code + "): " + variables);
+        if (ranPiece != null) ranPiece.accept(null);
     }
 
     public void runPiece(CodePiece piece) {
@@ -63,21 +72,54 @@ public class CodeChunk extends CodeState {
         return pieces;
     }
 
-    @Override
-    public CodeChunk duplicateWithoutVariables() {
-        return duplicateWithoutVariables(parent);
+    public void setRanPiece(Consumer<CodePiece> ranPiece) {
+        this.ranPiece = ranPiece;
+        children.forEach(codeState -> {
+            if (codeState instanceof CodeChunk) ((CodeChunk) codeState).setRanPiece(ranPiece);
+        });
+    }
+    public Consumer<CodePiece> getRanPiece() {
+        return ranPiece;
     }
 
     @Override
-    public CodeChunk duplicateWithoutVariables(CodeState parent) {
+    public CodeChunk duplicateWithoutVariables() {
+        return duplicateWithoutVariables(parent, holder);
+    }
+    @Override
+    public CodeChunk duplicateWithoutVariables(CodeChunkBase parent, Event holder) {
         CodeChunk newState = new CodeChunk(pieces);
         newState.setGlobal(global);
         newState.setCode(code);
         newState.setParent(parent);
+        newState.setHolder(holder);
+        if (holder != null) {
+            holder.setRunChunk(newState);
+        }
         newState.getLocalExpressions().addAll(getLocalExpressions());
-        ((ArrayList<CodeState>) this.children.clone()).forEach(codeState -> newState.getChildren().add(codeState.duplicateWithoutVariables(newState)));
+        ((ArrayList<CodeChunkBase>) this.children.clone()).forEach(codeState -> {
+            if (codeState != null) {
+                Event dupedChildHolder = codeState.getHolder().duplicate();
+                CodePiece piece = codeState.getHolder().getParent();
+                codeState.duplicateWithoutVariables(newState, dupedChildHolder);
+                CodePiece replacementPiece = new CodePiece(piece.getCode(), piece.getLine());
+                replacementPiece.setEvent(dupedChildHolder);
+                pieces.set(pieces.indexOf(piece), replacementPiece);
+            }
+        });
         newState.setNewVariable(newVariable);
+        newState.setRanPiece(ranPiece);
         return newState;
     }
 
+
+
+    @Override
+    public String toString() {
+        return "CodeChunk" + "@" + hashCode() +"{" +
+                "holder=" + holder +
+                ", code='" + code + '\'' +
+                ", children=" + children +
+                '}';
+    }
 }

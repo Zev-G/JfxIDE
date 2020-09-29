@@ -1,6 +1,8 @@
 package tmw.me.com.ide.tools;
 
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.Event;
@@ -15,7 +17,8 @@ import javafx.scene.control.*;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -24,17 +27,19 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.stage.Window;
-import org.fxmisc.flowless.VirtualizedScrollPane;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.tooltip.ToolTipBuilder;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+/**
+ * Mostly taken from my TransitionMaker project this is an enhanced TabPane aimed at making a more modular interface.
+ */
 public class ComponentTabPane extends TabPane {
 
     private static final ArrayList<ComponentTabPane> ALL_TAB_PANES = new ArrayList<>();
@@ -50,10 +55,6 @@ public class ComponentTabPane extends TabPane {
         super();
         init();
     }
-//    public ComponentTabPane(Tab... tabs) {
-//        super(tabs);
-//        init();
-//    }
 
     private void init() {
         this.getStyleClass().add("component-tab-pane");
@@ -82,31 +83,34 @@ public class ComponentTabPane extends TabPane {
     public static class ComponentTab<T extends Node> extends Tab {
 
         private final Label label = new Label();
-        private final ComponentTabPane individualTabPane = new ComponentTabPane();
-        private final Stage stage = new Stage(StageStyle.UNDECORATED);
+        private Ide ide;
+        private final Stage stage = new Stage();
 
         private TabPane ogTabPane;
 
-        private double individualTabPaneStartDragX = 0;
-        private double individualTabPaneStartDragY = 0;
         private final Popup pictureStage = new Popup();
         private final ImageView imageView = new ImageView();
         private final AnchorPane pictureAnchorPane = new AnchorPane(imageView);
         private ComponentTabPane lastTabPane;
         private final T value;
 
-        private File file;
+        private final SimpleObjectProperty<File> fileProperty = new SimpleObjectProperty<>();
         private Node mainNode;
 
         public ComponentTab(String s, T node) {
             super("");
             if (node instanceof IntegratedTextEditor) {
-                this.setContent(new VirtualizedScrollPane<>((IntegratedTextEditor) node));
+                this.setContent(((IntegratedTextEditor) node).getTextAreaHolder());
             }
             value = node;
             label.setText(s);
             label.setContextMenu(makeContextMenu());
+            ToolTipBuilder toolTipBuilder = new ToolTipBuilder();
+            toolTipBuilder.headerProperty().bind(label.textProperty());
+            fileProperty.addListener((observableValue, file, t1) -> { if (t1 != null) toolTipBuilder.setMainText(t1.getAbsolutePath()); else toolTipBuilder.setMainText(""); });
+            label.setTooltip(toolTipBuilder.build());
             init();
+
         }
 
         private void init() {
@@ -116,7 +120,7 @@ public class ComponentTabPane extends TabPane {
             makeDraggable();
             this.setOnClosed(event -> {
                 if (stage.isShowing()) stage.hide();
-                ALL_TAB_PANES.remove(individualTabPane);
+                ALL_TAB_PANES.remove(getIde().getTabPane());
             });
             this.tabPaneProperty().addListener(new ChangeListener<>() {
                 @Override
@@ -141,10 +145,10 @@ public class ComponentTabPane extends TabPane {
             MenuItem openInNewWindow = new MenuItem("Open in New Window");
 
             save.setOnAction(actionEvent -> {
-                if (file != null && getValue() != null && getValue() instanceof IntegratedTextEditor) {
+                if (fileProperty.get() != null && getValue() != null && getValue() instanceof IntegratedTextEditor) {
                     String text = ((IntegratedTextEditor) getValue()).getText();
                     try {
-                        FileWriter fileWriter = new FileWriter(file);
+                        FileWriter fileWriter = new FileWriter(fileProperty.get());
                         fileWriter.write(text);
                         fileWriter.close();
                     } catch (IOException e) {
@@ -165,7 +169,7 @@ public class ComponentTabPane extends TabPane {
                     stage.show();
                     stage.setHeight(500);
                     stage.setWidth(800);
-                    if (file != null) {
+                    if (fileProperty.get() != null) {
                         ide.loadFile(getFile());
                     } else {
                         String text = ((IntegratedTextEditor) getValue()).getText();
@@ -182,12 +186,7 @@ public class ComponentTabPane extends TabPane {
 
         public void makeDraggable() {
             // Initialisation
-            AnchorPane padding = new AnchorPane(individualTabPane);
-            double pad = 5;
-            padding.setBackground(new Background(new BackgroundFill(BG_COLOR.darker(), CornerRadii.EMPTY, Insets.EMPTY)));
-            AnchorPane.setLeftAnchor(individualTabPane, pad); AnchorPane.setRightAnchor(individualTabPane, pad);
-            AnchorPane.setTopAnchor(individualTabPane, pad); AnchorPane.setBottomAnchor(individualTabPane, pad);
-            Scene s = new Scene(padding);
+            Scene s = new Scene(getIde());
             s.setFill(Color.TRANSPARENT);
             stage.setScene(s);
             pictureStage.getContent().add(pictureAnchorPane);
@@ -210,29 +209,9 @@ public class ComponentTabPane extends TabPane {
             closeButton.setOnMouseEntered(mouseEvent -> { closeButton.setBackground(redBg); closeShape.setFill(Color.WHITE); });
             closeButton.setOnMouseExited(mouseEvent -> { closeButton.setBackground(blankBg); closeShape.setFill(Color.GRAY); });
             closeButton.setOnAction(actionEvent -> this.stage.hide());
-            padding.getChildren().add(closeButton);
             AnchorPane.setRightAnchor(closeButton, 3D); AnchorPane.setTopAnchor(closeButton, 3D);
 
             // Event Listeners
-            FXResizeHelper.addResizeListener(this.stage);
-            individualTabPane.setOnMousePressed(mouseEvent -> {
-                if (mouseEvent.getPickResult().getIntersectedNode().getStyleClass().contains("tab-header-background")) {
-                    individualTabPaneStartDragX = mouseEvent.getScreenX() - stage.getX();
-                    individualTabPaneStartDragY = mouseEvent.getScreenY() - stage.getY();
-                    if (mouseEvent.getClickCount() > 1) {
-                        stage.setMaximized(!stage.isMaximized());
-                    }
-                } else {
-                    individualTabPaneStartDragX = Integer.MAX_VALUE;
-                    individualTabPaneStartDragY = Integer.MAX_VALUE;
-                }
-            });
-            individualTabPane.setOnMouseDragged(mouseEvent -> {
-                if (individualTabPaneStartDragY != Integer.MAX_VALUE && !stage.isMaximized()) {
-                    stage.setX(mouseEvent.getScreenX() - individualTabPaneStartDragX);
-                    stage.setY(mouseEvent.getScreenY() - individualTabPaneStartDragY);
-                }
-            });
             this.label.setOnMousePressed(mouseEvent -> {
             });
             this.label.setOnMouseDragged(mouseEvent -> {
@@ -336,7 +315,7 @@ public class ComponentTabPane extends TabPane {
             });
             stage.setHeight(this.getContent().getBoundsInLocal().getHeight());
             stage.setWidth(this.getContent().getBoundsInLocal().getWidth());
-            individualTabPane.getTabs().add(this);
+            getIde().getTabPane().getTabs().add(this);
         }
 
         public Label getLabel() {
@@ -361,10 +340,20 @@ public class ComponentTabPane extends TabPane {
         }
 
         public File getFile() {
-            return file;
+            return fileProperty.get();
         }
         public void setFile(File file) {
-            this.file = file;
+            fileProperty.set(file);
+        }
+        public ObjectProperty<File> fileProperty() {
+            return fileProperty;
+        }
+
+        public Ide getIde() {
+            if (ide == null) {
+                ide = new Ide();
+            }
+            return ide;
         }
     }
 

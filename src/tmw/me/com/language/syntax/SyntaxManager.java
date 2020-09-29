@@ -1,10 +1,8 @@
 package tmw.me.com.language.syntax;
 
-import tmw.me.com.betterfx.Console;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.interpretation.run.CodePiece;
-import tmw.me.com.language.interpretation.run.CodeState;
 import tmw.me.com.language.syntax.addons.AddonBase;
 import tmw.me.com.language.syntax.addons.JavaFXAddon;
 import tmw.me.com.language.syntaxPiece.effects.Effect;
@@ -29,28 +27,35 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class SyntaxManager {
 
-    public static Console PRINT_CONSOLE = null;
+    public SyntaxManager() {
+        init();
+    }
 
-    public static final HashMap<String, Class<?>> SUPPORTED_TYPES = new HashMap<>();
+    public static final SyntaxManager SYNTAX_MANAGER = new SyntaxManager();
 
-    public static final EnumMap<ExpressionPriority, HashMap<Class<?>, ArrayList<ExpressionFactory<?>>>> EXPRESSIONS = new EnumMap<>(ExpressionPriority.class);
-    public static final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> LOWEST = new HashMap<>();
-    public static final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> LOW = new HashMap<>();
-    public static final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> MEDIUM = new HashMap<>();
-    public static final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> HIGH = new HashMap<>();
-    public static final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> HIGHEST = new HashMap<>();
+    public Consumer<String> printHandler = System.out::println;
 
-    public static final ArrayList<EffectFactory> EFFECT_FACTORIES = new ArrayList<>();
-    public static final ArrayList<WhenEventFactory> EVENT_FACTORIES = new ArrayList<>();
+    public final HashMap<String, Class<?>> SUPPORTED_TYPES = new HashMap<>();
 
-    public static final ArrayList<Class<? extends AddonBase>> ADDON_CLASSES = new ArrayList<>();
-    public static final ArrayList<AddonBase> ADDONS = new ArrayList<>();
+    public final EnumMap<ExpressionPriority, HashMap<Class<?>, ArrayList<ExpressionFactory<?>>>> EXPRESSIONS = new EnumMap<>(ExpressionPriority.class);
+    public final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> LOWEST = new HashMap<>();
+    public final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> LOW = new HashMap<>();
+    public final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> MEDIUM = new HashMap<>();
+    public final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> HIGH = new HashMap<>();
+    public final HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> HIGHEST = new HashMap<>();
 
-    public static void init() {
+    public final ArrayList<EffectFactory> EFFECT_FACTORIES = new ArrayList<>();
+    public final ArrayList<WhenEventFactory> EVENT_FACTORIES = new ArrayList<>();
+
+    public final ArrayList<Class<? extends AddonBase>> ADDON_CLASSES = new ArrayList<>();
+    public final ArrayList<AddonBase> ADDONS = new ArrayList<>();
+
+    public void init() {
 
         // Initiate addons
         ADDON_CLASSES.add(JavaFXAddon.class);
@@ -106,7 +111,7 @@ public class SyntaxManager {
                 EFFECT_FACTORIES.add(new EffectFactory("run code in %file%", (state, values, args) -> {
                     File file = (File) values.get(0);
                     try {
-                        SyntaxManager.getCodeChunkFromCode(file).run();
+                        getCodeChunkFromCode(file).run();
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -115,7 +120,7 @@ public class SyntaxManager {
                     File file = (File) values.get(0);
                     System.out.println("Running file: " + file);
                     try {
-                        SyntaxManager.getCodeChunkFromCode(file).run();
+                        getCodeChunkFromCode(file).run();
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -166,7 +171,7 @@ public class SyntaxManager {
             }));
             EFFECT_FACTORIES.add(new EffectFactory("return %object%", (state, values, args) -> {
                 state.setReturnedObject(values.get(0));
-                ((CodeChunk) state).setFinished(true);
+                state.setFinished(true);
             }));
             EFFECT_FACTORIES.add(new EffectFactory("set %variable% to %object%", (state, values, args) -> state.setVariableValue(
                     ((Variable<?>) values.get(0)).getName(),
@@ -178,7 +183,7 @@ public class SyntaxManager {
             EFFECT_FACTORIES.add(new EffectFactory("remove %object% from %list%", (state, values, args) -> ((List) values.get(1)).removeObject(values.get(0))));
             EFFECT_FACTORIES.add(new EffectFactory("add %object% to %list%", (state, values, args) -> ((List) values.get(1)).add(values.get(0), values.get(0).toString())));
 
-            EFFECT_FACTORIES.add(new EffectFactory("print %object%", (state, values, args) -> System.out.println(values.get(0))));
+            EFFECT_FACTORIES.add(new EffectFactory("print %object%", (state, values, args) -> printHandler.accept("" + values.get(0))));
         }
         events: {
 
@@ -246,6 +251,8 @@ public class SyntaxManager {
                         loopTimes++;
                     }
                 }));
+                EVENT_FACTORIES.add(new WhenEventFactory("async", (state, values, event, args) -> new Thread(event::run).start()));
+                EVENT_FACTORIES.add(new WhenEventFactory("on start", (state, values, event, args) -> event.run()));
             }
         }
         expressions: {
@@ -296,7 +303,7 @@ public class SyntaxManager {
                     }, String.class));
                 }
                 number: {
-                    HIGHEST.get(Number.class).add(new ExpressionFactory<>("IGNORE", "([0-9]+)(|\\.([0-9]+))", (state, values, args) -> {
+                    HIGHEST.get(Number.class).add(new ExpressionFactory<>("IGNORE", "[0-9]+(|\\.([0-9]+))", (state, values, args) -> {
                         StringBuilder builder = new StringBuilder();
                         appendAllArgs(builder, args);
                         return Double.parseDouble(builder.toString().replaceAll("@", ""));
@@ -374,7 +381,7 @@ public class SyntaxManager {
                         for (String argument : arguments) {
                             if (argument.length() > 0) {
                                 ExpressionFactory<?> expressionFactory = FXScript.PARSER.parseExpression(argument);
-                                expressionFactory.setState((CodeChunk) state);
+                                expressionFactory.setState(state);
                                 expressionFactory.forChildren(expressionFactory1 -> expressionFactory1.setState(expressionFactory.getState()));
                                 objects.add(expressionFactory.activate());
                             }
@@ -430,7 +437,7 @@ public class SyntaxManager {
     /**
      * This is in it's own method because it is easily the most complex effect/expression. And being used twice it doesn't make sense for it to be in it's respective expression and effect.
      */
-    private static Object reflectMethod(CodeState state, String connectedArgs, Object obj) {
+    private Object reflectMethod(CodeChunk state, String connectedArgs, Object obj) {
         String allMethodsInText = connectedArgs.replaceFirst("(.*?)\\.", "");
         ArrayList<String> methods = new ArrayList<>();
         StringBuilder currentPiece = new StringBuilder();
@@ -455,7 +462,7 @@ public class SyntaxManager {
         return currentObj;
     }
 
-    private static Object getMethodFromString(String methodText, Class<?> objectClass, CodeState state, Object invokeFor) {
+    private Object getMethodFromString(String methodText, Class<?> objectClass, CodeChunk state, Object invokeFor) {
         String methodName = methodText.split("\\(")[0];
         String params = methodText.replaceFirst("(.*?)\\(", "");
         params = params.substring(0, params.length() - 1);
@@ -482,7 +489,7 @@ public class SyntaxManager {
             System.out.println("On argument: (" + argument + ")");
             if (argument.length() > 0) {
                 ExpressionFactory<?> expressionFactory = FXScript.PARSER.parseExpression(argument);
-                expressionFactory.setState((CodeChunk) state);
+                expressionFactory.setState(state);
                 expressionFactory.forChildren(expressionFactory1 -> expressionFactory1.setState(expressionFactory.getState()));
                 Object objFromExpression = expressionFactory.activate();
                 if (objFromExpression.getClass() == Double.class || objFromExpression.getClass() == Integer.class) {
@@ -519,7 +526,7 @@ public class SyntaxManager {
         return null;
     }
 
-    public static StringBuilder appendAllArgs(StringBuilder builder, String... args) {
+    public StringBuilder appendAllArgs(StringBuilder builder, String... args) {
         int i = 0;
         for (String space : args) {
             i++;
@@ -536,16 +543,16 @@ public class SyntaxManager {
      * @param code The code from which the code piece will be generated.
      * @return A CodePiece interpreted and parsed from the inputted code. Note that this piece is not yet attached to a code chunk.
      */
-    public static CodePiece genCodePieceFromCode(String code, File file, int lineNum) {
+    public CodePiece genCodePieceFromCode(String code, File file, int lineNum) {
         Effect effect = FXScript.PARSER.parseLine(code, file, lineNum);
-        CodePiece piece = new CodePiece(code);
+        CodePiece piece = new CodePiece(code, lineNum);
         if (effect != null) {
             piece.setEffect(effect);
         }
         return piece;
     }
 
-    public static CodeChunk getCodeChunkFromCode(File file) throws FileNotFoundException {
+    public CodeChunk getCodeChunkFromCode(File file) throws FileNotFoundException {
         StringBuilder builder = new StringBuilder();
         Scanner scanner = new Scanner(file);
         while (scanner.hasNextLine()) {
@@ -553,15 +560,11 @@ public class SyntaxManager {
         }
         return getCodeChunkFromCode(builder.toString(), file);
     }
-    public static CodeChunk getCodeChunkFromCode(String code, File file) {
+    public CodeChunk getCodeChunkFromCode(String code, File file) {
         return FXScript.PARSER.parseChunk(code, file);
     }
 
-    public static void setPrintConsole(Console printConsole) {
-        PRINT_CONSOLE = printConsole;
-    }
-
-    public static boolean checkPrefix(String check, String... prefixes) {
+    public boolean checkPrefix(String check, String... prefixes) {
         for (String prefix : prefixes) {
             if (check.startsWith(prefix)) {
                 return true;
@@ -570,17 +573,17 @@ public class SyntaxManager {
         return false;
     }
 
-    public static ArrayList<ExpressionFactory<?>> getAllExpressionFactories() {
+    public ArrayList<ExpressionFactory<?>> getAllExpressionFactories() {
         ArrayList<ExpressionFactory<?>> arrayList = new ArrayList<>();
         EXPRESSIONS.values().forEach(classArrayListHashMap -> classArrayListHashMap.values().forEach(arrayList::addAll));
         return arrayList;
     }
-    public static ArrayList<ExpressionFactory<?>> getAllExpressionFactories(Class<?> ofClass) {
+    public ArrayList<ExpressionFactory<?>> getAllExpressionFactories(Class<?> ofClass) {
         ArrayList<ExpressionFactory<?>> arrayList = new ArrayList<>();
         EXPRESSIONS.values().forEach(classArrayListHashMap -> arrayList.addAll(classArrayListHashMap.get(ofClass)));
         return arrayList;
     }
-    public static ArrayList<ExpressionFactory<?>> getAllExpressionFactoriesFromClass(Class<?> ofClass) {
+    public ArrayList<ExpressionFactory<?>> getAllExpressionFactoriesFromClass(Class<?> ofClass) {
         ArrayList<ExpressionFactory<?>> arrayList = new ArrayList<>();
         for (HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> map : EXPRESSIONS.values()) {
             for (Map.Entry<Class<?>, ArrayList<ExpressionFactory<?>>> entry : map.entrySet()) {

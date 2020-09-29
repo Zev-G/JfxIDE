@@ -11,5 +11,6 @@
     <orderEntry type="library" name="richtextfx-fat-0.10.5" level="project" />
     <orderEntry type="library" name="jfoenix-9.0.10" level="project" />
     <orderEntry type="library" name="jar_files" level="project" />
+    <orderEntry type="library" name="lk.vivoxalabs.customstage:CustomStage:1.3.2" level="project" />
   </component>
 </module>

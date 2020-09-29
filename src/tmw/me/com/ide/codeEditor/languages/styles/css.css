@@ -1,0 +1,42 @@
+.string {
+    -fx-fill: #88d258 !important;
+}
+
+.class {
+    -fx-fill: #eea807 !important;
+    -fx-font-style: italic !important;
+}
+
+.keyword {
+    -fx-fill: #e9592f !important;
+}
+
+.comment {
+    -fx-fill: #5f636b !important;
+}
+
+.number {
+    -fx-fill: #f3af3a !important;
+}
+
+.semicolon {
+    -fx-fill: #30d8e7 !important;
+}
+
+.brace {
+    -fx-fill: #30d8e7 !important;
+}
+
+.color-code {
+    -fx-fill: #30d8e7 !important;
+}
+
+.paren {
+    -fx-fill: #528bff !important;
+}
+
+.pseudo-class {
+    -fx-fill: #bb76f1 !important;
+    -fx-font-style: italic;
+}
+

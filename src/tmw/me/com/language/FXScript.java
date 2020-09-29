@@ -7,22 +7,26 @@ import tmw.me.com.language.syntaxPiece.events.Function;
 
 public final class FXScript {
 
-    public static final Parser PARSER = new Parser();
+    public static final Parser PARSER = new Parser(SyntaxManager.SYNTAX_MANAGER);
+
 
     public static void restart() {
+        restart(SyntaxManager.SYNTAX_MANAGER);
+    }
+    public static void restart(SyntaxManager syntaxManager) {
         Function.ALL_FUNCTIONS.clear();
-        SyntaxManager.EFFECT_FACTORIES.clear();
-        SyntaxManager.SUPPORTED_TYPES.clear();
-        SyntaxManager.EVENT_FACTORIES.clear();
-        SyntaxManager.EXPRESSIONS.clear();
-        SyntaxManager.HIGHEST.clear();
-        SyntaxManager.HIGH.clear();
-        SyntaxManager.MEDIUM.clear();
-        SyntaxManager.LOW.clear();
-        SyntaxManager.LOWEST.clear();
-        SyntaxManager.ADDONS.clear();
-        SyntaxManager.ADDON_CLASSES.clear();
-        SyntaxManager.init();
+        syntaxManager.EFFECT_FACTORIES.clear();
+        syntaxManager.SUPPORTED_TYPES.clear();
+        syntaxManager.EVENT_FACTORIES.clear();
+        syntaxManager.EXPRESSIONS.clear();
+        syntaxManager.HIGHEST.clear();
+        syntaxManager.HIGH.clear();
+        syntaxManager.MEDIUM.clear();
+        syntaxManager.LOW.clear();
+        syntaxManager.LOWEST.clear();
+        syntaxManager.ADDONS.clear();
+        syntaxManager.ADDON_CLASSES.clear();
+        syntaxManager.init();
 
         stop();
         CodeChunk.ALL_CHUNKS.clear();

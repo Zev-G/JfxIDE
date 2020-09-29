@@ -5,10 +5,10 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import tmw.me.com.betterfx.CommandConsole;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.panel.RunPanel;
 import tmw.me.com.language.FXScript;
-import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.interpretation.run.CodeChunk;
+import tmw.me.com.language.syntax.SyntaxManager;
+import tmw.me.com.panel.RunPanel;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,26 +21,29 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-
-
-
-        SyntaxManager.init();
-
-
-        CommandConsole console = new CommandConsole();
-        SyntaxManager.setPrintConsole(console);
-//        primaryStage.setScene(new Scene(console));
-        primaryStage.setScene(new Scene(new Ide(new File(Main.class.getResource("ide").getFile()))));
+        // Script Lab
+        primaryStage.setScene(new Scene(new Ide(new File("C:\\Users\\Windows\\Desktop\\McMods\\SimpleCodingLanguage"))));
         primaryStage.show();
         primaryStage.setWidth(800);
         primaryStage.setHeight(600);
-        AtomicReference<File> codeFile = new AtomicReference<>(new File(Main.class.getResource("test_code.sfs").getFile()));
+
+
+    }
+
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    public static void consoleExample() {
+        CommandConsole console = new CommandConsole();
+        AtomicReference<File> codeFile = new AtomicReference<>(new File("C:\\Users\\Windows\\Desktop\\McMods\\SimpleCodingLanguage"));
         console.setOnUserInput((inputtedString, eventConsole) -> {
             if (!inputtedString.startsWith("/")) {
                 String[] lines = inputtedString.split("\\\\n");
                 for (String line : lines) {
                     console.addTexts(console.genText("\n&bRunning code: &m" + line));
-                    executeChunk.runPiece(SyntaxManager.genCodePieceFromCode(line, codeFile.get(), 0));
+                    executeChunk.runPiece(SyntaxManager.SYNTAX_MANAGER.genCodePieceFromCode(line, codeFile.get(), 0));
                 }
             } else {
                 String command = inputtedString.split("/")[1];
@@ -72,7 +75,7 @@ public class Main extends Application {
                             }
                         }
                         console.addTexts(console.genText("\n&aCompiling..."));
-                        executeChunk = SyntaxManager.getCodeChunkFromCode(builder.toString(), codeFile.get());
+                        executeChunk = SyntaxManager.SYNTAX_MANAGER.getCodeChunkFromCode(builder.toString(), codeFile.get());
                         Stage runStage = new Stage();
                         runStage.setScene(new Scene(new RunPanel(executeChunk)));
                         runStage.show();
@@ -83,11 +86,6 @@ public class Main extends Application {
                 }
             }
         });
-
     }
 
-
-    public static void main(String[] args) {
-        launch(args);
-    }
 }

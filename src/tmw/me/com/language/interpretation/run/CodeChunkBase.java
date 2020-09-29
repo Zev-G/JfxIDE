@@ -8,21 +8,22 @@ import tmw.me.com.language.variable.Variable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class CodeState {
+public abstract class CodeChunkBase {
+
+    protected Event holder;
 
     protected String code = "";
 
     protected final HashMap<String, Variable<?>> variables = new HashMap<>();
     private final ArrayList<ExpressionFactory<?>> localExpressions = new ArrayList<>();
-    protected final ArrayList<CodeState> children = new ArrayList<>();
-    protected CodeState parent;
+    protected final ArrayList<CodeChunkBase> children = new ArrayList<>();
+    protected CodeChunkBase parent;
     protected boolean global = false;
 
     protected Event lastEvent;
 
 
     protected AddedListener<Variable<?>> newVariable;
-
 
     private Object returnedObject;
 
@@ -41,7 +42,7 @@ public class CodeState {
     }
     public void addVariable(Variable<?> variable) {
         variables.put(variable.getName(), variable);
-        for (CodeState state : children) {
+        for (CodeChunkBase state : children) {
             state.addVariable(variable);
         }
         if (newVariable != null) {
@@ -50,26 +51,26 @@ public class CodeState {
     }
 
     public void copyVariableValuesToChildren() {
-        for (CodeState state : children) {
+        for (CodeChunkBase state : children) {
             copyVariableValuesToChild(state);
         }
     }
-    public void copyVariableValuesToChild(CodeState state) {
+    public void copyVariableValuesToChild(CodeChunkBase state) {
         for (Variable<?> variable : variables.values()) {
             state.addVariable(new Variable<>(variable.getValue(), variable.getName(), variable.isGlobal()));
         }
     }
 
-    public void setParent(CodeState parent) {
+    public void setParent(CodeChunkBase parent) {
         this.parent = parent;
         parent.getChildren().add(this);
         variables.putAll(parent.getVariables());
     }
-    public CodeState getParent() {
+    public CodeChunkBase getParent() {
         return parent;
     }
 
-    public ArrayList<CodeState> getChildren() {
+    public ArrayList<CodeChunkBase> getChildren() {
         return children;
     }
 
@@ -119,21 +120,14 @@ public class CodeState {
         return lastEvent;
     }
 
-    public CodeState duplicateWithoutVariables() {
-        return duplicateWithoutVariables(parent);
-    }
-    public CodeState duplicateWithoutVariables(CodeState parent) {
-        CodeState newState = new CodeState();
-        newState.setCode(code);
-        newState.setParent(parent);
-        newState.getLocalExpressions().addAll(localExpressions);
-        this.children.forEach(codeState -> newState.getChildren().add(codeState.duplicateWithoutVariables(newState)));
-        return newState;
-    }
+    public abstract CodeChunkBase duplicateWithoutVariables();
+    public abstract CodeChunkBase duplicateWithoutVariables(CodeChunkBase parent, Event holder);
 
-    @Override
-    public String toString() {
-        return code.equals("") ? super.toString() : code + hashCode();
+    public void setHolder(Event holder) {
+        this.holder = holder;
+    }
+    public Event getHolder() {
+        return holder;
     }
 
     public void setCode(String code) {

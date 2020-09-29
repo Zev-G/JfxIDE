@@ -1,13 +1,10 @@
 package tmw.me.com.language.syntaxPiece.events.statements;
 
+import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntaxPiece.events.Event;
 
 public class ElseStatement extends Event {
-
-    public ElseStatement() {
-
-    }
 
     @Override
     public void run() {
@@ -21,7 +18,16 @@ public class ElseStatement extends Event {
     }
 
     @Override
-    public Event duplicate() {
-        return new ElseStatement();
+    public ElseStatement duplicate() {
+        ElseStatement elseStatement = new ElseStatement();
+        elseStatement.setCode(code);
+        elseStatement.setParent(parent);
+        elseStatement.setRunChunk(getRunChunk());
+        return elseStatement;
+    }
+
+    @Override
+    public void parsed(Parser parser) {
+
     }
 }

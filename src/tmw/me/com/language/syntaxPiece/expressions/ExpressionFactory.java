@@ -1,5 +1,6 @@
 package tmw.me.com.language.syntaxPiece.expressions;
 
+import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.syntaxPiece.SyntaxPiece;
@@ -10,14 +11,17 @@ import tmw.me.com.language.variable.Variable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFactory {
 
     private final String usage;
     private final String regex;
     private ExpressionCreationHandler<T> expressionCreationHandler;
+    private Consumer<Parser> finishedParsing = null;
 
-    private ArrayList<ExpressionFactory<?>> expressionArgs = new ArrayList<>();
+    private final ArrayList<ExpressionFactory<?>> expressionArgs = new ArrayList<>();
+    private final ArrayList<Class<?>> classes = new ArrayList<>();
 
     public ExpressionFactory(String usage, String regex, ExpressionCreationHandler<T> expressionCreationHandler, Class<T> thisClass) {
         super(thisClass);
@@ -47,11 +51,19 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
     }
 
     @Override
+    public void setFinishedParsing(Consumer<Parser> finishedParsing) {
+        this.finishedParsing = finishedParsing;
+    }
+
+    public Consumer<Parser> getFinishedParsing() {
+        return finishedParsing;
+    }
+
+    @Override
     public Object activate() {
         ArrayList<Object> args = new ArrayList<>();
         int loops = 0;
-        if (CodeChunk.printing) System.out.println("Activating expression factory: " + this);
-        for (Class<?> argClass : getArgs()) {
+        for (Class<?> argClass : classes) {
             if (argClass != null) {
                 if (CodeChunk.printing) System.out.println("On loop class: " + argClass + " On expression factory: " + expressionArgs.get(loops));
                 if (expressionArgs.size() > loops && expressionArgs.size() > 0 &&
@@ -129,7 +141,7 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
         }
         if (pieces.isEmpty()) pieces.add(regex);
         for (String var : pieces) {
-            Class<?> addClass = SyntaxManager.SUPPORTED_TYPES.get(var.replaceAll("%", "").trim());
+            Class<?> addClass = SyntaxManager.SYNTAX_MANAGER.SUPPORTED_TYPES.get(var.replaceAll("%", "").trim());
             if (addClass != null || var.startsWith("%")) {
                 if (CodeChunk.printing) System.out.println("On arg class: " + addClass + " (from: " + var + ")");
                 classes.add(addClass);
@@ -157,14 +169,30 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
         }
     }
 
+    public ArrayList<Class<?>> getClasses() {
+        return classes;
+    }
+
     @Override
     public ExpressionFactory<T> duplicate() {
         ExpressionFactory<T> expressionFactory = new ExpressionFactory<>(this.usage, this.regex, expressionCreationHandler, thisClass);
         expressionFactory.setCode(code);
         expressionFactory.setParent(parent);
         expressionFactory.setGenerateClass(generateClass);
+        expressionFactory.setFinishedParsing(finishedParsing);
+        expressionFactory.getClasses().addAll(classes);
         return expressionFactory;
     }
+
+    @Override
+    public void parsed(Parser parser) {
+        classes.clear();
+        classes.addAll(getArgs());
+        if (finishedParsing != null)
+            finishedParsing.accept(parser);
+        expressionArgs.forEach(expressionFactory -> expressionFactory.parsed(parser));
+    }
+
 
     @Override
     public String toString() {

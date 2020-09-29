@@ -5,6 +5,8 @@
     -darkest-background-color: #171d2b;
     -fx-background: #1c2532;
     -default-text-color: #bcc5d2;
+    -fx-text-base-color: #bcc5d2;
+    -fx-focused-text-base-color: #bcc5d2;
     -light-highlight-color: #e05c5c;
     -highlight-color: #b94646;
 }
@@ -12,6 +14,37 @@
 @font-face {
     font-family: Montserrat;
     src: url('../codeEditor/Montserrat-Regular.ttf');
+}
+
+.root {
+    -fx-font-family: Montserrat;
+    -fx-font-weight: 600;
+}
+
+.ide {
+    -fx-background-color: -darker-background-color;
+}
+
+.run-selector {
+    -fx-background-color: -main-background-color;
+    -fx-background-radius: 2;
+    -fx-text-fill: -default-text-color;
+    -fx-min-width: 100;
+    -fx-max-width: 150;
+    -fx-prompt-text-fill: -default-text-color;
+    -jfx-unfocus-color: -darkest-background-color;
+    -jfx-focus-color: -highlight-color;
+    -fx-highlight-text-fill: -light-highlight-color;
+    -fx-color: -default-text-color;
+}
+.auto-select {
+    -jfx-checked-color: -light-highlight-color;
+}
+.run-selector .label {
+    -fx-text-fill: -default-text-color;
+}
+.run-selector .text {
+    -fx-text-fill: -default-text-color;
 }
 
 .label {
@@ -50,7 +83,12 @@
 .scroll-bar:horizontal .thumb,
 .scroll-bar:vertical .thumb {
     -fx-background-color: #b94646;
-    -fx-background-radius: 5em;
+    -fx-opacity: 0.7;
+    -fx-background-radius: 0em;
+}
+.scroll-bar:horizontal:hover .thumb,
+.scroll-bar:vertical:hover .thumb {
+    -fx-opacity: 1;
 }
 .scroll-bar > .increment-button > .increment-arrow,
 .scroll-bar > .decrement-button > .decrement-arrow {

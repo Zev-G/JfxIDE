@@ -1,53 +1,78 @@
 package tmw.me.com.ide.codeEditor;
 
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Popup;
-import javafx.stage.Stage;
 import javafx.stage.Window;
+
+import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
-import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.richtext.model.PlainTextChange;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
+
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.languages.SfsLanguage;
+import tmw.me.com.ide.tools.concurrent.RunnableEventScheduler;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * <p>This {@link CodeArea} adds lots of extra functionality, much of which can be customized with custom {@link LanguageSupport}.</p>
+ * <br/>
+ * <h3>Features</h3>
+ * <ul>
+ *     <li>Auto Indentation</li>
+ *     <li>Comment continuation</li>
+ *     <li>Backwards Indentation</li>
+ *     <li>Surround selection with bracket/quote</li>
+ *     <li>Auto double quotes and double brackets</li>
+ *     <li>Code Highlighting*</li>
+ *     <li>Auto Complete*</li>
+ *     <li>Error line number highlighting*</li>
+ * </ul>
+ * <h3>Planned Features</h3>
+ * <ul>
+ *     <li>Find and Replace</li>
+ *     <li>More interactive highlighting features</li>
+ *     <li>A nice context menu</li>
+ * </ul>
+ * <p>*Controlled by LanguageSupport</p>
+ */
 public class IntegratedTextEditor extends CodeArea {
 
+    public static final String INDENT = "  ";
 
-    private final LanguageSupport language;
+    private final ObservableList<Integer> errorLines = FXCollections.observableArrayList();
+    private final ObjectProperty<LanguageSupport> languageSupport = new SimpleObjectProperty<>();
 
-    private final ArrayList<String> factoryOrder = new ArrayList<>();
+    private final ArrayList<IdeSpecialParser.PossiblePiecePackage> factoryOrder = new ArrayList<>();
     private final VBox popupBox = new VBox();
     private final ScrollPane popupScrollPane = new SmoothishScrollpane(popupBox);
     private final Popup autoCompletePopup = new Popup();
     private final ArrayList<String> selectionQueue = new ArrayList<>();
+
+    private final VirtualizedScrollPane<IntegratedTextEditor> virtualizedScrollPane = new VirtualizedScrollPane<>(this);
+    private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane);
 
     private int selectionIndex = 0;
 
@@ -68,26 +93,60 @@ public class IntegratedTextEditor extends CodeArea {
         }
     };
 
+
+    /**
+     * Constructs a new IntegratedTextEditor with {@link SfsLanguage} as it's language support.
+     */
     public IntegratedTextEditor() {
-        this(LanguageSupport.getSFS());
+        this(new SfsLanguage());
     }
+
+    /**
+     *
+     * @param languageSupport The specified {@link LanguageSupport} for the text editor.
+     */
     public IntegratedTextEditor(LanguageSupport languageSupport) {
 
+        parentProperty().addListener((observableValue, parent, t1) -> {
+            if (t1 != virtualizedScrollPane && t1 != null) {
+                System.err.println("Integrated Text Area's parent must always be equal to textAreaHolder");
+            }
+        });
 
-        language = languageSupport;
+        this.languageSupport.addListener((observableValue, languageSupport1, t1) -> {
+            if (languageSupport1 != null) {
+                this.getStylesheets().remove(languageSupport1.getStyleSheet());
+                if (t1 != null) {
+                    highlight();
+                    selectionQueue.clear();
+                    autoCompletePopup.hide();
+                }
+            }
+            if (t1 != null) {
+                this.getStylesheets().add(t1.getStyleSheet());
+            }
+        });
+
+        this.languageSupport.set(languageSupport);
+        languageSupport.addBehaviour(this);
 
         // Highlighting
-        this.plainTextChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(change -> highlight());
+        RunnableEventScheduler runnableEventScheduler = new RunnableEventScheduler(200, this::highlight);
+        runnableEventScheduler.setRunOnFx(false);
+        this.plainTextChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(plainTextChange -> runnableEventScheduler.run());
+
 
         // Value tweaking and value setting
         this.popupScrollPane.setMaxHeight(300);
         this.getStylesheets().add(IntegratedTextEditor.class.getResource("ide.css").toExternalForm());
-        this.getStylesheets().add(language.getStyleSheet());
         popupScrollPane.getStylesheets().add(Ide.class.getResource("styles/main.css").toExternalForm());
         autoCompletePopup.getContent().add(popupScrollPane);
         autoCompletePopup.setAutoHide(true);
-        this.setParagraphGraphicFactory(LineNumberFactory.get(this));
+        this.setParagraphGraphicFactory(LineGraphicFactory.get(this));
 
+        // Layout
+        AnchorPane.setTopAnchor(virtualizedScrollPane, 0D); AnchorPane.setBottomAnchor(virtualizedScrollPane, 0D);
+        AnchorPane.setRightAnchor(virtualizedScrollPane, 0D); AnchorPane.setLeftAnchor(virtualizedScrollPane, 0D);
 
         // This event handlers
         Pattern whiteSpace = Pattern.compile( "^\\s+" );
@@ -152,14 +211,14 @@ public class IntegratedTextEditor extends CodeArea {
             }
             if (keyCode == KeyCode.ENTER) {
                 Matcher m = whiteSpace.matcher(line);
-                Platform.runLater( () -> this.insertText(this.getCaretPosition(), (line.trim().startsWith("#") ? "#" : "") + (m.find() ? m.group() : "") + (line.endsWith(":") ? "  " : "")));
+                Platform.runLater( () -> this.insertText(this.getCaretPosition(), (line.trim().startsWith("#") ? "#" : "") + (m.find() ? m.group() : "") + (line.endsWith(":") ? INDENT : "")));
             } else if (keyEvent.isShiftDown()) {
                 if (keyCode == KeyCode.TAB) {
                     if (this.getSelectedText().length() <= 1) {
                         Matcher matcher = whiteSpace.matcher(line);
                         if (matcher.find()) {
                             String whiteSpaceInLine = matcher.group();
-                            if (whiteSpaceInLine.startsWith("\t") || whiteSpaceInLine.startsWith("  ")) {
+                            if (whiteSpaceInLine.startsWith("\t") || whiteSpaceInLine.startsWith(INDENT)) {
                                 String replaced = (whiteSpaceInLine.startsWith("\t") ? whiteSpaceInLine.replaceFirst("\t", "") : whiteSpaceInLine.replaceFirst(" {2}", ""));
                                 int lineStart = 0;
                                 for (int i = this.getCurrentParagraph() - 1; i >= 0; i--) {
@@ -184,7 +243,7 @@ public class IntegratedTextEditor extends CodeArea {
                 if (!keyEvent.isControlDown() && autoCompletePopup.isShowing()) {
                     if (factoryOrder.size() > selectionIndex) {
                         keyEvent.consume();
-                        String text = factoryOrder.get(selectionIndex);
+                        String text = factoryOrder.get(selectionIndex).getPutIn();
                         if (text.length() > 0 && this.getSelectedText().equals("")) {
                             insertAutocomplete();
                         } else {
@@ -211,7 +270,7 @@ public class IntegratedTextEditor extends CodeArea {
                 }
             }
         });
-        Runnable runWhenChanged = () -> {
+        this.caretBoundsProperty().addListener((observableValue, integer, t1) -> {
             if (this.caretBoundsProperty().getValue().isPresent()) {
                 Bounds bounds = this.caretBoundsProperty().getValue().get();
                 Platform.runLater(() -> {
@@ -219,8 +278,7 @@ public class IntegratedTextEditor extends CodeArea {
                     autoCompletePopup.setY(bounds.getMaxY());
                 });
             }
-        };
-        this.caretBoundsProperty().addListener((observableValue, integer, t1) -> runWhenChanged.run());
+        });
         this.sceneProperty().addListener((observableValue, scene, t1) -> {
             if (t1 != null) {
                 Window t11 = t1.getWindow();
@@ -263,30 +321,47 @@ public class IntegratedTextEditor extends CodeArea {
         });
     }
 
+    public AnchorPane getTextAreaHolder() {
+        return textAreaHolder;
+    }
+
+    /**
+     * Computes and applies the highlighting on a separate thread.
+     */
     public void highlight() {
         HighlightingThread highlightingThread = new HighlightingThread();
         highlightingThread.setText(this.getText());
         highlightingThread.start();
     }
 
+    /**
+     * Inserts the selected item in the auto complete popup.
+     */
     public void insertAutocomplete() {
-        String text = factoryOrder.get(selectionIndex);
-        int lineStart = 0;
-        for (int i = this.getCurrentParagraph() - 1; i >= 0; i--) {
-            lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
+        String text = factoryOrder.get(selectionIndex).getPutIn();
+        if (factoryOrder.get(selectionIndex).isReplaceLine()) {
+            int lineStart = 0;
+            for (int i = this.getCurrentParagraph() - 1; i >= 0; i--) {
+                lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
+            }
+            String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
+            Pattern whiteSpace = Pattern.compile("^\\s+");
+            Matcher matcher = whiteSpace.matcher(line);
+            if (matcher.find()) {
+                text = matcher.group() + text;
+            }
+            this.replaceText(lineStart, this.getCaretPosition(), text);
+        } else {
+            this.insertText(this.getCaretPosition(), text);
         }
-        String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
-        Pattern whiteSpace = Pattern.compile( "^\\s+" );
-        Matcher matcher = whiteSpace.matcher(line);
-        if (matcher.find()) {
-            text = matcher.group() + text;
-        }
-        this.replaceText(lineStart, this.getCaretPosition(), text);
         selectionQueue.clear();
         selectNext();
 
     }
 
+    /**
+     * Selects the next item in the auto complete popup; wraps around.
+     */
     public void selectNext() {
         StringBuilder builder = new StringBuilder();
         boolean inPercentageSign = false;
@@ -320,22 +395,18 @@ public class IntegratedTextEditor extends CodeArea {
         }
     }
 
-    private int stringOccurrences(String string, char checkFor) {
-        int occurrences = 0;
-        for (char c : string.toCharArray()) {
-            if (c == checkFor) occurrences++;
-        }
-        return occurrences;
-    }
-
+    /**
+     *
+     * @param line The line which the text is sampled from; should be switched to an int, this is largely controlled by {@link LanguageSupport}
+     */
     private void fillBox(String line) {
         if (line.trim().length() > 0) {
             factoryOrder.clear();
             popupBox.getChildren().clear();
-            ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = language.getPossiblePieces(line);
+            ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = languageSupport.get().getPossiblePieces(line);
             if (possiblePiecePackages != null && !possiblePiecePackages.isEmpty()) {
-                for (IdeSpecialParser.PossiblePiecePackage entry : language.getPossiblePieces(line)) {
-                    factoryOrder.add(entry.getPutIn());
+                for (IdeSpecialParser.PossiblePiecePackage entry : languageSupport.get().getPossiblePieces(line)) {
+                    factoryOrder.add(entry);
                     Label filledIn = new Label(entry.getFilledIn());
                     Label notFilledIn = new Label(entry.getNotFilledIn());
                     filledIn.getStyleClass().add("highlighted-label");
@@ -363,14 +434,15 @@ public class IntegratedTextEditor extends CodeArea {
         }
     }
 
+    // Utility oriented methods
     public String properlyIndentString(String text) {
         String[] lines = text.split("\n");
-        String indentCharacter = "  ";
+        String indentCharacter = INDENT;
         for (String line : lines) {
             if (line.startsWith("\t")) {
                 indentCharacter = "\t";
                 break;
-            } else if (line.startsWith("  ")) {
+            } else if (line.startsWith(INDENT)) {
                 break;
             }
         }
@@ -397,12 +469,12 @@ public class IntegratedTextEditor extends CodeArea {
             return text;
         }
         String[] lines = text.split("\n");
-        String indentCharacter = "  ";
+        String indentCharacter = INDENT;
         for (String line : lines) {
             if (line.startsWith("\t")) {
                 indentCharacter = "\t";
                 break;
-            } else if (line.startsWith("  ")) {
+            } else if (line.startsWith(INDENT)) {
                 break;
             }
         }
@@ -417,12 +489,12 @@ public class IntegratedTextEditor extends CodeArea {
     }
     public String indentForwards(String text) {
         String[] lines = text.split("\n");
-        String indentCharacter = "  ";
+        String indentCharacter = INDENT;
         for (String line : lines) {
             if (line.startsWith("\t")) {
                 indentCharacter = "\t";
                 break;
-            } else if (line.startsWith("  ")) {
+            } else if (line.startsWith(INDENT)) {
                 break;
             }
         }
@@ -435,7 +507,54 @@ public class IntegratedTextEditor extends CodeArea {
         }
         return newString.substring(1);
     }
+    public int[] expandFromPoint(int caretPosition, Character... stopAt) {
+        int right = expandInDirection(caretPosition, 1, stopAt);
+        right = right < getText().length() ? right + 1 : right;
+        return new int[] { expandInDirection(caretPosition, -1, stopAt), right };
+    }
+    public int expandInDirection(int start, int dir, Character... stopAt) {
+        String text = this.getText();
+        List<Character> characters = Arrays.asList(stopAt);
+        while (start > 0 && start < text.length() && !characters.contains(text.charAt(start))) start += dir;
+        return start;
+    }
+    public ArrayList<IndexRange> allInstancesOfStringInString(String lookIn, String lookFor) {
+        ArrayList<IndexRange> areas = new ArrayList<>();
+        Matcher matcher = Pattern.compile("(?=" + Pattern.quote(lookFor) +")").matcher(lookIn);
+        while (matcher.find()) {
+            areas.add(new IndexRange(matcher.start(), matcher.start() + lookFor.length()));
+        }
+        return areas;
+    }
+    public int absolutePositionFromLine(int line) {
+        int lineStart = 0;
+        for (int i = line - 1; i >= 0; i--) {
+            lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
+        }
+        return lineStart;
+    }
+    private int stringOccurrences(String string, char checkFor) {
+        int occurrences = 0;
+        for (char c : string.toCharArray()) {
+            if (c == checkFor) occurrences++;
+        }
+        return occurrences;
+    }
 
+    // Getters and Setters
+    public LanguageSupport getLanguage() {
+        return languageSupport.get();
+    }
+    public ObjectProperty<LanguageSupport> languageSupportProperty() {
+        return languageSupport;
+    }
+    public void setLanguageSupport(LanguageSupport languageSupport) {
+        this.languageSupport.set(languageSupport);
+    }
+
+    public ObservableList<Integer> getErrorLines() {
+        return errorLines;
+    }
 
     private class HighlightingThread extends Thread {
 
@@ -461,22 +580,26 @@ public class IntegratedTextEditor extends CodeArea {
         }
 
         private void computeHighlighting(String text) {
-            Matcher matcher = language.generatePattern().matcher(text);
-            int lastKwEnd = 0;
-            StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-            while(matcher.find()) {
-                String styleClass = language.styleClass(matcher);
-                spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
-                spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
-                lastKwEnd = matcher.end();
+            Pattern pattern = languageSupport.get().generatePattern();
+            if (pattern != null) {
+                Matcher matcher = pattern.matcher(text);
+                int lastKwEnd = 0;
+                StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+                while (matcher.find()) {
+                    String styleClass = languageSupport.get().styleClass(matcher);
+                    spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
+                    spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
+                    lastKwEnd = matcher.end();
+                }
+                spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
+                StyleSpans<Collection<String>> styleSpans = spansBuilder.create();
+                Platform.runLater(() -> {
+                    try {
+                        setStyleSpans(0, styleSpans);
+                    } catch (IndexOutOfBoundsException ignored) {
+                    }
+                });
             }
-            spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
-            StyleSpans<Collection<String>> styleSpans = spansBuilder.create();
-            Platform.runLater(() -> {
-                try {
-                    setStyleSpans(0, styleSpans);
-                } catch (IndexOutOfBoundsException ignored) {}
-            });
         }
 
 

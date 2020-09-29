@@ -212,7 +212,7 @@ public class Console extends HBox {
     public Text getDefaultText(String s) { return getDefaultText(s, defaultConsoleColor); }
     public Text getDefaultText(Color color) { return getDefaultText("", color); }
     public Text getDefaultText(String s, Color color) {
-        Text text = new Text(s + " ");
+        Text text = new Text(s);
         text.setFont(font);
         text.setFill(color);
         return text;

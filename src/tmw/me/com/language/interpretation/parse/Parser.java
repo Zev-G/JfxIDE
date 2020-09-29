@@ -1,10 +1,9 @@
 package tmw.me.com.language.interpretation.parse;
 
-import tmw.me.com.ide.tools.Gotten;
-import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.interpretation.parse.error.ParseError;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.interpretation.run.CodePiece;
+import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.syntaxPiece.SyntaxPiece;
 import tmw.me.com.language.syntaxPiece.SyntaxPieceFactory;
 import tmw.me.com.language.syntaxPiece.effects.Effect;
@@ -22,43 +21,48 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public final class Parser {
 
-    private Gotten<ParseError> errorHandler;
+    private Consumer<ParseError> errorHandler;
+    private final SyntaxManager syntaxManager;
 
-    public Parser() {
+    public Parser(SyntaxManager syntaxManager) {
+        this.syntaxManager = syntaxManager;
         errorHandler = gotten -> {
             gotten.print();
             System.out.println("Printer from here");
         };
     }
-    public Parser(Gotten<ParseError> errorHandler) {
+    public Parser(SyntaxManager syntaxManager, Consumer<ParseError> errorHandler) {
         this.errorHandler = errorHandler;
+        this.syntaxManager = syntaxManager;
     }
 
-    public Gotten<ParseError> getErrorHandler() {
+    public Consumer<ParseError> getErrorHandler() {
         return errorHandler;
     }
-    public void setErrorHandler(Gotten<ParseError> errorHandler) {
+    public void setErrorHandler(Consumer<ParseError> errorHandler) {
         System.out.println("So this got called: " + this.errorHandler);
         this.errorHandler = errorHandler;
         System.out.println("And under neath: " + this.errorHandler);
     }
 
-    public static boolean PRINTING_CHUNK_PARSING_INFO = false;
+    public static boolean PRINTING_CHUNK_PARSING_INFO = true;
 
     /**
      *
      * @param code The code from which the CodeChunk is parsed.
      * @return A parsed CodeChunk that is ready to be ran.
      */
-    public final CodeChunk parseChunk(String code, File file) { return parseChunk(code, null, file); }
-    public final CodeChunk parseChunk(String code, CodeChunk parent, File file) {
+    public final CodeChunk parseChunk(String code, File file) { return parseChunk(code, null, file, 0); }
+    public final CodeChunk parseChunk(String code, CodeChunk parent, File file, int lineOffset) {
         CodeChunk chunk = new CodeChunk();
         chunk.setCode("Top");
         boolean inEvent = false;
+        int eventStart = 0;
         Event lastEvent = null;
         StringBuilder eventCode = new StringBuilder();
         String[] pieces = code.split("\n");
@@ -69,47 +73,52 @@ public final class Parser {
                 line = pieces[i];
                 line = line.replaceFirst(" {2}", "\t");
             }
-            if (PRINTING_CHUNK_PARSING_INFO) System.out.println("On number: " + i + " text: " + line);
-            if (!line.replaceAll("\\s", "").startsWith("#") && !line.equals("")) {
+            if (PRINTING_CHUNK_PARSING_INFO) System.out.println("On number: " + i + " text: " + line + " offset: " + lineOffset);
+            if (!line.replaceAll("\\s", "").startsWith("#") && !line.replaceAll("\\s", "").equals("")) {
                 CodePiece addPiece = null;
                 if (!line.startsWith("\t") && !line.endsWith(":")) {
-                    addPiece = parsePiece(line.trim(), file, i + 1);
+                    addPiece = parsePiece(line.trim(), file, i + 1 + lineOffset);
                     addPiece.setCodeChunk(parent);
-                    if (addPiece.getEffect() != null && ((EffectFactory) addPiece.getEffect()).getRegex().startsWith("$")) {
+                    if (addPiece.getEffect() != null && ((EffectFactory) addPiece.getEffect()).getRegex().startsWith("$"))
                         addPiece.run();
-                    }
                 }
                 if (line.startsWith("\t")) {
                     inEvent = true;
+                    if (eventStart == 0)
+                        eventStart = i;
                     eventCode.append(line.replaceFirst("\t", "")).append("\n");
                 } else {
                     if (PRINTING_CHUNK_PARSING_INFO) System.out.println("Line: " + line + " doesn't start with a tab");
                     if (inEvent) {
                         if (PRINTING_CHUNK_PARSING_INFO) System.out.println("Exiting event");
-                        assert lastEvent != null;
-                        CodeChunk runChunk = parseChunk(eventCode.toString(), file);
+                        CodeChunk runChunk = parseChunk(eventCode.toString(), null, file, eventStart + lineOffset);
                         runChunk.setCode(lastEventCode);
                         runChunk.setParent(chunk);
-                        lastEvent.setRunChunk(runChunk);
+                        if (lastEvent != null) {
+                            lastEvent.setRunChunk(runChunk);
+                            runChunk.setHolder(lastEvent);
+                        }
                         eventCode = new StringBuilder();
                     }
+                    eventStart = 0;
                     inEvent = false;
                 }
                 if (line.endsWith(":") && !line.startsWith("\t")) {
-                    lastEvent = parseEvent(line, file, i + 1);
+                    lastEvent = parseEvent(line, file, i + 1 + lineOffset);
                     lastEventCode = line;
                     if (PRINTING_CHUNK_PARSING_INFO) System.out.println("Got event for line: " + line + " (event: " + lastEvent + ")");
-                    addPiece = new CodePiece(line);
+                    addPiece = new CodePiece(line, i + 1 + lineOffset);
                     assert lastEvent != null;
                     addPiece.setEvent(lastEvent);
                 }
                 if (addPiece != null) {
                     chunk.addPiece(addPiece);
+                    addPiece.parsed(this);
                 }
             }
         }
         if (inEvent && lastEvent != null) {
-            CodeChunk runChunk = SyntaxManager.getCodeChunkFromCode(eventCode.toString(), file);
+            CodeChunk runChunk = parseChunk(eventCode.toString(), null, file, eventStart);
             runChunk.setCode(lastEventCode);
             runChunk.setParent(chunk);
             lastEvent.setRunChunk(runChunk);
@@ -119,7 +128,7 @@ public final class Parser {
 
     public final CodePiece parsePiece(String code, File file, int lineNum) {
         Effect effect = parseLine(code, file, lineNum);
-        CodePiece piece = new CodePiece(code);
+        CodePiece piece = new CodePiece(code, lineNum);
         if (effect != null) {
             piece.setEffect(effect);
         }
@@ -228,7 +237,7 @@ public final class Parser {
                 if (CodeChunk.printing) System.out.println("-Getting nested expression for text: (" + expression + ")-");
                 ExpressionFactory<?> nestedExpressionFactory = parseExpression(expression, file, line);
                 if (nestedExpressionFactory != null) {
-                    if (!SyntaxManager.SUPPORTED_TYPES.get(argTypes.get(i).replaceAll("%", "")).isAssignableFrom(nestedExpressionFactory.getGenericClass()) && !Variable.class.isAssignableFrom(nestedExpressionFactory.getGenericClass()) && nestedExpressionFactory.getGenericClass() != Object.class) {
+                    if (!syntaxManager.SUPPORTED_TYPES.get(argTypes.get(i).replaceAll("%", "")).isAssignableFrom(nestedExpressionFactory.getGenericClass()) && !Variable.class.isAssignableFrom(nestedExpressionFactory.getGenericClass()) && nestedExpressionFactory.getGenericClass() != Object.class) {
                         continue pieces;
                     }
                     nestedExpressionFactory.setCode(expression);
@@ -267,9 +276,9 @@ public final class Parser {
      * @return The effect that is parsed from the given code.
      */
     public Effect parseLine(String code, File file, int lineNum) {
-        Effect parsedEffect = parseSyntaxPiece(code.trim(), SyntaxManager.EFFECT_FACTORIES, file, lineNum);
+        Effect parsedEffect = parseSyntaxPiece(code.trim(), syntaxManager.EFFECT_FACTORIES, file, lineNum);
         if (parsedEffect == null) {
-            errorHandler.gotten(new ParseError(lineNum, 0, code, "Unrecognized Effect", null, file));
+            errorHandler.accept(new ParseError(lineNum, code, "Unrecognized Effect", file));
         }
         return parsedEffect;
     }
@@ -325,7 +334,7 @@ public final class Parser {
             for (String param : params.split(",( *)")) {
                 if (param.split(" ").length > 1) {
                     System.out.println("Param: " + param);
-                    Class<?> type = SyntaxManager.SUPPORTED_TYPES.get(param.split(" ")[0].toLowerCase());
+                    Class<?> type = syntaxManager.SUPPORTED_TYPES.get(param.split(" ")[0].toLowerCase());
                     String name = param.split(" ")[1];
                     functionArguments.add(new Function.FunctionArgument(type, name));
                 }
@@ -336,20 +345,20 @@ public final class Parser {
         } else {
             String justCode = code.replaceAll(":", "").replaceFirst("\\$", "");
             if (CodeChunk.printing) System.out.println("Getting event from code: " + justCode);
-            WhenEventFactory syntaxPiece = parseSyntaxPiece(justCode, SyntaxManager.EVENT_FACTORIES, file, lineNum);
+            WhenEventFactory syntaxPiece = parseSyntaxPiece(justCode, syntaxManager.EVENT_FACTORIES, file, lineNum);
             // Error Handling
             if (syntaxPiece == null) {
-                errorHandler.gotten(new ParseError(lineNum, 0, code, "Unrecognized Event", null, file));
+                errorHandler.accept(new ParseError(lineNum, code, "Unrecognized Event", file));
                 return null;
             }
             if (code.startsWith("$") || syntaxPiece.getRegex().startsWith("$")) {
-                syntaxPiece.setParent(new CodePiece(""));
+                syntaxPiece.setParent(new CodePiece("", lineNum));
                 syntaxPiece.runWhenArrivedTo();
                 syntaxPiece.setEventProcessedHandler((state, values, event, args) -> { });
             }
             return syntaxPiece;
         }
-        errorHandler.gotten(new ParseError(lineNum, 0, code, "Unrecognized Event", null, file));
+        errorHandler.accept(new ParseError(lineNum, code, "Unrecognized Event", file));
         return null;
     }
     public Event parseEvent(String code) {
@@ -365,11 +374,11 @@ public final class Parser {
         code = code.trim();
         if (CodeChunk.printing) System.out.println("--Parsing Expression (code: " + code +")--");
         HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> fullMap = new HashMap<>();
-        addHashMapToHashMap(fullMap, SyntaxManager.HIGHEST);
-        addHashMapToHashMap(fullMap, SyntaxManager.HIGH);
-        addHashMapToHashMap(fullMap, SyntaxManager.MEDIUM);
-        addHashMapToHashMap(fullMap, SyntaxManager.LOW);
-        addHashMapToHashMap(fullMap, SyntaxManager.LOWEST);
+        addHashMapToHashMap(fullMap, syntaxManager.HIGHEST);
+        addHashMapToHashMap(fullMap, syntaxManager.HIGH);
+        addHashMapToHashMap(fullMap, syntaxManager.MEDIUM);
+        addHashMapToHashMap(fullMap, syntaxManager.LOW);
+        addHashMapToHashMap(fullMap, syntaxManager.LOWEST);
         ArrayList<ExpressionFactory<?>> allExpressions = new ArrayList<>();
         fullMap.values().forEach(allExpressions::addAll);
         return parseSyntaxPiece(code, allExpressions, file, lineNum);

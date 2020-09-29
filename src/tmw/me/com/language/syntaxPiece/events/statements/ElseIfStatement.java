@@ -1,5 +1,6 @@
 package tmw.me.com.language.syntaxPiece.events.statements;
 
+import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.syntaxPiece.events.Event;
 import tmw.me.com.language.syntaxPiece.expressions.Expression;
 
@@ -35,5 +36,21 @@ public class ElseIfStatement extends Event {
 
     public boolean isRanLastTime() {
         return ranLastTime;
+    }
+
+    @Override
+    public ElseIfStatement duplicate() {
+        ElseIfStatement elseIfStatement = new ElseIfStatement();
+        elseIfStatement.setCode(code);
+        elseIfStatement.setCondition(condition);
+        elseIfStatement.setRunChunk(getRunChunk());
+        elseIfStatement.setParent(parent);
+        elseIfStatement.setTopLevel(isTopLevel());
+        return elseIfStatement;
+    }
+
+    @Override
+    public void parsed(Parser parser) {
+
     }
 }

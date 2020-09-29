@@ -24,13 +24,26 @@
 }
 
 .code-area .lineno, .lineno {
-    -fx-text-fill: -default-text-color;
+    /*-fx-text-fill: -default-text-color;*/
     -fx-font-size: 16;
     -fx-background-color: rgb(36, 49, 64);
     -fx-font-family: monospace;
-    -fx-effect: dropshadow(gaussian, rgb(27, 37, 48), 10, 0, 5, 3);
     -fx-background-radius: 0;
     -fx-box-border: none;
+}
+.code-area .error-lineno {
+    -fx-text-fill: #273245;
+    -fx-font-weight: bold;
+    -fx-background-color: rgba(207, 67, 67, 0.2) !important;
+}
+/*.code-area .lineno, .error-lineno {*/
+/*    -fx-fill: darkred !important;*/
+/*}*/
+
+.code-area .left-holder {
+    -fx-effect: dropshadow(gaussian, rgb(27, 37, 48), 10, 0, 5, 3);
+    -fx-background-color: rgb(36, 49, 64);
+
 }
 
 .code-area .text {
@@ -46,4 +59,10 @@
 
 .paragraph-box:has-caret {
     -fx-background-color: -selected-line;
+}
+
+.selected-word {
+    -rtfx-background-color: rgba(100, 146, 234, 0.1);
+    -rtfx-border-stroke-width: 1px;
+    -rtfx-border-stroke-color: rgba(100, 146, 234, 0.2);
 }

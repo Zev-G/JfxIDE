@@ -1,22 +1,24 @@
 package tmw.me.com.language.interpretation.run;
 
+import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.syntaxPiece.effects.Effect;
 import tmw.me.com.language.syntaxPiece.events.Event;
 
 public class CodePiece {
 
+    private final int line;
     private final String code;
     private Effect effect;
 
     private CodeChunk codeChunk;
     private Event event;
 
-    public CodePiece(String code) {
+    public CodePiece(String code, int line) {
         this.code = code;
+        this.line = line;
     }
 
     public void run() {
-        System.out.println("Running: " + code);
         if (effect != null) {
             effect.activate();
         } else if (event != null) {
@@ -55,4 +57,15 @@ public class CodePiece {
     public Event getEvent() {
         return event;
     }
+    public int getLine() {
+        return line;
+    }
+
+    public void parsed(Parser parser) {
+        if (effect != null)
+            effect.parsed(parser);
+        else if (event != null)
+            event.parsed(parser);
+    }
+
 }

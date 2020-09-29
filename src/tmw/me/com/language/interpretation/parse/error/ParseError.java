@@ -1,9 +1,7 @@
 package tmw.me.com.language.interpretation.parse.error;
 
-import tmw.me.com.language.interpretation.run.CodeState;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ParseError {
@@ -12,38 +10,11 @@ public class ParseError {
     private int lineNumber;
     private int errorNoticedAtScan;
     private String line;
-    private CodeState parent;
     private String errorInfo;
     private String errorPrefix;
     private File file;
 
     // Constructors
-    public ParseError(int lineNumber, int errorNoticedAtScan, String line, CodeState parent) {
-        this.lineNumber = lineNumber;
-        this.errorNoticedAtScan = errorNoticedAtScan;
-        this.line = line;
-        this.parent = parent;
-    }
-    public ParseError(int lineNumber, int errorNoticedAtScan, String line, String errorMessage, CodeState parent) {
-        this.lineNumber = lineNumber;
-        this.errorNoticedAtScan = errorNoticedAtScan;
-        this.line = line;
-        this.errorInfo = errorMessage;
-        this.parent = parent;
-    }
-    public ParseError(int lineNumber, int errorNoticedAtScan, String line, String errorMessage, CodeState parent, File file) {
-        this.lineNumber = lineNumber;
-        this.errorNoticedAtScan = errorNoticedAtScan;
-        this.line = line;
-        this.errorInfo = errorMessage;
-        this.parent = parent;
-        this.file = file;
-    }
-    public ParseError(int lineNumber, String line, CodeState parent) {
-        this.lineNumber = lineNumber;
-        this.line = line;
-        this.parent = parent;
-    }
     public ParseError(int lineNumber, String line) {
         this.lineNumber = lineNumber;
         this.line = line;
@@ -52,19 +23,18 @@ public class ParseError {
         this.lineNumber = lineNumber;
         this.errorNoticedAtScan = errorNoticedAtScan;
     }
-    public ParseError(String line, CodeState parent) {
-        this.line = line;
-        this.parent = parent;
-    }
     public ParseError(String line) {
         this.line = line;
-    }
-    public ParseError(CodeState parent) {
-        this.parent = parent;
     }
     public ParseError(String line, String errorMessage) {
         this.line = line;
         this.errorInfo = errorMessage;
+    }
+    public ParseError(int lineNumber, String line, String errorPrefix, File file) {
+        this.lineNumber = lineNumber;
+        this.line = line;
+        this.errorPrefix = errorPrefix;
+        this.file = file;
     }
 
 
@@ -90,12 +60,6 @@ public class ParseError {
         this.line = line;
     }
 
-    public CodeState getParent() {
-        return parent;
-    }
-    public void setParent(CodeState parent) {
-        this.parent = parent;
-    }
 
     public String getErrorInfo() {
         return errorInfo;
@@ -119,24 +83,8 @@ public class ParseError {
     }
 
 
-    // Methods
-    /**
-     * Simple algorithm that gathers a chain of parents from a {@link CodeState}
-     * @return An {@link ArrayList} of all the parents of the ParseError's CodeState.
-     */
-    public ArrayList<CodeState> getAllParentStates() {
-        if (parent == null) { return new ArrayList<>(); }
-        ArrayList<CodeState> codeStates = new ArrayList<>();
-        CodeState parent = this.parent;
-        while (parent.getParent() != null) {
-            parent = parent.getParent();
-            codeStates.add(parent);
-        }
-        return codeStates;
-    }
-
     public String createLongErrorMessage() {
-        String topText = (errorPrefix != null ? errorInfo : "") + "Error: " + (errorInfo != null ? errorInfo : "un defined name");
+        String topText = (errorPrefix != null ? errorPrefix + " " : "") + "Error: " + (errorInfo != null ? errorInfo : "");
         String lineText = "\tOn Line: " + line + (lineNumber > 0 ? "\n\t\tNumber: " + lineNumber + "" : "");
         String fileText = "\tIn File: " + (file != null ? file.getName() : "Undefined file.");
         return topText + "\n" + lineText + "\n" + fileText;

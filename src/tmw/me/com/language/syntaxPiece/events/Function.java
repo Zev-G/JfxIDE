@@ -1,5 +1,6 @@
 package tmw.me.com.language.syntaxPiece.events;
 
+import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.variable.Variable;
 
 import java.util.ArrayList;
@@ -29,9 +30,11 @@ public class Function<T> extends Event {
     public T invoke(Object... args) {
         // Check if args match args
         int i = 0;
+        System.out.println("Run chunk: " + getRunChunk());
         if (ran) {
             this.setRunChunk(this.getRunChunk().duplicateWithoutVariables());
         }
+        System.out.println("Run chunk: " + getRunChunk());
         ran = true;
         for (FunctionArgument argument : arguments) {
             if (args.length - 1 < i) {
@@ -90,5 +93,16 @@ public class Function<T> extends Event {
         }
     }
 
+    @Override
+    public Function<T> duplicate() {
 
+        System.err.println("CANNOT DUPLICATE FUNCTIONS AS THERE CANNOT BE MORE THAN ONE FUNCTION WITH THE SAME NAME!");
+
+        return null;
+    }
+
+    @Override
+    public void parsed(Parser parser) {
+
+    }
 }

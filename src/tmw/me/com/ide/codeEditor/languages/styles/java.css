@@ -7,12 +7,18 @@
 .number {
     -fx-fill: #f3af3a !important;
 }
+.class {
+    -fx-fill: #d29b2f !important;
+}
+.var-call {
+    -fx-fill: #e7624b !important;
+}
 .keyword {
     -fx-fill: #bb76f1 !important;
     -fx-font-style: italic;
 }
 .paren {
-    -fx-fill: #5e7fc1 !important;
+    -fx-fill: #528bff !important;
 }
 .bracket {
     -fx-fill: #bd73bf !important;

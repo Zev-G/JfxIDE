@@ -1,5 +1,6 @@
 package tmw.me.com.language.syntaxPiece.events;
 
+import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.syntaxPiece.SyntaxPiece;
@@ -8,14 +9,17 @@ import tmw.me.com.language.syntaxPiece.expressions.ExpressionFactory;
 import tmw.me.com.language.variable.Variable;
 
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 public class WhenEventFactory extends Event implements SyntaxPieceFactory {
 
     private final String usage;
     private final String regex;
     private EventProcessedHandler eventProcessedHandler;
+    private Consumer<Parser> finishedParsing = null;
     
     private final ArrayList<ExpressionFactory<?>> expressionArgs = new ArrayList<>();
+    private final ArrayList<Class<?>> classes = new ArrayList<>();
     
     public WhenEventFactory(String usage, String regex, EventProcessedHandler eventProcessedHandler) {
         this.regex = regex;
@@ -32,11 +36,11 @@ public class WhenEventFactory extends Event implements SyntaxPieceFactory {
         ArrayList<Object> arguments = new ArrayList<>();
         int loops = 0;
         if (CodeChunk.printing) System.out.println("Activating effect w/ regex: " + regex + "\n  With expressionArgs: " + expressionArgs);
-        for (Class<?> argClass : getArgs()) {
+        for (Class<?> argClass : classes) {
             if (CodeChunk.printing) System.out.println("On loop class: " + argClass + " On expression factory: " + expressionArgs.get(loops));
             if (expressionArgs.size() > loops &&
                     (argClass.isAssignableFrom(expressionArgs.get(loops).getGenericClass())
-                    || expressionArgs.get(loops).getGenericClass().isAssignableFrom(argClass))
+                            || expressionArgs.get(loops).getGenericClass().isAssignableFrom(argClass))
                     || argClass == String.class
                     || expressionArgs.get(loops).getGenericClass() == Variable.class) {
                 expressionArgs.get(loops).setGenerateClass(argClass);
@@ -58,7 +62,7 @@ public class WhenEventFactory extends Event implements SyntaxPieceFactory {
         ArrayList<Class<?>> classes = new ArrayList<>();
         if (CodeChunk.printing) System.out.println("-Getting arguments (for effect with regex: " + regex + ")-");
         for (String var : regex.split("(?=%([A-z]+)%)|(?<=% )")) {
-            Class<?> addClass = SyntaxManager.SUPPORTED_TYPES.get(var.replaceAll("%", "").trim());
+            Class<?> addClass = SyntaxManager.SYNTAX_MANAGER.SUPPORTED_TYPES.get(var.replaceAll("%", "").trim());
             if (addClass != null || var.startsWith("%")) {
                 if (CodeChunk.printing) System.out.println("On arg class: " + addClass + " (from: " + var + ")");
                 classes.add(addClass);
@@ -96,6 +100,31 @@ public class WhenEventFactory extends Event implements SyntaxPieceFactory {
         event.setParent(parent);
         event.setTopLevel(isTopLevel());
         event.getExpressionArgs().addAll(expressionArgs);
+        event.setCode(code);
+        event.setFinishedParsing(finishedParsing);
+        event.getClasses().addAll(classes);
         return event;
     }
+
+    public void setFinishedParsing(Consumer<Parser> finishedParsing) {
+        this.finishedParsing = finishedParsing;
+    }
+
+    public Consumer<Parser> getFinishedParsing() {
+        return finishedParsing;
+    }
+
+    public ArrayList<Class<?>> getClasses() {
+        return classes;
+    }
+
+    @Override
+    public void parsed(Parser parser) {
+        classes.clear();
+        classes.addAll(getArgs());
+        if (finishedParsing != null)
+            finishedParsing.accept(parser);
+        expressionArgs.forEach(expressionFactory -> expressionFactory.parsed(parser));
+    }
+
 }

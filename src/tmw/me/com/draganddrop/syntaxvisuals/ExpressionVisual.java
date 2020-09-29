@@ -47,18 +47,18 @@ public class ExpressionVisual<T> extends SyntaxVisual<ExpressionFactory<?>> {
     public ArrayList<ExpressionFactory<?>> genExpressionFactories() {
         ArrayList<Class<?>> supportedClasses = new ArrayList<>();
         supportedClasses.add(Object.class);
-        for (Class<?> loopClass : SyntaxManager.SUPPORTED_TYPES.values()) {
+        for (Class<?> loopClass : SyntaxManager.SYNTAX_MANAGER.SUPPORTED_TYPES.values()) {
             if (loopClass.isAssignableFrom(tClass)) {
                 supportedClasses.add(loopClass);
             }
         }
         ArrayList<ExpressionFactory<?>> expressionFactories = new ArrayList<>();
         supportedClasses.forEach(aClass -> {
-            expressionFactories.addAll(SyntaxManager.HIGHEST.get(aClass));
-            expressionFactories.addAll(SyntaxManager.HIGH.get(aClass));
-            expressionFactories.addAll(SyntaxManager.MEDIUM.get(aClass));
-            expressionFactories.addAll(SyntaxManager.LOW.get(aClass));
-            expressionFactories.addAll(SyntaxManager.LOWEST.get(aClass));
+            expressionFactories.addAll(SyntaxManager.SYNTAX_MANAGER.HIGHEST.get(aClass));
+            expressionFactories.addAll(SyntaxManager.SYNTAX_MANAGER.HIGH.get(aClass));
+            expressionFactories.addAll(SyntaxManager.SYNTAX_MANAGER.MEDIUM.get(aClass));
+            expressionFactories.addAll(SyntaxManager.SYNTAX_MANAGER.LOW.get(aClass));
+            expressionFactories.addAll(SyntaxManager.SYNTAX_MANAGER.LOWEST.get(aClass));
         });
         return expressionFactories;
     }
@@ -69,7 +69,7 @@ public class ExpressionVisual<T> extends SyntaxVisual<ExpressionFactory<?>> {
         for (String typePiece : typePieces) {
             boolean isExpression = typePiece.startsWith("%");
             if (isExpression) {
-                getChildren().add(new ExpressionVisual<>(SyntaxManager.SUPPORTED_TYPES.get(typePiece.replaceAll("%", ""))));
+                getChildren().add(new ExpressionVisual<>(SyntaxManager.SYNTAX_MANAGER.SUPPORTED_TYPES.get(typePiece.replaceAll("%", ""))));
             } else {
                 getChildren().add(defaultText(typePiece));
             }

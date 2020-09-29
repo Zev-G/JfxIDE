@@ -1,5 +1,6 @@
 package tmw.me.com.language.syntaxPiece.events.statements;
 
+import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.syntaxPiece.events.Event;
 import tmw.me.com.language.syntaxPiece.expressions.Expression;
 
@@ -33,5 +34,19 @@ public class IfStatement extends Event {
 
     public boolean isRanLastTime() {
         return ranLastTime;
+    }
+
+    @Override
+    public IfStatement duplicate() {
+        IfStatement ifStatement = new IfStatement(condition);
+        ifStatement.setCode(code);
+        ifStatement.setRunChunk(getRunChunk());
+        ifStatement.setParent(parent);
+        return ifStatement;
+    }
+
+    @Override
+    public void parsed(Parser parser) {
+
     }
 }

@@ -1,5 +1,6 @@
 package tmw.me.com.ide.fileTreeView;
 
+import com.jfoenix.controls.JFXTreeCell;
 import com.jfoenix.controls.JFXTreeView;
 import javafx.beans.value.ChangeListener;
 import javafx.embed.swing.SwingFXUtils;
@@ -13,6 +14,7 @@ import javafx.scene.input.*;
 import javafx.scene.paint.Color;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
+import org.apache.batik.transcoder.TranscoderOutput;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.tools.ComponentTabPane;
 
@@ -26,6 +28,9 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.*;
 
+/**
+ * This is the File Tree View used to navigate and edit files in the IDE.
+ */
 public class FileTreeView extends JFXTreeView<File> {
 
     private static final HashMap<String, Image> IMAGE_CACHE = new HashMap<>();
@@ -45,6 +50,11 @@ public class FileTreeView extends JFXTreeView<File> {
 
     private final HashMap<File, TreeItem<File>> fileMap = new HashMap<>();
 
+    /**
+     *
+     * @param fileRoot The root file, should be a folder.
+     * @param ide The IDE that owns this File Tree View.
+     */
     public FileTreeView(File fileRoot, Ide ide) {
         this.fileRoot = fileRoot;
         this.ide = ide;
@@ -63,7 +73,10 @@ public class FileTreeView extends JFXTreeView<File> {
         return fileMap;
     }
 
-    private static class CustomCell extends TreeCell<File> {
+    /**
+     * This is the cell used by {@link FileTreeView}, it implements the ContextMenu, Graphic, Opening, and Dragging functionalities.
+     */
+    private static class CustomCell extends JFXTreeCell<File> {
 
         private ContextMenu contextMenu;
         private MenuItem requireIsFolder;
@@ -332,6 +345,9 @@ public class FileTreeView extends JFXTreeView<File> {
             };
         }
 
+        /**
+         * Gets an ImageView from a file, this also caches the image so that it doesn't need to be processed more than once.
+         */
         private ImageView imageViewFromFile(File f) throws TranscoderException {
             String name = "";
             if (f.isDirectory()) {
@@ -360,6 +376,9 @@ public class FileTreeView extends JFXTreeView<File> {
         }
     }
 
+    /**
+     * This is the item class used by {@link FileTreeView}, this item implements the file listing functionality.
+     */
     private static class CustomItem extends TreeItem<File> {
 
         private ComponentTabPane.ComponentTab<?> componentTab;
@@ -399,6 +418,12 @@ public class FileTreeView extends JFXTreeView<File> {
     }
 
 
+    /**
+     *
+     * @param inputStream The SVG's input stream.
+     * @return A javafx image from the svg.
+     * @throws TranscoderException Throws from {@link BufferedImageTranscoder#transcode(TranscoderInput, TranscoderOutput)}
+     */
     public static Image imageFromSvg(InputStream inputStream) throws TranscoderException {
         BufferedImageTranscoder trans = new BufferedImageTranscoder();
 
