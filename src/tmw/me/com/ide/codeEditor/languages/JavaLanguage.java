@@ -17,7 +17,7 @@ public class JavaLanguage extends LanguageSupport {
 
     private static final String KEYWORDS_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
     private static final String COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/";
-    private static final String PAREN_PATTERN = "((|([A-z]*))\\()|\\)";
+    private static final String PAREN_PATTERN = "((|[A-z]*)\\()|\\)";
     private static final String BRACE_PATTERN = "\\{|\\}";
     private static final String BRACKET_PATTERN = "\\[|\\]";
     private static final String SEMICOLON_PATTERN = ";";

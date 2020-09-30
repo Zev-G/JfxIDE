@@ -25,6 +25,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
+import javafx.scene.text.Font;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -104,6 +105,7 @@ public class ComponentTabPane extends TabPane {
             }
             value = node;
             label.setText(s);
+            label.getStyleClass().add("tab-title");
             label.setContextMenu(makeContextMenu());
             ToolTipBuilder toolTipBuilder = new ToolTipBuilder();
             toolTipBuilder.headerProperty().bind(label.textProperty());

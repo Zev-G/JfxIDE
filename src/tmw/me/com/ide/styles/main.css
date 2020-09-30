@@ -25,6 +25,29 @@
     -fx-background-color: -darker-background-color;
 }
 
+.tab-title {
+    -fx-font-size: 14;
+}
+
+.fr-vbox {
+    -fx-background-radius: 0 0 5 5;
+    -fx-background-color: -main-background-color;
+    -fx-effect: dropshadow(gaussian, -darkest-background-color, 10, 0.0 , 0 , 7);
+    -fx-padding: 7.5 15 7.5 15;
+}
+.fr-text-field {
+    -fx-background-color: -lighter-background-color;
+    -fx-text-fill: -default-text-color;
+    -fx-padding: 1 2 1 2;
+    -fx-font-size: 15;
+}
+.fr-text-field:focused {
+    -fx-border-color: -highlight-color;
+    -fx-border-radius: 5;
+    -fx-border-width: 1;
+    -fx-padding: 0 1 0 1;
+}
+
 .run-selector {
     -fx-background-color: -main-background-color;
     -fx-background-radius: 2;

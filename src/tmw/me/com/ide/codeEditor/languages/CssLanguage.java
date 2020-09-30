@@ -19,7 +19,7 @@ public class CssLanguage extends LanguageSupport {
     private static final String PAREN_PATTERN = "((|([A-z]*))\\()|\\)";
     private static final String CLASS_PATTERN = "\\.([A-z]|-|\\\\|\\|)+";
     private static final String COLOR_CODE_PATTERN = "#([A-z]|[0-9])+";
-    private static final String PSEUDO_CLASS_PATTERN = ":[A-z]+";
+    private static final String PSEUDO_CLASS_PATTERN = ":([A-z]|-)+";
 
     private static final Pattern PATTERN = Pattern.compile("" +
             "(?<COMMENT>" + COMMENT_PATTERN + ")" +

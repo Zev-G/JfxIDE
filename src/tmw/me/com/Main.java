@@ -22,7 +22,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Script Lab
-        primaryStage.setScene(new Scene(new Ide(new File("C:\\Users\\Windows\\Desktop\\McMods\\SimpleCodingLanguage"))));
+        primaryStage.setScene(new Scene(new Ide(new File("C:\\Users\\Zev\\IdeaProjects\\SimpleCodingLanguage\\src\\tmw\\me\\com"))));
         primaryStage.show();
         primaryStage.setWidth(800);
         primaryStage.setHeight(600);

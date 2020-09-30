@@ -1,7 +1,12 @@
 package tmw.me.com.ide.codeEditor;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,16 +16,19 @@ import javafx.scene.Node;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Popup;
 import javafx.stage.Window;
 
+import javafx.util.Duration;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
@@ -62,7 +70,9 @@ public class IntegratedTextEditor extends CodeArea {
 
     public static final String INDENT = "  ";
 
+    // Properties
     private final ObservableList<Integer> errorLines = FXCollections.observableArrayList();
+    private final BooleanProperty showingFindAndReplace = new SimpleBooleanProperty(this, "showing-find-and-replace", false);
     private final ObjectProperty<LanguageSupport> languageSupport = new SimpleObjectProperty<>();
 
     private final ArrayList<IdeSpecialParser.PossiblePiecePackage> factoryOrder = new ArrayList<>();
@@ -71,8 +81,15 @@ public class IntegratedTextEditor extends CodeArea {
     private final Popup autoCompletePopup = new Popup();
     private final ArrayList<String> selectionQueue = new ArrayList<>();
 
+    private final TextField findTextField = new TextField();
+    private final TextField replaceTextField = new TextField();
+    private final HBox findHBox = new HBox(findTextField);
+    private final HBox replaceHBox = new HBox(replaceTextField);
+    private final VBox findAndReplaceVBox = new VBox(findHBox, replaceHBox);
+    private final Pane findAndReplaceLayoutHolder = new Pane(findAndReplaceVBox);
+
     private final VirtualizedScrollPane<IntegratedTextEditor> virtualizedScrollPane = new VirtualizedScrollPane<>(this);
-    private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane);
+    private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, findAndReplaceLayoutHolder);
 
     private int selectionIndex = 0;
 
@@ -107,9 +124,41 @@ public class IntegratedTextEditor extends CodeArea {
      */
     public IntegratedTextEditor(LanguageSupport languageSupport) {
 
+        // Some other listeners
         parentProperty().addListener((observableValue, parent, t1) -> {
             if (t1 != virtualizedScrollPane && t1 != null) {
                 System.err.println("Integrated Text Area's parent must always be equal to textAreaHolder");
+            }
+        });
+
+        showingFindAndReplace.addListener((observableValue, aBoolean, t1) -> {
+            if (t1 && !aBoolean) {
+                findAndReplaceVBox.setOpacity(0);
+                findAndReplaceVBox.setScaleX(0.3);
+                findAndReplaceVBox.setScaleY(0.3);
+                findAndReplaceVBox.setVisible(true);
+                findAndReplaceLayoutHolder.setVisible(true);
+                findAndReplaceLayoutHolder.setMouseTransparent(false);
+                FadeTransition fadeTransition = new FadeTransition(new Duration(200));
+                fadeTransition.setToValue(1);
+                ScaleTransition scaleTransition = new ScaleTransition(new Duration(200));
+                scaleTransition.setToX(1);
+                scaleTransition.setToY(1);
+                ParallelTransition parallelTransition = new ParallelTransition(findAndReplaceVBox, fadeTransition, scaleTransition);
+                parallelTransition.play();
+            } else if (aBoolean && !t1) {
+                FadeTransition fadeTransition = new FadeTransition(new Duration(200));
+                fadeTransition.setToValue(0);
+                ScaleTransition scaleTransition = new ScaleTransition(new Duration(200));
+                scaleTransition.setToX(0.3);
+                scaleTransition.setToY(0.3);
+                ParallelTransition parallelTransition = new ParallelTransition(findAndReplaceVBox, fadeTransition, scaleTransition);
+                parallelTransition.play();
+                parallelTransition.setOnFinished(actionEvent -> {
+                    findAndReplaceVBox.setVisible(false);
+                    findAndReplaceLayoutHolder.setVisible(false);
+                    findAndReplaceLayoutHolder.setMouseTransparent(true);
+                });
             }
         });
 
@@ -127,6 +176,9 @@ public class IntegratedTextEditor extends CodeArea {
             }
         });
 
+
+
+        // Language
         this.languageSupport.set(languageSupport);
         languageSupport.addBehaviour(this);
 
@@ -135,6 +187,13 @@ public class IntegratedTextEditor extends CodeArea {
         runnableEventScheduler.setRunOnFx(false);
         this.plainTextChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(plainTextChange -> runnableEventScheduler.run());
 
+        //M15.898,4.045c-0.271-0.272-0.713-0.272-0.986,0l-4.71,4.711L5.493,4.045c-0.272-0.272-0.714-0.272-0.986,0s-0.272,0.714,0,0.986l4.709,4.711l-4.71,4.711c-0.272,0.271-0.272,0.713,0,0.986c0.136,0.136,0.314,0.203,0.492,0.203c0.179,0,0.357-0.067,0.493-0.203l4.711-4.711l4.71,4.711c0.137,0.136,0.314,0.203,0.494,0.203c0.178,0,0.355-0.067,0.492-0.203c0.273-0.273,0.273-0.715,0-0.986l-4.711-4.711l4.711-4.711C16.172,4.759,16.172,4.317,15.898,4.045z
+        // Style classes
+        findAndReplaceVBox.getStyleClass().add("fr-vbox");
+        findHBox.getStyleClass().add("fr-hbox");
+        replaceHBox.getStyleClass().add("fr-hbox");
+        findTextField.getStyleClass().add("fr-text-field");
+        replaceTextField.getStyleClass().add("fr-text-field");
 
         // Value tweaking and value setting
         this.popupScrollPane.setMaxHeight(300);
@@ -143,10 +202,19 @@ public class IntegratedTextEditor extends CodeArea {
         autoCompletePopup.getContent().add(popupScrollPane);
         autoCompletePopup.setAutoHide(true);
         this.setParagraphGraphicFactory(LineGraphicFactory.get(this));
+        findAndReplaceLayoutHolder.setMouseTransparent(false);
+        findAndReplaceLayoutHolder.setVisible(false);
+        findAndReplaceVBox.setVisible(false);
+        findAndReplaceVBox.setSpacing(5);
+        findHBox.setSpacing(3);
+        replaceHBox.setSpacing(3);
 
         // Layout
         AnchorPane.setTopAnchor(virtualizedScrollPane, 0D); AnchorPane.setBottomAnchor(virtualizedScrollPane, 0D);
         AnchorPane.setRightAnchor(virtualizedScrollPane, 0D); AnchorPane.setLeftAnchor(virtualizedScrollPane, 0D);
+
+        AnchorPane.setTopAnchor(findAndReplaceLayoutHolder, 0D);
+        AnchorPane.setRightAnchor(findAndReplaceLayoutHolder, 10D);
 
         // This event handlers
         Pattern whiteSpace = Pattern.compile( "^\\s+" );
@@ -154,6 +222,9 @@ public class IntegratedTextEditor extends CodeArea {
             String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
             KeyCode keyCode = keyEvent.getCode();
             String textAfterCaret = this.getText().substring(this.getCaretPosition());
+            if ((keyCode == KeyCode.F || keyCode == KeyCode.R || keyCode == KeyCode.H) && keyEvent.isControlDown()) {
+                showingFindAndReplace.set(!showingFindAndReplace.get());
+            }
             if (!selectionQueue.isEmpty() && keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
                 if (autoCompletePopup.isShowing() && (keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
                     if (popupBox.getChildren().size() > selectionIndex) {
