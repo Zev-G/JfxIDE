@@ -7,6 +7,7 @@
     -default-text-color: #bcc5d2;
     -fx-text-base-color: #bcc5d2;
     -fx-focused-text-base-color: #bcc5d2;
+    -selected-line: #222d3b;
     -light-highlight-color: #e05c5c;
     -highlight-color: #b94646;
 }
@@ -14,6 +15,10 @@
 @font-face {
     font-family: Montserrat;
     src: url('../codeEditor/Montserrat-Regular.ttf');
+}
+
+.text-field {
+    -fx-accent: -selected-line;
 }
 
 .root {
@@ -30,22 +35,51 @@
 }
 
 .fr-vbox {
-    -fx-background-radius: 0 0 5 5;
-    -fx-background-color: -main-background-color;
+    -fx-background-radius: 0 0 10 10;
+    -fx-background-color: #202937;
     -fx-effect: dropshadow(gaussian, -darkest-background-color, 10, 0.0 , 0 , 7);
     -fx-padding: 7.5 15 7.5 15;
 }
+
+.fr-top-border-pane {
+    -fx-padding: 0 0 5 0;
+}
+
+.fr-close {
+    -fx-scale-x: 1.2;
+    -fx-scale-y: 1.2;
+    -fx-fill: lightgray;
+    -fx-cursor: hand;
+}
+.fr-close:hover {
+    -fx-fill: -highlight-color;
+}
+
 .fr-text-field {
     -fx-background-color: -lighter-background-color;
     -fx-text-fill: -default-text-color;
-    -fx-padding: 1 2 1 2;
+    -fx-padding: 1 4 1 4;
     -fx-font-size: 15;
 }
 .fr-text-field:focused {
     -fx-border-color: -highlight-color;
     -fx-border-radius: 5;
     -fx-border-width: 1;
-    -fx-padding: 0 1 0 1;
+    -fx-padding: 0 3 0 3;
+}
+.fr-label {
+    -fx-background-color: -fx-background;
+    -fx-background-radius: 5;
+    -fx-font-size: 13;
+    -fx-font-weight: bold;
+    -fx-padding: 2 5 2 5;
+}
+.fr-label:hover {
+    -fx-background-color: -lighter-background-color;
+}
+.fr-title {
+    -fx-font-size: 13;
+    -fx-font-weight: bold;
 }
 
 .run-selector {

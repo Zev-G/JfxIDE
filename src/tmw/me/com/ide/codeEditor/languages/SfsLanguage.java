@@ -44,7 +44,7 @@ public class SfsLanguage extends LanguageSupport {
      */
     public void addBehaviour(IntegratedTextEditor integratedTextEditor) {
         integratedTextEditor.caretPositionProperty().addListener(new ChangeListenerScheduler<>(200, (observableValue, integer, t1) -> {
-            if (!t1.equals(integer)) {
+            if (!t1.equals(integer) && integratedTextEditor.getFindSelectedIndex() < 0) {
                 for (IndexRange indexRange : highlightedVariables) {
                     Collection<String> collection = new ArrayList<>(integratedTextEditor.getStyleAtPosition(indexRange.getStart() + 1));
                     if (collection.contains("selected-word")) {
@@ -55,15 +55,17 @@ public class SfsLanguage extends LanguageSupport {
                 highlightedVariables.clear();
                 int[] range = integratedTextEditor.expandFromPoint(t1, '{', '}', ' ', '%');
                 String fullText = integratedTextEditor.getText();
-                String text = integratedTextEditor.getText(range[0], range[1]);
-                if (text.startsWith("{") && text.endsWith("}")) {
-                    for (IndexRange variableRange : integratedTextEditor.allInstancesOfStringInString(fullText, text)) {
-                        if (variableRange.getStart() + 1 < fullText.length()) {
-                            Collection<String> collection = new ArrayList<>(integratedTextEditor.getStyleAtPosition(variableRange.getStart() + 1));
-                            if (!collection.isEmpty()) {
-                                collection.add("selected-word");
-                                highlightedVariables.add(variableRange);
-                                integratedTextEditor.setStyle(variableRange.getStart(), variableRange.getEnd(), collection);
+                if (range[0] > 0 && range[1] < fullText.length()) {
+                    String text = integratedTextEditor.getText(range[0], range[1]);
+                    if (text.startsWith("{") && text.endsWith("}")) {
+                        for (IndexRange variableRange : integratedTextEditor.allInstancesOfStringInString(fullText, text)) {
+                            if (variableRange.getStart() + 1 < fullText.length()) {
+                                Collection<String> collection = new ArrayList<>(integratedTextEditor.getStyleAtPosition(variableRange.getStart() + 1));
+                                if (!collection.isEmpty()) {
+                                    collection.add("selected-word");
+                                    highlightedVariables.add(variableRange);
+                                    integratedTextEditor.setStyle(variableRange.getStart(), variableRange.getEnd(), collection);
+                                }
                             }
                         }
                     }

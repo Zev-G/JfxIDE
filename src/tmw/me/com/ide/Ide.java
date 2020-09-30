@@ -27,7 +27,7 @@ import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.fileTreeView.FileTreeView;
 import tmw.me.com.ide.tools.ComponentTabPane;
-import tmw.me.com.ide.tooltip.ToolTipBuilder;
+import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
 
 import java.io.*;
 import java.util.function.Consumer;

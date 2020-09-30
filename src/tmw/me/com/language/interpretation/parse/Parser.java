@@ -50,7 +50,7 @@ public final class Parser {
         System.out.println("And under neath: " + this.errorHandler);
     }
 
-    public static boolean PRINTING_CHUNK_PARSING_INFO = true;
+    public static boolean PRINTING_CHUNK_PARSING_INFO = false;
 
     /**
      *

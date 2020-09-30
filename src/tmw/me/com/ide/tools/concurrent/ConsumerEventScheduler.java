@@ -10,8 +10,12 @@ import java.util.function.Consumer;
 public class ConsumerEventScheduler<T> extends EventSchedulerBase<Consumer<T>> implements Consumer<T> {
 
     public ConsumerEventScheduler(long delay, Consumer<T> consumer) {
+        this(delay, true, consumer);
+    }
+    public ConsumerEventScheduler(long delay, boolean fxThread, Consumer<T> consumer) {
         getsRan = consumer;
         waitTime = delay;
+        this.runOnFx = fxThread;
     }
 
     @Override

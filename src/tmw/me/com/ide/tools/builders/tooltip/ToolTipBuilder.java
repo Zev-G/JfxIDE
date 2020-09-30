@@ -1,4 +1,4 @@
-package tmw.me.com.ide.tooltip;
+package tmw.me.com.ide.tools.builders.tooltip;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -8,11 +8,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.SVGPath;
+import tmw.me.com.ide.tools.builders.Builder;
 
 /**
  * All ToolTips in the IDE are built with this, this is simply a class for quickly creating powerful ToolTips which follow a common structure.
  */
-public class ToolTipBuilder {
+public class ToolTipBuilder extends Builder<Tooltip> {
 
     private StringProperty header = new SimpleStringProperty();
     private StringProperty mainText = new SimpleStringProperty();

@@ -14,7 +14,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import org.reactfx.collection.LiveList;
 import org.reactfx.value.Val;
-import tmw.me.com.ide.tooltip.ToolTipBuilder;
+import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
 
 import java.util.function.IntFunction;
 

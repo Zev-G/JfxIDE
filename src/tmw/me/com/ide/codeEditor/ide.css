@@ -51,7 +51,7 @@
 }
 
 .styled-text-area .selection {
-    -fx-fill: -editor-selection;
+    -fx-fill: -editor-selection !important;
 }
 .caret {
     -fx-stroke: white;
@@ -66,3 +66,14 @@
     -rtfx-border-stroke-width: 1px;
     -rtfx-border-stroke-color: rgba(100, 146, 234, 0.2);
 }
+
+.found {
+    -rtfx-background-color: rgba(64, 255, 89, 0.2);
+    -rtfx-border-stroke-width: 1px;
+    -fx-fill: #c4c4c4 !important;
+    -rtfx-border-stroke-color: rgba(64, 255, 89, 0.3);
+}
+
+
+
+

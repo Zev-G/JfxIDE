@@ -25,13 +25,12 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
-import javafx.scene.text.Font;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
-import tmw.me.com.ide.tooltip.ToolTipBuilder;
+import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
 
 import java.io.File;
 import java.io.FileWriter;
