@@ -2,14 +2,23 @@ package tmw.me.com.ide.tools.builders;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.css.PseudoClass;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.SVGPath;
 
 public final class SVGPathBuilder extends ShapeBuilder<SVGPathBuilder, SVGPath> {
 
     private StringProperty contentProperty;
+    private boolean selectable = false;
+    private boolean selected = false;
 
     public static SVGPathBuilder create() {
         return new SVGPathBuilder();
+    }
+
+    public SVGPathBuilder makeSelectable() {
+        selectable = true;
+        return this;
     }
 
     public SVGPathBuilder setContent(String contentProperty) {
@@ -33,6 +42,12 @@ public final class SVGPathBuilder extends ShapeBuilder<SVGPathBuilder, SVGPath> 
             svgPath.getStyleClass().addAll(styleClasses);
         if (pickOnBounds != null)
             svgPath.pickOnBoundsProperty().bind(pickOnBounds);
+        if (selectable) {
+            svgPath.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseEvent -> {
+                selected = !selected;
+                svgPath.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), selected);
+            });
+        }
         return svgPath;
     }
 

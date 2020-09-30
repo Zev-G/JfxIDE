@@ -55,6 +55,19 @@
     -fx-fill: -highlight-color;
 }
 
+.fr-tool-bar-item {
+    -fx-scale-x: 1.2;
+    -fx-scale-y: 1.2;
+    -fx-fill: lightgray;
+    -fx-cursor: hand;
+}
+.fr-tool-bar-item:hover {
+    -fx-fill: white;
+}
+.fr-tool-bar-item:selected {
+    -fx-fill: -highlight-color;
+}
+
 .fr-text-field {
     -fx-background-color: -lighter-background-color;
     -fx-text-fill: -default-text-color;
@@ -78,8 +91,11 @@
     -fx-background-color: -lighter-background-color;
 }
 .fr-title {
-    -fx-font-size: 13;
+    -fx-font-size: 15;
     -fx-font-weight: bold;
+}
+.fr-error {
+    -fx-background-color: #c34c3c;
 }
 
 .run-selector {

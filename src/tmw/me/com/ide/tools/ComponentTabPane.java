@@ -119,10 +119,6 @@ public class ComponentTabPane extends TabPane {
             this.setGraphic(label);
             label.setTextFill(DEFAULT_LABEL_COLOR);
             makeDraggable();
-            this.setOnClosed(event -> {
-                if (stage.isShowing()) stage.hide();
-                ALL_TAB_PANES.remove(getIde().getTabPane());
-            });
             this.tabPaneProperty().addListener(new ChangeListener<>() {
                 @Override
                 public void changed(ObservableValue<? extends TabPane> observableValue, TabPane tabPane, TabPane t1) {

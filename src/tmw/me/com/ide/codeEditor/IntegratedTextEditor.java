@@ -3,6 +3,7 @@ package tmw.me.com.ide.codeEditor;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -10,6 +11,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
@@ -35,12 +37,14 @@ import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.codeEditor.languages.SfsLanguage;
 import tmw.me.com.ide.tools.builders.SVGPathBuilder;
+import tmw.me.com.ide.tools.concurrent.ChangeListenerScheduler;
 import tmw.me.com.ide.tools.concurrent.ConsumerEventScheduler;
 import tmw.me.com.ide.tools.concurrent.JFXEventScheduler;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * <p>This {@link CodeArea} adds lots of extra functionality, much of which can be customized with custom {@link LanguageSupport}.</p>
@@ -51,6 +55,7 @@ import java.util.regex.Pattern;
  *     <li>Comment continuation</li>
  *     <li>Backwards Indentation</li>
  *     <li>Surround selection with bracket/quote</li>
+ *     <li>Find and Replace</li>
  *     <li>Auto double quotes and double brackets</li>
  *     <li>Code Highlighting*</li>
  *     <li>Auto Complete*</li>
@@ -58,7 +63,6 @@ import java.util.regex.Pattern;
  * </ul>
  * <h3>Planned Features</h3>
  * <ul>
- *     <li>Find and Replace</li>
  *     <li>More interactive highlighting features</li>
  *     <li>A nice context menu</li>
  * </ul>
@@ -79,14 +83,17 @@ public class IntegratedTextEditor extends CodeArea {
     private final Popup autoCompletePopup = new Popup();
     private final ArrayList<String> selectionQueue = new ArrayList<>();
 
-    private final Label findLabel    = new Label("Find Next ");
-    private final Label replaceLabel = new Label("Replace    ");
+    private final Label findLabel    = new Label("Find Next  ");
+    private final Label replaceLabel = new Label("Replace All");
     private final TextField findTextField = new TextField();
     private final TextField replaceTextField = new TextField();
     private final SVGPath closeFr = SVGPathBuilder.create().addStyleClass("fr-close").setPickOnBounds(true)
             .setContent("M15.898,4.045c-0.271-0.272-0.713-0.272-0.986,0l-4.71,4.711L5.493,4.045c-0.272-0.272-0.714-0.272-0.986,0s-0.272,0.714,0,0.986l4.709,4.711l-4.71,4.711c-0.272,0.271-0.272,0.713,0,0.986c0.136,0.136,0.314,0.203,0.492,0.203c0.179,0,0.357-0.067,0.493-0.203l4.711-4.711l4.71,4.711c0.137,0.136,0.314,0.203,0.494,0.203c0.178,0,0.355-0.067,0.492-0.203c0.273-0.273,0.273-0.715,0-0.986l-4.711-4.711l4.711-4.711C16.172,4.759,16.172,4.317,15.898,4.045z")
             .build();
-    private final HBox frRightToolBar = new HBox();
+    private final SVGPath toggleRegex = SVGPathBuilder.create().addStyleClass("fr-tool-bar-item").setPickOnBounds(true).makeSelectable()
+            .setContent("M 9.3 10.5 V 6.9 l -2.9 1.8 l -1 -1.8 l 3.1 -1.7 l -3.1 -1.7 l 1.1 -1.8 l 2.9 1.8 V 0 h 2.1 v 3.6 l 2.9 -1.8 L 15.4 3.6 l -3.1 1.7 L 15.4 6.9 l -1.1 1.8 l -2.9 -1.8 v 3.5 H 9.3 z M 4.3 13.2 c 0 -1.7 -1.8 -2.7 -3.3 -1.9 c -1.4 0.8 -1.4 2.9 0 3.8 C 2.5 15.9 4.3 14.8 4.3 13.2 z")
+            .build();
+    private final HBox frRightToolBar = new HBox(toggleRegex);
     private final Label centerFrText = new Label("Find and Replace");
     private final BorderPane frTop = new BorderPane();
     private final HBox findHBox = new HBox(findLabel, findTextField);
@@ -96,6 +103,10 @@ public class IntegratedTextEditor extends CodeArea {
 
     private final VirtualizedScrollPane<IntegratedTextEditor> virtualizedScrollPane = new VirtualizedScrollPane<>(this);
     private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, findAndReplaceLayoutHolder);
+
+    private double dragStart;
+    private final ParallelTransition fadeOut;
+    private final ParallelTransition fadeIn;
 
     private int findSelectedIndex;
     private final ArrayList<IndexRange> found = new ArrayList<>();
@@ -135,8 +146,48 @@ public class IntegratedTextEditor extends CodeArea {
 
         // Some other listeners
         parentProperty().addListener((observableValue, parent, t1) -> {
-            if (t1 != virtualizedScrollPane && t1 != null) {
+            if (t1 != virtualizedScrollPane && t1 != null)
                 System.err.println("Integrated Text Area's parent must always be equal to textAreaHolder");
+        });
+
+        FadeTransition fadeOutTransition = new FadeTransition(new Duration(200));
+        fadeOutTransition.setToValue(0);
+        ScaleTransition scaleOutTransition = new ScaleTransition(new Duration(200));
+        scaleOutTransition.setToX(0.3);
+        scaleOutTransition.setToY(0.3);
+        TranslateTransition translateOutTransition = new TranslateTransition(new Duration(200));
+        translateOutTransition.setToY(-175);
+        fadeOut = new ParallelTransition(findAndReplaceVBox, fadeOutTransition, scaleOutTransition, translateOutTransition);
+        fadeOut.setOnFinished(actionEvent -> {
+            findAndReplaceVBox.setVisible(false);
+            findAndReplaceLayoutHolder.setVisible(false);
+            findAndReplaceLayoutHolder.setMouseTransparent(true);
+            findAndReplaceVBox.setTranslateY(0);
+            this.requestFocus();
+        });
+        TranslateTransition translateTransition = new TranslateTransition(new Duration(200));
+        translateTransition.setToY(0);
+        FadeTransition fadeTransition = new FadeTransition(new Duration(200));
+        fadeTransition.setToValue(1);
+        ScaleTransition scaleTransition = new ScaleTransition(new Duration(200));
+        scaleTransition.setToX(1);
+        scaleTransition.setToY(1);
+        fadeIn = new ParallelTransition(findAndReplaceVBox, fadeTransition, scaleTransition, translateTransition);
+        fadeIn.setOnFinished(actionEvent -> highlightFind());
+
+        findAndReplaceVBox.setOnMousePressed(mouseEvent -> dragStart = mouseEvent.getSceneY());
+        findAndReplaceVBox.setOnMouseDragged(mouseEvent -> {
+            double newFade = fadeOut.getTotalDuration().toMillis() - fadeOut.getTotalDuration().toMillis() * (mouseEvent.getSceneY() / dragStart);
+            fadeOut.play();
+            fadeOut.jumpTo(new Duration(newFade));
+            fadeOut.pause();
+        });
+        findAndReplaceVBox.setOnMouseReleased(mouseEvent -> {
+            double newLoc = fadeOut.getTotalDuration().toMillis() - fadeOut.getTotalDuration().toMillis() * (mouseEvent.getSceneY() / dragStart);
+            if (newLoc > 55) {
+                showingFindAndReplace.set(false);
+            } else {
+                fadeIn.play();
             }
         });
 
@@ -145,31 +196,13 @@ public class IntegratedTextEditor extends CodeArea {
                 findAndReplaceVBox.setOpacity(0);
                 findAndReplaceVBox.setScaleX(0.3);
                 findAndReplaceVBox.setScaleY(0.3);
+                findAndReplaceVBox.setTranslateY(-175);
                 findAndReplaceVBox.setVisible(true);
                 findAndReplaceLayoutHolder.setVisible(true);
                 findAndReplaceLayoutHolder.setMouseTransparent(false);
-                FadeTransition fadeTransition = new FadeTransition(new Duration(200));
-                fadeTransition.setToValue(1);
-                ScaleTransition scaleTransition = new ScaleTransition(new Duration(200));
-                scaleTransition.setToX(1);
-                scaleTransition.setToY(1);
-                ParallelTransition parallelTransition = new ParallelTransition(findAndReplaceVBox, fadeTransition, scaleTransition);
-                parallelTransition.play();
-                parallelTransition.setOnFinished(actionEvent -> highlightFind());
+                fadeIn.play();
             } else if (aBoolean && !t1) {
-                FadeTransition fadeTransition = new FadeTransition(new Duration(200));
-                fadeTransition.setToValue(0);
-                ScaleTransition scaleTransition = new ScaleTransition(new Duration(200));
-                scaleTransition.setToX(0.3);
-                scaleTransition.setToY(0.3);
-                ParallelTransition parallelTransition = new ParallelTransition(findAndReplaceVBox, fadeTransition, scaleTransition);
-                parallelTransition.play();
-                parallelTransition.setOnFinished(actionEvent -> {
-                    findAndReplaceVBox.setVisible(false);
-                    findAndReplaceLayoutHolder.setVisible(false);
-                    findAndReplaceLayoutHolder.setMouseTransparent(true);
-                    this.requestFocus();
-                });
+                fadeOut.play();
                 highlight();
             }
         });
@@ -187,8 +220,6 @@ public class IntegratedTextEditor extends CodeArea {
                 this.getStylesheets().add(t1.getStyleSheet());
             }
         });
-
-
 
         // Language
         this.languageSupport.set(languageSupport);
@@ -426,12 +457,9 @@ public class IntegratedTextEditor extends CodeArea {
                 this.replaceText(indexRange.getStart() + difference, indexRange.getEnd() + difference, replaceTextField.getText());
             }
         });
-        findTextField.setOnKeyPressed(new JFXEventScheduler<>(100, keyEvent -> {
-            if (keyEvent.getCode() != null) {
-                highlightFind();
-            }
-        }));
+        findTextField.textProperty().addListener(new ChangeListenerScheduler<>(400, false, (observableValue, s, t1) -> highlightFind()));
         closeFr.setOnMousePressed(mouseEvent -> showingFindAndReplace.set(false));
+        toggleRegex.setOnMousePressed(mouseEvent -> highlightFind());
     }
 
     public AnchorPane getTextAreaHolder() {
@@ -469,14 +497,24 @@ public class IntegratedTextEditor extends CodeArea {
             @Override
             public void run() {
                 super.run();
-                Pattern pattern = Pattern.compile(Pattern.quote(findTextField.getText()));
+                if (findTextField.getText().equals(""))
+                    return;
+                Pattern pattern;
+                try {
+                    pattern = toggleRegex.getPseudoClassStates().contains(PseudoClass.getPseudoClass("selected")) ?
+                            Pattern.compile(findTextField.getText()) : Pattern.compile(Pattern.quote(findTextField.getText()));
+                } catch (PatternSyntaxException e) {
+                    findTextField.getStyleClass().add("fr-error");
+                    return;
+                }
+                findTextField.getStyleClass().remove("fr-error");
                 Matcher matcher = pattern.matcher(getText());
                 found.clear();
                 while (matcher.find()) {
                     found.add(new IndexRange(matcher.start(), matcher.end()));
                 }
                 Platform.runLater(() -> {
-                    for (IndexRange indexRange : found) {
+                    for (IndexRange indexRange : new ArrayList<>(found)) {
                         setStyle(indexRange.getStart(), indexRange.getEnd(), Collections.singleton("found"));
                     }
                 });
@@ -510,7 +548,7 @@ public class IntegratedTextEditor extends CodeArea {
     }
 
     /**
-     * Selects the next item in the auto complete popup; wraps around.
+     * Selects the next item in the auto complete popup; wraps around if needed.
      */
     public void selectNext() {
         StringBuilder builder = new StringBuilder();
