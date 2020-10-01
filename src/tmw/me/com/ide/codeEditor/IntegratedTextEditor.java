@@ -39,7 +39,6 @@ import tmw.me.com.ide.codeEditor.languages.SfsLanguage;
 import tmw.me.com.ide.tools.builders.SVGPathBuilder;
 import tmw.me.com.ide.tools.concurrent.ChangeListenerScheduler;
 import tmw.me.com.ide.tools.concurrent.ConsumerEventScheduler;
-import tmw.me.com.ide.tools.concurrent.JFXEventScheduler;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -177,17 +176,21 @@ public class IntegratedTextEditor extends CodeArea {
 
         findAndReplaceVBox.setOnMousePressed(mouseEvent -> dragStart = mouseEvent.getSceneY());
         findAndReplaceVBox.setOnMouseDragged(mouseEvent -> {
-            double newFade = fadeOut.getTotalDuration().toMillis() - fadeOut.getTotalDuration().toMillis() * (mouseEvent.getSceneY() / dragStart);
-            fadeOut.play();
-            fadeOut.jumpTo(new Duration(newFade));
-            fadeOut.pause();
+            if (showingFindAndReplace.get()) {
+                double newFade = fadeOut.getTotalDuration().toMillis() - fadeOut.getTotalDuration().toMillis() * (mouseEvent.getSceneY() / dragStart);
+                fadeOut.play();
+                fadeOut.jumpTo(new Duration(newFade));
+                fadeOut.pause();
+            }
         });
         findAndReplaceVBox.setOnMouseReleased(mouseEvent -> {
-            double newLoc = fadeOut.getTotalDuration().toMillis() - fadeOut.getTotalDuration().toMillis() * (mouseEvent.getSceneY() / dragStart);
-            if (newLoc > 55) {
-                showingFindAndReplace.set(false);
-            } else {
-                fadeIn.play();
+            if (showingFindAndReplace.get()) {
+                double newLoc = fadeOut.getTotalDuration().toMillis() - fadeOut.getTotalDuration().toMillis() * (mouseEvent.getSceneY() / dragStart);
+                if (newLoc > 55) {
+                    showingFindAndReplace.set(false);
+                } else {
+                    fadeIn.play();
+                }
             }
         });
 
@@ -502,7 +505,7 @@ public class IntegratedTextEditor extends CodeArea {
                 Pattern pattern;
                 try {
                     pattern = toggleRegex.getPseudoClassStates().contains(PseudoClass.getPseudoClass("selected")) ?
-                            Pattern.compile(findTextField.getText()) : Pattern.compile(Pattern.quote(findTextField.getText()));
+                            Pattern.compile("(" + findTextField.getText() + ")+") : Pattern.compile(Pattern.quote(findTextField.getText()));
                 } catch (PatternSyntaxException e) {
                     findTextField.getStyleClass().add("fr-error");
                     return;

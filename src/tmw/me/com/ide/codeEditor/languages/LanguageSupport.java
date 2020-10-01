@@ -67,7 +67,7 @@ public abstract class LanguageSupport {
      *
      * @param matcher The matcher which the style class should be determined from, calling {@link Matcher#find()} will break highlighting.
      * @return A String which will be used for the pattern, currently this only supports a single String so you cannot return multiple style classes.
-     *         The returned style class should have a matching style in this Language's css file.
+     *         The returned style class should have a matching style in this Language's css file (defined in the constructor).
      */
     public abstract String styleClass(Matcher matcher);
 
