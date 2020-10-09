@@ -19,6 +19,7 @@ import javafx.scene.control.IndexRange;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -79,6 +80,9 @@ public class IntegratedTextEditor extends CodeArea {
     private final ArrayList<IdeSpecialParser.PossiblePiecePackage> factoryOrder = new ArrayList<>();
     private final VBox popupBox = new VBox();
     private final ScrollPane popupScrollPane = new SmoothishScrollpane(popupBox);
+    private final BorderPane titleBox = new BorderPane();
+    private final VBox popupParent = new VBox(titleBox, popupScrollPane);
+    private final Label popupTitleText = new Label("Autocomplete Suggestions");
     private final Popup autoCompletePopup = new Popup();
     private final ArrayList<String> selectionQueue = new ArrayList<>();
 
@@ -152,10 +156,10 @@ public class IntegratedTextEditor extends CodeArea {
         FadeTransition fadeOutTransition = new FadeTransition(new Duration(200));
         fadeOutTransition.setToValue(0);
         ScaleTransition scaleOutTransition = new ScaleTransition(new Duration(200));
-        scaleOutTransition.setToX(0.3);
-        scaleOutTransition.setToY(0.3);
+        scaleOutTransition.setToX(0.6);
+        scaleOutTransition.setToY(0.6);
         TranslateTransition translateOutTransition = new TranslateTransition(new Duration(200));
-        translateOutTransition.setToY(-175);
+        findAndReplaceVBox.heightProperty().addListener((observableValue, number, t1) -> translateOutTransition.setToY(-t1.doubleValue()));
         fadeOut = new ParallelTransition(findAndReplaceVBox, fadeOutTransition, scaleOutTransition, translateOutTransition);
         fadeOut.setOnFinished(actionEvent -> {
             findAndReplaceVBox.setVisible(false);
@@ -172,7 +176,6 @@ public class IntegratedTextEditor extends CodeArea {
         scaleTransition.setToX(1);
         scaleTransition.setToY(1);
         fadeIn = new ParallelTransition(findAndReplaceVBox, fadeTransition, scaleTransition, translateTransition);
-        fadeIn.setOnFinished(actionEvent -> highlightFind());
 
         findAndReplaceVBox.setOnMousePressed(mouseEvent -> dragStart = mouseEvent.getSceneY());
         findAndReplaceVBox.setOnMouseDragged(mouseEvent -> {
@@ -203,6 +206,10 @@ public class IntegratedTextEditor extends CodeArea {
                 findAndReplaceVBox.setVisible(true);
                 findAndReplaceLayoutHolder.setVisible(true);
                 findAndReplaceLayoutHolder.setMouseTransparent(false);
+                fadeIn.setOnFinished(actionEvent -> {
+                    highlightFind();
+                    fadeIn.setOnFinished(null);
+                });
                 fadeIn.play();
             } else if (aBoolean && !t1) {
                 fadeOut.play();
@@ -241,12 +248,14 @@ public class IntegratedTextEditor extends CodeArea {
         replaceLabel.getStyleClass().add("fr-label");
         frTop.getStyleClass().add("fr-top-border-pane");
         centerFrText.getStyleClass().add("fr-title");
+        popupTitleText.getStyleClass().add("popup-title");
+        popupParent.getStyleClass().add("auto-complete-parent");
 
         // Value tweaking and value setting
         this.popupScrollPane.setMaxHeight(300);
-        this.getStylesheets().add(IntegratedTextEditor.class.getResource("ide.css").toExternalForm());
-        popupScrollPane.getStylesheets().add(Ide.class.getResource("styles/main.css").toExternalForm());
-        autoCompletePopup.getContent().add(popupScrollPane);
+        this.getStylesheets().add(IntegratedTextEditor.class.getResource("ite.css").toExternalForm());
+        popupParent.getStylesheets().add(Ide.STYLE_SHEET);
+        autoCompletePopup.getContent().add(popupParent);
         autoCompletePopup.setAutoHide(true);
         this.setParagraphGraphicFactory(LineGraphicFactory.get(this));
         findAndReplaceLayoutHolder.setMouseTransparent(false);
@@ -258,6 +267,10 @@ public class IntegratedTextEditor extends CodeArea {
         frTop.setLeft(closeFr);
         frTop.setRight(frRightToolBar);
         frTop.setCenter(centerFrText);
+        titleBox.setCenter(popupTitleText);
+        popupScrollPane.setFitToWidth(true);
+        popupBox.setFillWidth(true);
+        popupParent.setEffect(new DropShadow());
 
         // Layout
         AnchorPane.setTopAnchor(virtualizedScrollPane, 0D); AnchorPane.setBottomAnchor(virtualizedScrollPane, 0D);
@@ -456,11 +469,13 @@ public class IntegratedTextEditor extends CodeArea {
             int originalTextLength = getText().length();
             for (IndexRange indexRange : found) {
                 int difference = getText().length() - originalTextLength;
-                System.out.println(difference);
                 this.replaceText(indexRange.getStart() + difference, indexRange.getEnd() + difference, replaceTextField.getText());
             }
         });
-        findTextField.textProperty().addListener(new ChangeListenerScheduler<>(400, false, (observableValue, s, t1) -> highlightFind()));
+        findTextField.textProperty().addListener(new ChangeListenerScheduler<>(400, false, (observableValue, s, t1) -> {
+            findTextField.getStyleClass().remove("fr-error");
+            highlightFind();
+        }));
         closeFr.setOnMousePressed(mouseEvent -> showingFindAndReplace.set(false));
         toggleRegex.setOnMousePressed(mouseEvent -> highlightFind());
     }
@@ -505,9 +520,10 @@ public class IntegratedTextEditor extends CodeArea {
                 Pattern pattern;
                 try {
                     pattern = toggleRegex.getPseudoClassStates().contains(PseudoClass.getPseudoClass("selected")) ?
-                            Pattern.compile("(" + findTextField.getText() + ")+") : Pattern.compile(Pattern.quote(findTextField.getText()));
+                            Pattern.compile(findTextField.getText()) : Pattern.compile(Pattern.quote(findTextField.getText()));
                 } catch (PatternSyntaxException e) {
-                    findTextField.getStyleClass().add("fr-error");
+                    if (!findTextField.getStyleClass().contains("fr-error"))
+                        findTextField.getStyleClass().add("fr-error");
                     return;
                 }
                 findTextField.getStyleClass().remove("fr-error");
@@ -517,7 +533,7 @@ public class IntegratedTextEditor extends CodeArea {
                     found.add(new IndexRange(matcher.start(), matcher.end()));
                 }
                 Platform.runLater(() -> {
-                    for (IndexRange indexRange : new ArrayList<>(found)) {
+                    for (IndexRange indexRange : connectIndexesToNeighbors(found)) {
                         setStyle(indexRange.getStart(), indexRange.getEnd(), Collections.singleton("found"));
                     }
                 });
@@ -730,6 +746,23 @@ public class IntegratedTextEditor extends CodeArea {
             if (c == checkFor) occurrences++;
         }
         return occurrences;
+    }
+    private List<IndexRange> connectIndexesToNeighbors(List<IndexRange> indexRanges) {
+        if (indexRanges.isEmpty())
+            return indexRanges;
+        ArrayList<IndexRange> newIndexRanges = new ArrayList<>();
+        IndexRange lastIndexRange = indexRanges.get(0);
+        for (int i = 1; i < indexRanges.size(); i++) {
+            IndexRange currentIndexRange = indexRanges.get(i);
+            if (lastIndexRange.getEnd() == currentIndexRange.getStart())
+                lastIndexRange = new IndexRange(lastIndexRange.getStart(), currentIndexRange.getEnd());
+            else {
+                newIndexRanges.add(lastIndexRange);
+                lastIndexRange = currentIndexRange;
+            }
+        }
+        newIndexRanges.add(lastIndexRange);
+        return newIndexRanges;
     }
 
     // Getters and Setters

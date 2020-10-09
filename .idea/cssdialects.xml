@@ -2,7 +2,7 @@
 <project version="4">
   <component name="CssDialectMappings">
     <file url="file://$PROJECT_DIR$/src/tmw/me/com/betterfx/scrollpane.css" dialect="JavaFX" />
-    <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/codeEditor/ide.css" dialect="JavaFX" />
+    <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/codeEditor/ite.css" dialect="JavaFX" />
     <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/codeEditor/languages/styles/java.css" dialect="CLASSIC" />
     <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/styles/light.css" dialect="JavaFX" />
     <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/styles/main.css" dialect="JavaFX" />

@@ -315,3 +315,14 @@
     -fx-fill: -light-highlight-color;
 }
 
+.auto-complete-parent {
+    -fx-background-color: -darker-background-color !important;
+    -fx-padding: 0 5 0 5;
+    -fx-background-radius: 10;
+}
+
+.popup-title {
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+    -fx-text-fill: -highlight-color;
+}

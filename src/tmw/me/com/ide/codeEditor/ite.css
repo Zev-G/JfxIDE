@@ -11,8 +11,6 @@
     src: url('Montserrat-Regular.ttf');
 }
 
-
-
 .code-area {
     -fx-background-color: -editor-background-color;
 }
