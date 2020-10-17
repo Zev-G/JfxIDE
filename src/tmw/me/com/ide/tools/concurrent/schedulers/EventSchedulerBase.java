@@ -1,4 +1,4 @@
-package tmw.me.com.ide.tools.concurrent;
+package tmw.me.com.ide.tools.concurrent.schedulers;
 
 import javafx.application.Platform;
 

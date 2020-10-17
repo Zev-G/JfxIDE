@@ -7,7 +7,7 @@ import tmw.me.com.betterfx.TextModifier;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
-import tmw.me.com.ide.tools.concurrent.ChangeListenerScheduler;
+import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.interpretation.run.CodeChunk;
@@ -27,6 +27,8 @@ import java.util.regex.Pattern;
 public class SfsLanguage extends LanguageSupport {
 
     private final ArrayList<IndexRange> highlightedVariables = new ArrayList<>();
+    private ChangeListenerScheduler<Integer> caretListener;
+    private ChangeListenerScheduler<String> textListener;
 
     public SfsLanguage() {
         super(SfsLanguage.class.getResource("styles/sfs.css").toExternalForm(), "Software Scripting");
@@ -43,7 +45,7 @@ public class SfsLanguage extends LanguageSupport {
      * @param integratedTextEditor A reference to the {@link IntegratedTextEditor} which all functionality should be added onto.
      */
     public void addBehaviour(IntegratedTextEditor integratedTextEditor) {
-        integratedTextEditor.caretPositionProperty().addListener(new ChangeListenerScheduler<>(200, (observableValue, integer, t1) -> {
+        caretListener = new ChangeListenerScheduler<>(200, (observableValue, integer, t1) -> {
             if (!t1.equals(integer) && integratedTextEditor.getFindSelectedIndex() < 0) {
                 for (IndexRange indexRange : highlightedVariables) {
                     Collection<String> collection = new ArrayList<>(integratedTextEditor.getStyleAtPosition(indexRange.getStart() + 1));
@@ -71,13 +73,21 @@ public class SfsLanguage extends LanguageSupport {
                     }
                 }
             }
-        }));
-        integratedTextEditor.textProperty().addListener(new ChangeListenerScheduler<>(600, false, (observableValue, s, t1) -> {
+        });
+        textListener = new ChangeListenerScheduler<>(600, false, (observableValue, s, t1) -> {
             ArrayList<Integer> errors = new ArrayList<>();
             Parser parser = new Parser(SyntaxManager.SYNTAX_MANAGER, parseError -> errors.add(parseError.getLineNumber()));
             parser.parseChunk(t1, null);
             Platform.runLater(() -> integratedTextEditor.getErrorLines().setAll(errors));
-        }));
+        });
+        integratedTextEditor.caretPositionProperty().addListener(caretListener);
+        integratedTextEditor.textProperty().addListener(textListener);
+    }
+
+    @Override
+    public void removeBehaviour(IntegratedTextEditor integratedTextEditor) {
+        integratedTextEditor.caretPositionProperty().removeListener(caretListener);
+        integratedTextEditor.textProperty().removeListener(textListener);
     }
 
     private final ArrayList<String> ADDED_SYNTAX_PATTERNS = new ArrayList<>();

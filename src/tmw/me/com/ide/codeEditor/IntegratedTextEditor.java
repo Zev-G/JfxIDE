@@ -14,11 +14,9 @@ import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
+import javafx.geometry.NodeOrientation;
 import javafx.scene.Node;
-import javafx.scene.control.IndexRange;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -29,17 +27,19 @@ import javafx.scene.text.Font;
 import javafx.stage.Popup;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
+import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.codeEditor.languages.SfsLanguage;
 import tmw.me.com.ide.tools.builders.SVGPathBuilder;
-import tmw.me.com.ide.tools.concurrent.ChangeListenerScheduler;
-import tmw.me.com.ide.tools.concurrent.ConsumerEventScheduler;
+import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
+import tmw.me.com.ide.tools.concurrent.schedulers.ConsumerEventScheduler;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -104,8 +104,11 @@ public class IntegratedTextEditor extends CodeArea {
     private final VBox findAndReplaceVBox = new VBox(frTop, findHBox, replaceHBox);
     private final Pane findAndReplaceLayoutHolder = new Pane(findAndReplaceVBox);
 
+    private final ChoiceBox<LanguageSupport> currentLanguage = new ChoiceBox<>();
+    private final HBox bottomPane = new HBox(currentLanguage);
+
     private final VirtualizedScrollPane<IntegratedTextEditor> virtualizedScrollPane = new VirtualizedScrollPane<>(this);
-    private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, findAndReplaceLayoutHolder);
+    private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, findAndReplaceLayoutHolder, bottomPane);
 
     private double dragStart;
     private final ParallelTransition fadeOut;
@@ -138,7 +141,7 @@ public class IntegratedTextEditor extends CodeArea {
      * Constructs a new IntegratedTextEditor with {@link SfsLanguage} as it's language support.
      */
     public IntegratedTextEditor() {
-        this(new SfsLanguage());
+        this(LanguageLibrary.SFS);
     }
 
     /**
@@ -153,30 +156,53 @@ public class IntegratedTextEditor extends CodeArea {
                 System.err.println("Integrated Text Area's parent must always be equal to textAreaHolder");
         });
 
-        FadeTransition fadeOutTransition = new FadeTransition(new Duration(200));
-        fadeOutTransition.setToValue(0);
-        ScaleTransition scaleOutTransition = new ScaleTransition(new Duration(200));
-        scaleOutTransition.setToX(0.6);
-        scaleOutTransition.setToY(0.6);
-        TranslateTransition translateOutTransition = new TranslateTransition(new Duration(200));
-        findAndReplaceVBox.heightProperty().addListener((observableValue, number, t1) -> translateOutTransition.setToY(-t1.doubleValue()));
-        fadeOut = new ParallelTransition(findAndReplaceVBox, fadeOutTransition, scaleOutTransition, translateOutTransition);
-        fadeOut.setOnFinished(actionEvent -> {
-            findAndReplaceVBox.setVisible(false);
-            findAndReplaceLayoutHolder.setVisible(false);
-            findAndReplaceLayoutHolder.setMouseTransparent(true);
-            findAndReplaceVBox.setTranslateY(0);
-            this.requestFocus();
-        });
-        TranslateTransition translateTransition = new TranslateTransition(new Duration(200));
-        translateTransition.setToY(0);
-        FadeTransition fadeTransition = new FadeTransition(new Duration(200));
-        fadeTransition.setToValue(1);
-        ScaleTransition scaleTransition = new ScaleTransition(new Duration(200));
-        scaleTransition.setToX(1);
-        scaleTransition.setToY(1);
-        fadeIn = new ParallelTransition(findAndReplaceVBox, fadeTransition, scaleTransition, translateTransition);
+        currentLanguage.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(LanguageSupport languageSupport) {
+                return languageSupport.getLanguageName();
+            }
 
+            @Override
+            public LanguageSupport fromString(String s) {
+                return null;
+            }
+        });
+        for (LanguageSupport loopSupport : LanguageLibrary.genNewLanguages()) {
+            if (!loopSupport.getLanguageName().equals(languageSupport.getLanguageName())) {
+                currentLanguage.getItems().add(loopSupport);
+            } else {
+                currentLanguage.getItems().add(languageSupport);
+            }
+        }
+        currentLanguage.getSelectionModel().select(languageSupport);
+        currentLanguage.getSelectionModel().selectedItemProperty().addListener((observableValue, languageSupport1, t1) -> languageSupportProperty().set(t1));
+
+        transition: {
+            FadeTransition fadeOutTransition = new FadeTransition(new Duration(200));
+            fadeOutTransition.setToValue(0);
+            ScaleTransition scaleOutTransition = new ScaleTransition(new Duration(200));
+            scaleOutTransition.setToX(0.6);
+            scaleOutTransition.setToY(0.6);
+            TranslateTransition translateOutTransition = new TranslateTransition(new Duration(200));
+            findAndReplaceVBox.heightProperty().addListener((observableValue, number, t1) -> translateOutTransition.setToY(-t1.doubleValue()));
+            fadeOut = new ParallelTransition(findAndReplaceVBox, fadeOutTransition, scaleOutTransition, translateOutTransition);
+            fadeOut.setOnFinished(actionEvent -> {
+                findAndReplaceVBox.setVisible(false);
+                findAndReplaceLayoutHolder.setVisible(false);
+                findAndReplaceLayoutHolder.setMouseTransparent(true);
+                findAndReplaceVBox.setTranslateY(0);
+                this.requestFocus();
+            });
+            TranslateTransition translateTransition = new TranslateTransition(new Duration(200));
+            translateTransition.setToY(0);
+            FadeTransition fadeTransition = new FadeTransition(new Duration(200));
+            fadeTransition.setToValue(1);
+            ScaleTransition scaleTransition = new ScaleTransition(new Duration(200));
+            scaleTransition.setToX(1);
+            scaleTransition.setToY(1);
+            fadeIn = new ParallelTransition(findAndReplaceVBox, fadeTransition, scaleTransition, translateTransition);
+
+        }
         findAndReplaceVBox.setOnMousePressed(mouseEvent -> dragStart = mouseEvent.getSceneY());
         findAndReplaceVBox.setOnMouseDragged(mouseEvent -> {
             if (showingFindAndReplace.get()) {
@@ -225,15 +251,16 @@ public class IntegratedTextEditor extends CodeArea {
                     selectionQueue.clear();
                     autoCompletePopup.hide();
                 }
+                languageSupport1.removeBehaviour(this);
             }
             if (t1 != null) {
                 this.getStylesheets().add(t1.getStyleSheet());
+                t1.addBehaviour(this);
             }
         });
 
         // Language
         this.languageSupport.set(languageSupport);
-        languageSupport.addBehaviour(this);
 
         // Highlighting
         this.plainTextChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(new ConsumerEventScheduler<>(200, false, plainTextChange -> highlight()));
@@ -250,6 +277,7 @@ public class IntegratedTextEditor extends CodeArea {
         centerFrText.getStyleClass().add("fr-title");
         popupTitleText.getStyleClass().add("popup-title");
         popupParent.getStyleClass().add("auto-complete-parent");
+        currentLanguage.getStyleClass().add("language-choice-box");
 
         // Value tweaking and value setting
         this.popupScrollPane.setMaxHeight(300);
@@ -271,13 +299,17 @@ public class IntegratedTextEditor extends CodeArea {
         popupScrollPane.setFitToWidth(true);
         popupBox.setFillWidth(true);
         popupParent.setEffect(new DropShadow());
+        bottomPane.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
 
         // Layout
-        AnchorPane.setTopAnchor(virtualizedScrollPane, 0D); AnchorPane.setBottomAnchor(virtualizedScrollPane, 0D);
+        AnchorPane.setTopAnchor(virtualizedScrollPane, 0D); AnchorPane.setBottomAnchor(virtualizedScrollPane, 25D);
         AnchorPane.setRightAnchor(virtualizedScrollPane, 0D); AnchorPane.setLeftAnchor(virtualizedScrollPane, 0D);
 
         AnchorPane.setTopAnchor(findAndReplaceLayoutHolder, 0D);
         AnchorPane.setRightAnchor(findAndReplaceLayoutHolder, 25D);
+
+        AnchorPane.setLeftAnchor(bottomPane, 0D); AnchorPane.setRightAnchor(bottomPane, 0D);
+        AnchorPane.setBottomAnchor(bottomPane, 0D);
 
         // This event handlers
         Pattern whiteSpace = Pattern.compile( "^\\s+" );
@@ -416,10 +448,12 @@ public class IntegratedTextEditor extends CodeArea {
         this.sceneProperty().addListener((observableValue, scene, t1) -> {
             if (t1 != null) {
                 Window t11 = t1.getWindow();
-                t11.xProperty().addListener((observableValue11, number, t111) -> autoCompletePopup.hide());
-                t11.yProperty().addListener((observableValue11, number, t111) -> autoCompletePopup.hide());
-                t11.widthProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
-                t11.heightProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
+                if (t11 != null) {
+                    t11.xProperty().addListener((observableValue11, number, t111) -> autoCompletePopup.hide());
+                    t11.yProperty().addListener((observableValue11, number, t111) -> autoCompletePopup.hide());
+                    t11.widthProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
+                    t11.heightProperty().addListener((observableValue2, number, t12) -> autoCompletePopup.hide());
+                }
             }
         });
         this.setOnMousePressed(mouseEvent -> {
@@ -609,9 +643,9 @@ public class IntegratedTextEditor extends CodeArea {
     private void fillBox(String line) {
         if (line.trim().length() > 0) {
             factoryOrder.clear();
-            popupBox.getChildren().clear();
             ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = languageSupport.get().getPossiblePieces(line);
             if (possiblePiecePackages != null && !possiblePiecePackages.isEmpty()) {
+                ArrayList<Node> newChildren = new ArrayList<>();
                 for (IdeSpecialParser.PossiblePiecePackage entry : languageSupport.get().getPossiblePieces(line)) {
                     factoryOrder.add(entry);
                     Label filledIn = new Label(entry.getFilledIn());
@@ -622,9 +656,10 @@ public class IntegratedTextEditor extends CodeArea {
                     HBox box = new HBox(filledIn, notFilledIn);
                     box.setOnMousePressed(popupItemEvent);
                     box.setAccessibleText(entry.getPutIn());
-                    popupBox.getChildren().add(box);
+                    newChildren.add(box);
                 }
-                if (!popupBox.getChildren().isEmpty()) {
+                if (!newChildren.isEmpty()) {
+                    popupBox.getChildren().setAll(newChildren);
                     popupBox.getChildren().get(0).getStyleClass().add("selected-syntax");
                     selectionIndex = 0;
                     autoCompletePopup.show(this.getScene().getWindow());
@@ -632,9 +667,11 @@ public class IntegratedTextEditor extends CodeArea {
                     popupScrollPane.setVvalue(0);
                 } else {
                     autoCompletePopup.hide();
+                    popupBox.getChildren().clear();
                 }
             } else {
                 autoCompletePopup.hide();
+                popupBox.getChildren().clear();
             }
         } else {
             autoCompletePopup.hide();

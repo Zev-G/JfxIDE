@@ -98,17 +98,28 @@
     -fx-background-color: #c34c3c;
 }
 
-.run-selector {
+.choice-box {
     -fx-background-color: -main-background-color;
     -fx-background-radius: 2;
     -fx-text-fill: -default-text-color;
     -fx-min-width: 100;
     -fx-max-width: 150;
     -fx-prompt-text-fill: -default-text-color;
-    -jfx-unfocus-color: -darkest-background-color;
-    -jfx-focus-color: -highlight-color;
     -fx-highlight-text-fill: -light-highlight-color;
     -fx-color: -default-text-color;
+}
+
+.run-selector {
+    /*-fx-background-color: -main-background-color;*/
+    /*-fx-background-radius: 2;*/
+    /*-fx-text-fill: -default-text-color;*/
+    /*-fx-min-width: 100;*/
+    /*-fx-max-width: 150;*/
+    /*-fx-prompt-text-fill: -default-text-color;*/
+    /*-jfx-unfocus-color: -darkest-background-color;*/
+    /*-jfx-focus-color: -highlight-color;*/
+    /*-fx-highlight-text-fill: -light-highlight-color;*/
+    /*-fx-color: -default-text-color;*/
 }
 .auto-select {
     -jfx-checked-color: -light-highlight-color;
@@ -325,4 +336,8 @@
     -fx-font-size: 16;
     -fx-font-weight: bold;
     -fx-text-fill: -highlight-color;
+}
+
+.language-choice-box {
+    -fx-background-color: -darker-background-color;
 }

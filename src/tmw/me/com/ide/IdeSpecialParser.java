@@ -218,14 +218,16 @@ public final class IdeSpecialParser {
         /**
          * Sets the value of {@link PossiblePiecePackage#putInIfNotFilledInIsEmpty}
          */
-        public void setPutInIfFilledIn(boolean putInIfFilledIn) {
+        public PossiblePiecePackage setPutInIfFilledIn(boolean putInIfFilledIn) {
             putInIfNotFilledInIsEmpty = putInIfFilledIn;
+            return this;
         }
         /**
          * Sets the value of {@link PossiblePiecePackage#replaceLine}
          */
-        public void setReplaceLine(boolean replaceLine) {
+        public PossiblePiecePackage setReplaceLine(boolean replaceLine) {
             this.replaceLine = replaceLine;
+            return this;
         }
         /**
          *

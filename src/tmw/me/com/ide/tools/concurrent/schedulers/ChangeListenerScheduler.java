@@ -1,11 +1,11 @@
-package tmw.me.com.ide.tools.concurrent;
+package tmw.me.com.ide.tools.concurrent.schedulers;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
 /**
  * This implementation implements {@link ChangeListener} so that it has seamless integration when listening to a property.
- * <p>See {@link tmw.me.com.ide.tools.concurrent.EventSchedulerBase} for more info.</p>
+ * <p>See {@link EventSchedulerBase} for more info.</p>
  * */
 public class ChangeListenerScheduler<T> extends EventSchedulerBase<ChangeListener<T>> implements ChangeListener<T> {
 

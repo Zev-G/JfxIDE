@@ -11,8 +11,9 @@ public class XmlLanguage extends LanguageSupport {
 
 
 
-    public XmlLanguage() {
-        super(XmlLanguage.class.getResource("xml.css").toExternalForm(), "Xml/Fxml");
+    XmlLanguage() {
+//        super(XmlLanguage.class.getResource("xml.css").toExternalForm(), "Xml/Fxml");
+        super("", "Xml/Fxml");
     }
 
     @Override

@@ -36,7 +36,7 @@ public abstract class LanguageSupport {
      * @param styleSheet The language's style sheet, see {@link LanguageSupport#styleSheet}
      * @param languageName The language's name, see {@link LanguageSupport#languageName}
      */
-    protected LanguageSupport(String styleSheet, String languageName) {
+    public LanguageSupport(String styleSheet, String languageName) {
         this.styleSheet = styleSheet;
         this.languageName = languageName;
     }
@@ -86,6 +86,8 @@ public abstract class LanguageSupport {
      */
     public abstract void addBehaviour(IntegratedTextEditor integratedTextEditor);
 
+    public void removeBehaviour(IntegratedTextEditor integratedTextEditor) { };
+
     /**
      * This method just insures that the run method on your LanguageSupport is only activated if it is runnable.
      */
@@ -115,9 +117,9 @@ public abstract class LanguageSupport {
         }
         String fileEnding = file.getName().split("\\.")[1];
         if (fileEnding.equals("java")) {
-            return new JavaLanguage();
+            return LanguageLibrary.JAVA;
         } else if (fileEnding.equals("css")) {
-            return new CssLanguage();
+            return LanguageLibrary.CSS;
         } else {
             return new SfsLanguage();
         }

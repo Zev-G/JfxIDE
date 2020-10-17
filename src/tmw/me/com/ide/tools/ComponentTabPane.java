@@ -276,7 +276,7 @@ public class ComponentTabPane extends TabPane {
             return mainNode;
         }
 
-        private ComponentTabPane getTopTabPane(MouseEvent mouseEvent) {
+        private static ComponentTabPane getTopTabPane(MouseEvent mouseEvent) {
             ComponentTabPane pane = null;
             int size = ALL_TAB_PANES.size();
             for (int i = 0; i < size; i++) {
@@ -310,9 +310,11 @@ public class ComponentTabPane extends TabPane {
                     }
                 }
             });
-            stage.setHeight(this.getContent().getBoundsInLocal().getHeight());
-            stage.setWidth(this.getContent().getBoundsInLocal().getWidth());
+//            stage.setHeight(this.getContent().getBoundsInLocal().getHeight() + 50);
+//            stage.setWidth(this.getContent().getBoundsInLocal().getHeight() + 50);
             getIde().getTabPane().getTabs().add(this);
+            stage.setHeight(this.getContent().getBoundsInLocal().getHeight() + 80);
+            stage.setWidth(this.getContent().getBoundsInLocal().getWidth() + 30);
         }
 
         public Label getLabel() {
