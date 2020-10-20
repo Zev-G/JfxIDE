@@ -47,16 +47,18 @@ public class SfsLanguage extends LanguageSupport {
     public void addBehaviour(IntegratedTextEditor integratedTextEditor) {
         caretListener = new ChangeListenerScheduler<>(200, (observableValue, integer, t1) -> {
             if (!t1.equals(integer) && integratedTextEditor.getFindSelectedIndex() < 0) {
+                String fullText = integratedTextEditor.getText();
                 for (IndexRange indexRange : highlightedVariables) {
-                    Collection<String> collection = new ArrayList<>(integratedTextEditor.getStyleAtPosition(indexRange.getStart() + 1));
-                    if (collection.contains("selected-word")) {
-                        collection.remove("selected-word");
-                        integratedTextEditor.setStyle(indexRange.getStart(), indexRange.getEnd(), collection);
+                    if (indexRange.getStart() > 0 && indexRange.getStart() < fullText.length() && indexRange.getEnd() < fullText.length()) {
+                        Collection<String> collection = new ArrayList<>(integratedTextEditor.getStyleAtPosition(indexRange.getStart() + 1));
+                        if (collection.contains("selected-word")) {
+                            collection.remove("selected-word");
+                            integratedTextEditor.setStyle(indexRange.getStart(), indexRange.getEnd(), collection);
+                        }
                     }
                 }
                 highlightedVariables.clear();
                 int[] range = integratedTextEditor.expandFromPoint(t1, '{', '}', ' ', '%');
-                String fullText = integratedTextEditor.getText();
                 if (range[0] > 0 && range[1] < fullText.length()) {
                     String text = integratedTextEditor.getText(range[0], range[1]);
                     if (text.startsWith("{") && text.endsWith("}")) {
@@ -74,9 +76,11 @@ public class SfsLanguage extends LanguageSupport {
                 }
             }
         });
+        SyntaxManager syntaxManager = new SyntaxManager();
         textListener = new ChangeListenerScheduler<>(600, false, (observableValue, s, t1) -> {
+            FXScript.restart(syntaxManager);
             ArrayList<Integer> errors = new ArrayList<>();
-            Parser parser = new Parser(SyntaxManager.SYNTAX_MANAGER, parseError -> errors.add(parseError.getLineNumber()));
+            Parser parser = new Parser(syntaxManager, parseError -> errors.add(parseError.getLineNumber()));
             parser.parseChunk(t1, null);
             Platform.runLater(() -> integratedTextEditor.getErrorLines().setAll(errors));
         });
@@ -86,6 +90,7 @@ public class SfsLanguage extends LanguageSupport {
 
     @Override
     public void removeBehaviour(IntegratedTextEditor integratedTextEditor) {
+        super.removeBehaviour(integratedTextEditor);
         integratedTextEditor.caretPositionProperty().removeListener(caretListener);
         integratedTextEditor.textProperty().removeListener(textListener);
     }
@@ -220,21 +225,24 @@ public class SfsLanguage extends LanguageSupport {
         super.run(textEditor, ide);
         FXScript.restart();
         System.out.println("Parsing code...");
-        Parser parser = new Parser(SyntaxManager.SYNTAX_MANAGER, gotten -> {
-            String[] longMessageLines = gotten.createLongErrorMessage().split("\n");
-            for (String line : longMessageLines) {
-                if (line.startsWith("\t\tNumber: ")) {
-                    Text textButton = ide.getRunConsole().genButton(line.replaceFirst("\t\t", ""), TextModifier.colorFromChar('c'));
-                    textButton.setUnderline(true);
-                    int num = Integer.parseInt(line.replaceFirst("\t\tNumber: ", ""));
+        if (ide != null) {
+            Parser parser = new Parser(SyntaxManager.SYNTAX_MANAGER, gotten -> {
+                String[] longMessageLines = gotten.createLongErrorMessage().split("\n");
+                for (String line : longMessageLines) {
+                    if (line.startsWith("\t\tNumber: ")) {
+                        Text textButton = ide.getRunConsole().genButton(line.replaceFirst("\t\t", ""), TextModifier.colorFromChar('c'));
+                        textButton.setUnderline(true);
+                        int num = Integer.parseInt(line.replaceFirst("\t\tNumber: ", ""));
 
-                    textButton.setOnMousePressed(mouseEvent -> textEditor.selectRange(textEditor.absolutePositionFromLine(num - 1), textEditor.absolutePositionFromLine(num) - 1));
-                    ide.getRunConsole().addTexts(ide.getRunConsole().getDefaultText("\t\t"), textButton, ide.getRunConsole().getDefaultText("\n"));
-                } else {
-                    ide.getRunConsole().addTexts(ide.getRunConsole().genText("&c" + line + "\n"));
+                        textButton.setOnMousePressed(mouseEvent -> textEditor.selectRange(textEditor.absolutePositionFromLine(num - 1), textEditor.absolutePositionFromLine(num) - 1));
+                        ide.getRunConsole().addTexts(ide.getRunConsole().getDefaultText("\t\t"), textButton, ide.getRunConsole().getDefaultText("\n"));
+                    } else {
+                        ide.getRunConsole().addTexts(ide.getRunConsole().genText("&c" + line + "\n"));
+                    }
                 }
-            }
-        });
+            });
+        }
+        Parser parser = new Parser(SyntaxManager.SYNTAX_MANAGER, parseError -> {});
         CodeChunk chunk = parser.parseChunk(textEditor.getText(), null);
         System.out.println("Finished Parsing. Running");
         chunk.run();

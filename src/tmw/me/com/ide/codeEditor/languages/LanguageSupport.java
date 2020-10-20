@@ -86,7 +86,9 @@ public abstract class LanguageSupport {
      */
     public abstract void addBehaviour(IntegratedTextEditor integratedTextEditor);
 
-    public void removeBehaviour(IntegratedTextEditor integratedTextEditor) { };
+    public void removeBehaviour(IntegratedTextEditor integratedTextEditor) {
+        integratedTextEditor.getErrorLines().clear();
+    };
 
     /**
      * This method just insures that the run method on your LanguageSupport is only activated if it is runnable.
@@ -102,9 +104,11 @@ public abstract class LanguageSupport {
      * @param ide A reference to the Ide that is running the code.
      */
     public void run(IntegratedTextEditor textEditor, Ide ide) {
-        ide.getRunConsole().getConsoleText().getChildren().clear();
-        if (ide.getRunTabButton().getAccessibleText() == null || !ide.getRunTabButton().getAccessibleText().equals("ACTIVATED")) {
-            ide.getRunTabButton().fire();
+        if (ide != null) {
+            ide.getRunConsole().getConsoleText().getChildren().clear();
+            if (ide.getRunTabButton().getAccessibleText() == null || !ide.getRunTabButton().getAccessibleText().equals("ACTIVATED")) {
+                ide.getRunTabButton().fire();
+            }
         }
     }
 

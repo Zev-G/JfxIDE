@@ -13,7 +13,7 @@ public class ReflectionBuilder<T> extends Builder<T> {
     private final ArrayList<MethodGrouping> methodGroupings = new ArrayList<>();
     private final ArrayList<Object> constructorParameters = new ArrayList<>();
 
-    private ReflectionBuilder(Class<T> aClass) {
+    public ReflectionBuilder(Class<T> aClass) {
         genericClass = aClass;
     }
 

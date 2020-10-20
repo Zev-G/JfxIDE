@@ -6,8 +6,10 @@ import javafx.beans.value.ChangeListener;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.scene.SnapshotParameters;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.*;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TreeItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
@@ -16,7 +18,7 @@ import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.ide.tools.ComponentTabPane;
+import tmw.me.com.ide.tools.tabPane.ComponentTab;
 
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -381,7 +383,7 @@ public class FileTreeView extends JFXTreeView<File> {
      */
     private static class CustomItem extends TreeItem<File> {
 
-        private ComponentTabPane.ComponentTab<?> componentTab;
+        private ComponentTab<?> componentTab;
 
         public CustomItem() {
             super();
@@ -408,10 +410,10 @@ public class FileTreeView extends JFXTreeView<File> {
             });
         }
 
-        public void setComponentTab(ComponentTabPane.ComponentTab<?> componentTab) {
+        public void setComponentTab(ComponentTab<?> componentTab) {
             this.componentTab = componentTab;
         }
-        public ComponentTabPane.ComponentTab<?> getComponentTab() {
+        public ComponentTab<?> getComponentTab() {
             return componentTab;
         }
 

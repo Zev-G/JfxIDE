@@ -30,6 +30,7 @@ import javafx.util.Duration;
 import javafx.util.StringConverter;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.model.PlainTextChange;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import tmw.me.com.ide.Ide;
@@ -40,6 +41,7 @@ import tmw.me.com.ide.codeEditor.languages.SfsLanguage;
 import tmw.me.com.ide.tools.builders.SVGPathBuilder;
 import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
 import tmw.me.com.ide.tools.concurrent.schedulers.ConsumerEventScheduler;
+import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -68,7 +70,7 @@ import java.util.regex.PatternSyntaxException;
  * </ul>
  * <p>*Controlled by LanguageSupport</p>
  */
-public class IntegratedTextEditor extends CodeArea {
+public class IntegratedTextEditor extends CodeArea implements ComponentTabContent<IntegratedTextEditor> {
 
     public static final String INDENT = "  ";
 
@@ -76,6 +78,8 @@ public class IntegratedTextEditor extends CodeArea {
     private final ObservableList<Integer> errorLines = FXCollections.observableArrayList();
     private final BooleanProperty showingFindAndReplace = new SimpleBooleanProperty(this, "showing-find-and-replace", false);
     private final ObjectProperty<LanguageSupport> languageSupport = new SimpleObjectProperty<>();
+
+    private final ArrayList<IntegratedTextEditor> linkedTextEditors = new ArrayList<>();
 
     private final ArrayList<IdeSpecialParser.PossiblePiecePackage> factoryOrder = new ArrayList<>();
     private final VBox popupBox = new VBox();
@@ -150,7 +154,29 @@ public class IntegratedTextEditor extends CodeArea {
      */
     public IntegratedTextEditor(LanguageSupport languageSupport) {
 
+        // Linking
+        this.multiPlainChanges().subscribe(plainTextChanges -> {
+            if (this.isFocused() || this.autoCompletePopup.isFocused()) {
+                for (PlainTextChange plainTextChange : plainTextChanges) {
+                    for (IntegratedTextEditor link1 : linkedTextEditors) {
+                        if (link1.getScene() != null && link1 != this && !link1.getText().equals(this.getText())) {
+                            if (plainTextChange.getRemoved().length() > 0) {
+                                link1.deleteText(plainTextChange.getPosition(), plainTextChange.getRemovalEnd());
+                            }
+                            if (plainTextChange.getInserted().length() > 0) {
+                                link1.insertText(plainTextChange.getPosition(), plainTextChange.getInserted());
+                            }
+                            if (!link1.getText().equals(this.getText())) {
+                                link1.replaceText(this.getText());
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
         // Some other listeners
+
         parentProperty().addListener((observableValue, parent, t1) -> {
             if (t1 != virtualizedScrollPane && t1 != null)
                 System.err.println("Integrated Text Area's parent must always be equal to textAreaHolder");
@@ -278,6 +304,7 @@ public class IntegratedTextEditor extends CodeArea {
         popupTitleText.getStyleClass().add("popup-title");
         popupParent.getStyleClass().add("auto-complete-parent");
         currentLanguage.getStyleClass().add("language-choice-box");
+        bottomPane.getStyleClass().add("transparent-background");
 
         // Value tweaking and value setting
         this.popupScrollPane.setMaxHeight(300);
@@ -579,6 +606,7 @@ public class IntegratedTextEditor extends CodeArea {
      * Inserts the selected item in the auto complete popup.
      */
     public void insertAutocomplete() {
+        if (!autoCompletePopup.isShowing()) return;
         String text = factoryOrder.get(selectionIndex).getPutIn();
         if (factoryOrder.get(selectionIndex).isReplaceLine()) {
             int lineStart = 0;
@@ -641,7 +669,7 @@ public class IntegratedTextEditor extends CodeArea {
      * @param line The line which the text is sampled from; should be switched to an int, this is largely controlled by {@link LanguageSupport}
      */
     private void fillBox(String line) {
-        if (line.trim().length() > 0) {
+        if (line.trim().length() > 0 && this.isFocused() || this.autoCompletePopup.isFocused()) {
             factoryOrder.clear();
             ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = languageSupport.get().getPossiblePieces(line);
             if (possiblePiecePackages != null && !possiblePiecePackages.isEmpty()) {
@@ -817,6 +845,33 @@ public class IntegratedTextEditor extends CodeArea {
         return errorLines;
     }
 
+    public ArrayList<IntegratedTextEditor> getLinkedTextEditors() {
+        return linkedTextEditors;
+    }
+
+    @Override
+    public IntegratedTextEditor getImportantNode() {
+        return this;
+    }
+
+    @Override
+    public Node getMainNode() {
+        return getTextAreaHolder();
+    }
+
+    @Override
+    public String getSaveText() {
+        return getText();
+    }
+
+    @Override
+    public IntegratedTextEditor createNewCopy() {
+        IntegratedTextEditor newIntegratedTextEditor = new IntegratedTextEditor(languageSupportProperty().get());
+        newIntegratedTextEditor.replaceText(getText());
+        IntegratedTextEditor.linkITEs(this, newIntegratedTextEditor);
+        return newIntegratedTextEditor;
+    }
+
     private class HighlightingThread extends Thread {
 
         private String text;
@@ -864,8 +919,39 @@ public class IntegratedTextEditor extends CodeArea {
             }
         }
 
+    }
 
+    @Override
+    public MenuItem[] addContext() {
+        MenuItem run = new MenuItem("Run");
+        run.setOnAction(actionEvent -> languageSupport.get().runCalled(this,null ));
+        return new MenuItem[]{ new SeparatorMenuItem(), run };
+    }
 
+    public static void linkITEs(IntegratedTextEditor... links) {
+
+        if (links.length > 1) {
+            List<IntegratedTextEditor> linksList = Arrays.asList(links);
+            for (IntegratedTextEditor link : links) {
+                ArrayList<IntegratedTextEditor> listWithoutSelf = new ArrayList<>(linksList);
+                listWithoutSelf.remove(link);
+                link.linkToITEs(listWithoutSelf.toArray(new IntegratedTextEditor[0]));
+            }
+        }
+    }
+
+    public void linkToITEs(IntegratedTextEditor... links) {
+        this.linkedTextEditors.addAll(Arrays.asList(links));
+        recursivelyChangeLinkedITEs();
+    }
+    private void recursivelyChangeLinkedITEs() {
+        for (IntegratedTextEditor link : linkedTextEditors) {
+            if (!link.getLinkedTextEditors().equals(linkedTextEditors)) {
+                link.getLinkedTextEditors().clear();
+                link.getLinkedTextEditors().addAll(linkedTextEditors);
+                link.recursivelyChangeLinkedITEs();
+            }
+        }
     }
 
 }

@@ -23,7 +23,7 @@ public abstract class EventSchedulerBase<T> {
     protected boolean runOnFx = true;
     private TimerTask lastTimerTask;
 
-    protected final Timer timer = new Timer();
+    protected final Timer timer = new Timer(true);
 
     protected void ran(Runnable runOnFxThread) {
         if (lastTimerTask != null) {

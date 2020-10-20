@@ -2,16 +2,9 @@ package tmw.me.com;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import tmw.me.com.betterfx.CommandConsole;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
-import tmw.me.com.ide.codeEditor.languages.SfsLanguage;
-import tmw.me.com.ide.tools.concurrent.QueueableRunnable;
-import tmw.me.com.javaPlayground.JavaPlayground;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntax.SyntaxManager;

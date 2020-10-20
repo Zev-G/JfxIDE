@@ -26,10 +26,14 @@ import tmw.me.com.betterfx.Console;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.fileTreeView.FileTreeView;
-import tmw.me.com.ide.tools.ComponentTabPane;
 import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
+import tmw.me.com.ide.tools.tabPane.ComponentTab;
+import tmw.me.com.ide.tools.tabPane.ComponentTabPane;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.function.Consumer;
 
 /**
@@ -46,10 +50,11 @@ public class Ide extends AnchorPane {
     public static final String STYLE_SHEET = Ide.class.getResource("styles/main.css").toExternalForm();
 
     private final ComponentTabPane tabPane = new ComponentTabPane();
+    private final SplitPane tabPanesHorizontal = new SplitPane(tabPane);
 
     private final SVGPath playSvg = new SVGPath();
     private final Button playButton = new Button("", playSvg);
-    private final ChoiceBox<ComponentTabPane.ComponentTab<IntegratedTextEditor>> runSelector = new ChoiceBox<>();
+    private final ChoiceBox<ComponentTab<IntegratedTextEditor>> runSelector = new ChoiceBox<>();
     private final JFXCheckBox autoSelect = new JFXCheckBox();
     private final HBox topBox = new HBox(autoSelect, runSelector, playButton);
     private final Button runTabButton = new Button("Run");
@@ -58,7 +63,7 @@ public class Ide extends AnchorPane {
     private final VBox sideBox = new VBox(projectTabButton);
 
     private final AnchorPane leftTab = new AnchorPane();
-    private final AnchorPane rightTab = new AnchorPane(tabPane, topBox);
+    private final AnchorPane rightTab = new AnchorPane(tabPanesHorizontal, topBox);
 
 
 
@@ -112,6 +117,7 @@ public class Ide extends AnchorPane {
         textInputBox.getStyleClass().add("popup-item");
         confirmBox.getStyleClass().add("popup-item");
         autoSelect.getStyleClass().add("auto-select");
+        tabPanesHorizontal.getStyleClass().add("dark-split-pane");
         this.getStyleClass().add("ide");
         this.getStylesheets().add(STYLE_SHEET);
 
@@ -138,6 +144,7 @@ public class Ide extends AnchorPane {
         projectTabButton.setLineSpacing(-5);
         topBox.setFillHeight(true);
         topBox.setSpacing(8);
+        tabPane.setHorizontal(tabPanesHorizontal);
 
         // Children
         consoleAnchor.getChildren().add(runConsole);
@@ -147,8 +154,8 @@ public class Ide extends AnchorPane {
         // Layout
         AnchorPane.setTopAnchor(notificationPane, 13D); AnchorPane.setRightAnchor(notificationPane, 13D);
 
-        AnchorPane.setTopAnchor(tabPane, 0D); AnchorPane.setBottomAnchor(tabPane, 0D);
-        AnchorPane.setRightAnchor(tabPane, 0D); AnchorPane.setLeftAnchor(tabPane, 0D);
+        AnchorPane.setTopAnchor(tabPanesHorizontal, 0D); AnchorPane.setBottomAnchor(tabPanesHorizontal, 0D);
+        AnchorPane.setRightAnchor(tabPanesHorizontal, 0D); AnchorPane.setLeftAnchor(tabPanesHorizontal, 0D);
 
         AnchorPane.setTopAnchor(verticalSplitPane, 26D); AnchorPane.setBottomAnchor(verticalSplitPane, 35D);
         AnchorPane.setRightAnchor(verticalSplitPane, 8D); AnchorPane.setLeftAnchor(verticalSplitPane, 14D);
@@ -168,8 +175,8 @@ public class Ide extends AnchorPane {
         // Listeners
         heightProperty().addListener((observableValue, number, t1) -> emptyPopupPane.setMinHeight(t1.doubleValue() / 5));
         tabPane.getSelectionModel().selectedItemProperty().addListener((observableValue, tab, t1) -> {
-            if (t1 instanceof ComponentTabPane.ComponentTab && getScene().getWindow() instanceof Stage) {
-                ComponentTabPane.ComponentTab<?> componentTab = (ComponentTabPane.ComponentTab<?>) t1;
+            if (getScene() != null && t1 instanceof ComponentTab && getScene().getWindow() instanceof Stage) {
+                ComponentTab<?> componentTab = (ComponentTab<?>) t1;
                 Stage stage = (Stage) getScene().getWindow();
                 if (stage.getTitle() != null) {
                     if (!stage.getTitle().contains("-")) {
@@ -178,19 +185,19 @@ public class Ide extends AnchorPane {
                     stage.setTitle(stage.getTitle().split("-")[0] + "- " + componentTab.getLabel().getText());
                 }
             }
-            if (t1 instanceof ComponentTabPane.ComponentTab && runSelector.isDisable()) {
-                runSelector.getSelectionModel().select((ComponentTabPane.ComponentTab<IntegratedTextEditor>) t1);
+            if (t1 instanceof ComponentTab && runSelector.isDisable()) {
+                runSelector.getSelectionModel().select((ComponentTab<IntegratedTextEditor>) t1);
             }
         });
         tabPane.getTabs().addListener((ListChangeListener<Tab>) change -> {
             while (change.next()) {
                 for (Tab componentTab : change.getRemoved()) {
-                    assert componentTab instanceof ComponentTabPane.ComponentTab;
+                    assert componentTab instanceof ComponentTab;
                     runSelector.getItems().remove(componentTab);
                 }
                 for (Tab componentTab : change.getAddedSubList()) {
-                    assert componentTab instanceof ComponentTabPane.ComponentTab;
-                    runSelector.getItems().add((ComponentTabPane.ComponentTab<IntegratedTextEditor>) componentTab);
+                    assert componentTab instanceof ComponentTab;
+                    runSelector.getItems().add((ComponentTab<IntegratedTextEditor>) componentTab);
                 }
             }
         });
@@ -217,27 +224,32 @@ public class Ide extends AnchorPane {
                 });
             }
         });
+        verticalSplitPane.getItems().addListener((ListChangeListener<Node>) change -> {
+            System.out.println(verticalSplitPane.getItems());
+            horizontalSplitPane.toFront();
+            System.out.println(verticalSplitPane.getItems());
+        });
 
         // Events
         runSelector.setConverter(new StringConverter<>() {
             @Override
-            public String toString(ComponentTabPane.ComponentTab<IntegratedTextEditor> integratedTextEditorComponentTab) {
+            public String toString(ComponentTab<IntegratedTextEditor> integratedTextEditorComponentTab) {
                 return integratedTextEditorComponentTab != null ? integratedTextEditorComponentTab.getLabel().getText() : "";
             }
 
             @Override
-            public ComponentTabPane.ComponentTab<IntegratedTextEditor> fromString(String s) {
+            public ComponentTab<IntegratedTextEditor> fromString(String s) {
                 return null;
             }
         });
         playSvg.setOnMousePressed(mouseEvent -> {
-            ComponentTabPane.ComponentTab<IntegratedTextEditor> tab = runSelector.getSelectionModel().getSelectedItem();
+            ComponentTab<IntegratedTextEditor> tab = runSelector.getSelectionModel().getSelectedItem();
             tab.getValue().getLanguage().runCalled(tab.getValue(), this);
         });
         autoSelect.setOnAction(actionEvent -> {
             runSelector.setDisable(!autoSelect.isSelected());
             if (!autoSelect.isSelected()) {
-                runSelector.getSelectionModel().select((ComponentTabPane.ComponentTab<IntegratedTextEditor>) tabPane.getSelectionModel().getSelectedItem());
+                runSelector.getSelectionModel().select((ComponentTab<IntegratedTextEditor>) tabPane.getSelectionModel().getSelectedItem());
             }
         });
 
@@ -282,7 +294,7 @@ public class Ide extends AnchorPane {
             }
         });
         newFile.setOnAction(actionEvent -> {
-            ComponentTabPane.ComponentTab<IntegratedTextEditor> newTab = getNewEditorTab(null);
+            ComponentTab<IntegratedTextEditor> newTab = getNewEditorTab(null);
             tabPane.getTabs().add(newTab);
             tabPane.getSelectionModel().select(newTab);
         });
@@ -320,7 +332,7 @@ public class Ide extends AnchorPane {
         });
 
         save.setOnAction(actionEvent -> {
-            ComponentTabPane.ComponentTab<?> selectedTab = tabPane.getSelectedTab();
+            ComponentTab<?> selectedTab = tabPane.getSelectedTab();
             if (selectedTab != null && selectedTab.getValue() instanceof IntegratedTextEditor && selectedTab.getFile() != null && selectedTab.getFile().exists()) {
                 IntegratedTextEditor selectedTextEditor = (IntegratedTextEditor) selectedTab.getValue();
                 try {
@@ -333,13 +345,13 @@ public class Ide extends AnchorPane {
             }
         });
         close.setOnAction(actionEvent -> {
-            ComponentTabPane.ComponentTab<?> componentTab = tabPane.getSelectedTab();
+            ComponentTab<?> componentTab = tabPane.getSelectedTab();
             if (componentTab != null && componentTab.getFile() != null) {
                 tabPane.getTabs().remove(componentTab);
             }
         });
         openInNewWindow.setOnAction(actionEvent -> {
-            ComponentTabPane.ComponentTab<?> componentTab = tabPane.getSelectedTab();
+            ComponentTab<?> componentTab = tabPane.getSelectedTab();
             if (componentTab != null) {
                 tabPane.getTabs().remove(componentTab);
                 Ide ide = new Ide();
@@ -354,7 +366,7 @@ public class Ide extends AnchorPane {
                     String text = ((IntegratedTextEditor) componentTab.getValue()).getText();
                     IntegratedTextEditor newIntegratedTextEditor = new IntegratedTextEditor();
                     newIntegratedTextEditor.replaceText(text);
-                    ComponentTabPane.ComponentTab<IntegratedTextEditor> dupedTab = new ComponentTabPane.ComponentTab<>(componentTab.getLabel().getText(), newIntegratedTextEditor);
+                    ComponentTab<IntegratedTextEditor> dupedTab = new ComponentTab<>(componentTab.getLabel().getText(), newIntegratedTextEditor);
                     ide.getTabPane().getTabs().add(dupedTab);
                 }
             }
@@ -394,7 +406,7 @@ public class Ide extends AnchorPane {
     }
 
     public void loadFile(File file) {
-        if (file != null) {
+        if (file != null && file.exists()) {
             if (projectView == null) {
                 if (file.isDirectory()) {
                     projectView = new FileTreeView(file, this);
@@ -502,8 +514,8 @@ public class Ide extends AnchorPane {
         fadeOut.setOnFinished(actionEvent -> popupPane.setVisible(false));
     }
 
-    public static ComponentTabPane.ComponentTab<IntegratedTextEditor> getNewEditorTab(File file) {
-        String fileName = file != null ? file.getName() : "Untitled";
+    public static ComponentTab<IntegratedTextEditor> getNewEditorTab(File file) {
+        String fileName = file != null && !file.isDirectory() ? file.getName() : "Untitled";
         IntegratedTextEditor integratedTextEditor = new IntegratedTextEditor(LanguageSupport.getLanguageFromFile(file));
 
         if (file != null) {
@@ -514,11 +526,11 @@ public class Ide extends AnchorPane {
                 fileInputStream.read(fileContent);
                 result = new String(fileContent);
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println("Invalid File: " + file.getPath());
             }
             integratedTextEditor.replaceText(result);
         }
-        ComponentTabPane.ComponentTab<IntegratedTextEditor> componentTab = new ComponentTabPane.ComponentTab<>(fileName, integratedTextEditor);
+        ComponentTab<IntegratedTextEditor> componentTab = new ComponentTab<>(fileName, integratedTextEditor);
         componentTab.setFile(file);
         componentTab.setMainNode(integratedTextEditor);
         return componentTab;
@@ -532,7 +544,7 @@ public class Ide extends AnchorPane {
         return playButton;
     }
 
-    public ChoiceBox<ComponentTabPane.ComponentTab<IntegratedTextEditor>> getRunSelector() {
+    public ChoiceBox<ComponentTab<IntegratedTextEditor>> getRunSelector() {
         return runSelector;
     }
 
