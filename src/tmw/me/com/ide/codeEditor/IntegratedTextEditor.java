@@ -38,6 +38,7 @@ import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.codeEditor.languages.SfsLanguage;
+import tmw.me.com.ide.codeEditor.languages.components.Behavior;
 import tmw.me.com.ide.tools.builders.SVGPathBuilder;
 import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
 import tmw.me.com.ide.tools.concurrent.schedulers.ConsumerEventScheduler;
@@ -67,6 +68,7 @@ import java.util.regex.PatternSyntaxException;
  * <ul>
  *     <li>More interactive highlighting features</li>
  *     <li>A nice context menu</li>
+ *     <li>Tooltips</li>
  * </ul>
  * <p>*Controlled by LanguageSupport</p>
  */
@@ -277,11 +279,15 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
                     selectionQueue.clear();
                     autoCompletePopup.hide();
                 }
-                languageSupport1.removeBehaviour(this);
+                for (Behavior behavior : t1.removeBehaviour(this)) {
+                    behavior.remove(this);
+                }
             }
             if (t1 != null) {
                 this.getStylesheets().add(t1.getStyleSheet());
-                t1.addBehaviour(this);
+                for (Behavior behavior : t1.addBehaviour(this)) {
+                    behavior.apply(this);
+                }
             }
         });
 

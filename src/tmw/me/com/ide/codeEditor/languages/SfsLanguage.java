@@ -7,6 +7,7 @@ import tmw.me.com.betterfx.TextModifier;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.languages.components.Behavior;
 import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.interpretation.parse.Parser;
@@ -44,7 +45,7 @@ public class SfsLanguage extends LanguageSupport {
      * </p>
      * @param integratedTextEditor A reference to the {@link IntegratedTextEditor} which all functionality should be added onto.
      */
-    public void addBehaviour(IntegratedTextEditor integratedTextEditor) {
+    public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
         caretListener = new ChangeListenerScheduler<>(200, (observableValue, integer, t1) -> {
             if (!t1.equals(integer) && integratedTextEditor.getFindSelectedIndex() < 0) {
                 String fullText = integratedTextEditor.getText();
@@ -86,17 +87,18 @@ public class SfsLanguage extends LanguageSupport {
         });
         integratedTextEditor.caretPositionProperty().addListener(caretListener);
         integratedTextEditor.textProperty().addListener(textListener);
+        return null;
     }
 
     @Override
-    public void removeBehaviour(IntegratedTextEditor integratedTextEditor) {
+    public Behavior[] removeBehaviour(IntegratedTextEditor integratedTextEditor) {
         super.removeBehaviour(integratedTextEditor);
         integratedTextEditor.caretPositionProperty().removeListener(caretListener);
         integratedTextEditor.textProperty().removeListener(textListener);
+        return null;
     }
 
     private final ArrayList<String> ADDED_SYNTAX_PATTERNS = new ArrayList<>();
-    //
     private static final String[] KEYWORDS = { "function", "if", "else" };
     private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
     private static final String COMMENT_PATTERN = "#[^\\n]*";

@@ -3,6 +3,7 @@ package tmw.me.com.ide.codeEditor.languages;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.languages.components.Behavior;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -84,10 +85,11 @@ public abstract class LanguageSupport {
      * This method should be used for adding any additional functionality this language needs onto the IntegratedTextEditor, for example the highlighting of variables in the {@link SfsLanguage} is added here.
      * @param integratedTextEditor A reference to the {@link IntegratedTextEditor} which all functionality should be added onto.
      */
-    public abstract void addBehaviour(IntegratedTextEditor integratedTextEditor);
+    public abstract Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor);
 
-    public void removeBehaviour(IntegratedTextEditor integratedTextEditor) {
+    public Behavior[] removeBehaviour(IntegratedTextEditor integratedTextEditor) {
         integratedTextEditor.getErrorLines().clear();
+        return null;
     };
 
     /**
