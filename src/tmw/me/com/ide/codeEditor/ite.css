@@ -23,7 +23,7 @@
 
 .minimap-text {
     -fx-font-family: "Montserrat";
-    /*-fx-font-size: 18;*/
+    -fx-font-size: 6 !important;
     -fx-padding: 0 0 0 8;
     -fx-fill: -default-text-color;
 }
@@ -74,7 +74,7 @@
     -fx-background-color: rgb(255, 255, 255);
 }
 .mm-viewport-drag {
-    -fx-background-color: rgb(180, 247, 255) !important;
+    -fx-background-color: rgb(180, 255, 234) !important;
 }
 
 .selected-word {

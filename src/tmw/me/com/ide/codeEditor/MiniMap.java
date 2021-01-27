@@ -1,9 +1,10 @@
 package tmw.me.com.ide.codeEditor;
 
 import javafx.application.Platform;
-import javafx.scene.layout.*;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.Paragraph;
 import org.fxmisc.richtext.model.StyleSpan;
@@ -16,8 +17,6 @@ import java.util.Collection;
  */
 public class MiniMap extends AnchorPane {
 
-    private static final double DEFAULT_SCALE = 0.5;
-
     private final VBox box = new VBox();
     private final Pane viewPort = new Pane();
 
@@ -26,7 +25,8 @@ public class MiniMap extends AnchorPane {
     private double viewPortDragStartSceneY;
     private double viewPortDragStartLayoutY;
 
-    private double scale = DEFAULT_SCALE;
+    private final static double VP_INITIAL_OPACITY = 0.045;
+    private final static double VP_HOVER_OPACITY = 0.075;
 
     public MiniMap() {
         getChildren().addAll(box, viewPort);
@@ -37,9 +37,9 @@ public class MiniMap extends AnchorPane {
         AnchorPane.setLeftAnchor(viewPort, 0D); AnchorPane.setRightAnchor(viewPort, 0D);
 
         viewPort.getStyleClass().add("mm-viewport");
-        viewPort.setOpacity(0.035);
-        viewPort.setOnMouseEntered(mouseEvent -> viewPort.setOpacity(0.075));
-        viewPort.setOnMouseExited(mouseEvent -> viewPort.setOpacity(0.035));
+        viewPort.setOpacity(VP_INITIAL_OPACITY);
+        viewPort.setOnMouseEntered(mouseEvent -> viewPort.setOpacity(VP_HOVER_OPACITY));
+        viewPort.setOnMouseExited(mouseEvent -> viewPort.setOpacity(VP_INITIAL_OPACITY));
     }
 
     public void loadFromITE(IntegratedTextEditor ite) {
@@ -64,9 +64,9 @@ public class MiniMap extends AnchorPane {
         viewPort.setOnMouseReleased(mouseEvent -> {
             viewPort.getStyleClass().remove("mm-viewport-drag");
             if (mouseEvent.getPickResult().getIntersectedNode() == viewPort) {
-                viewPort.setOpacity(0.075);
+                viewPort.setOpacity(VP_HOVER_OPACITY);
             } else {
-                viewPort.setOpacity(0.035);
+                viewPort.setOpacity(VP_INITIAL_OPACITY);
             }
         });
         viewPort.setOnMouseDragged(mouseEvent -> {
@@ -104,7 +104,7 @@ public class MiniMap extends AnchorPane {
         });
         ite.heightProperty().addListener((observableValue, number, t1) ->
             Platform.runLater(() -> {
-                double relativeBoxHeight = (ite.getViewportHeight() / ite.getTotalHeightEstimate()) * box.getHeight();
+                double relativeBoxHeight = (ite.getVirtualizedScrollPane().getHeight() / ite.getTotalHeightEstimate()) * box.getHeight();
                 viewPort.setMinHeight(relativeBoxHeight);
             }
         ));
@@ -121,12 +121,11 @@ public class MiniMap extends AnchorPane {
             for (StyleSpan<Collection<String>> styleSpan : ite.getStyleSpans(i)) {
                 String textForSpan = paragraphObj.getText().substring(location, location + styleSpan.getLength());
                 TextExt textExt = new TextExt(textForSpan);
-                paragraph.getChildren().add(textExt);
-                textExt.applyCss();
-                textExt.setFont(Font.font("Montserrat", FontWeight.findByName(textExt.getFont().getStyle()), textExt.getFont().getSize() * scale));
+//                textExt.setFont(Font.font("Montserrat", FontWeight.findByName(textExt.getFont().getStyle()), scale));
                 textExt.setMouseTransparent(true);
                 textExt.getStyleClass().addAll(styleSpan.getStyle());
                 textExt.getStyleClass().add("minimap-text");
+                paragraph.getChildren().add(textExt);
                 location += styleSpan.getLength();
             }
             if (i == ite.getCurrentParagraph()) {

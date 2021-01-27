@@ -148,7 +148,6 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }
     };
 
-
     /**
      * Constructs a new IntegratedTextEditor with {@link PlainTextLanguage} as it's language support.
      */
@@ -362,145 +361,15 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         AnchorPane.setBottomAnchor(bottomPane, 0D);
 
         // This event handlers
-        Pattern whiteSpace = Pattern.compile( "^\\s+" );
-        this.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
-            // Getting certain important variables which are used a lot in other places.
-            String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
-            KeyCode keyCode = keyEvent.getCode();
-            String textAfterCaret = this.getText().substring(this.getCaretPosition());
-            // This code shows or closes the Find And Replace window
-            if ((keyCode == KeyCode.F || keyCode == KeyCode.R || keyCode == KeyCode.H) && keyEvent.isControlDown()) {
-                showingFindAndReplace.set(!showingFindAndReplace.get());
-            }
-            // Navigation in the AutoComplete Popup
-            if (!selectionQueue.isEmpty() && (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
-                if (autoCompletePopup.isShowing() && (keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
-                    if (popupBox.getChildren().size() > selectionIndex) {
-                        keyEvent.consume();
-                        Node selected = this.popupBox.getChildren().get(selectionIndex);
-                        if (selected != null) {
-                            int indexOf = this.popupBox.getChildren().indexOf(selected);
-                            if (keyCode == KeyCode.UP) {
-                                indexOf--;
-                            } else {
-                                indexOf++;
-                            }
-                            if (indexOf >= this.popupBox.getChildren().size()) {
-                                indexOf = 0;
-                            } else if (indexOf < 0) {
-                                indexOf = this.popupBox.getChildren().size() - 1;
-                            }
-                            selected.getStyleClass().remove("selected-syntax");
-                            popupBox.getChildren().get(indexOf).getStyleClass().add("selected-syntax");
-                            selectionIndex = indexOf;
-                        }
-                    }
-                } else {
-                    selectionQueue.clear();
-                }
-            }
-            // Auto close brackets and quotes
-            // TODO add auto closing for parentheses and square brackets and single quotes
-            if (this.getSelectedText().length() > 0) {
-                if (keyEvent.isShiftDown() && (keyCode == KeyCode.QUOTE || keyCode == KeyCode.OPEN_BRACKET)) {
-                    String selectionText = this.getSelectedText();
-                    IndexRange selected = this.getSelection();
-                    if (keyCode == KeyCode.QUOTE) {
-                        selectionText = "\"" + selectionText + "\"";
-                    } else {
-                        selectionText = "{" + selectionText + "}";
-                    }
-                    String finalSelectionText = selectionText;
-                    int start = selected.getStart();
-                    int end = selected.getEnd();
-                    this.replaceText(selected.getStart(), selected.getEnd(), finalSelectionText);
-                    Platform.runLater(() -> {
-                        this.replaceText(end + 2, end + 3, "");
-                        this.selectRange(start + 1, end + 1);
-                    });
-                }
-            } else if (keyEvent.isShiftDown() && keyCode == KeyCode.OPEN_BRACKET && !textAfterCaret.startsWith("}") && !keyEvent.isConsumed()) {
-                Platform.runLater( () -> {
-                    this.insertText(this.getCaretPosition(), "}");
-                    this.moveTo(this.getCaretPosition() - 1);
-                });
-            } else if (keyEvent.isShiftDown() && keyCode == KeyCode.QUOTE && !textAfterCaret.startsWith("\"") && !keyEvent.isConsumed()) {
-                Platform.runLater(() -> {
-                    this.insertText(this.getCaretPosition(), "\"");
-                    this.moveTo(this.getCaretPosition() - 1);
-                });
-            }
-            // Auto indent
-            if (keyCode == KeyCode.ENTER) {
-                Matcher m = whiteSpace.matcher(line);
-                Platform.runLater( () -> this.insertText(this.getCaretPosition(), (line.trim().startsWith("#") ? "#" : "") + (m.find() ? m.group() : "") + (line.endsWith(":") ? INDENT : "")));
-            } else if (keyEvent.isShiftDown()) {
-                if (keyCode == KeyCode.TAB) {
-                    if (this.getSelectedText().length() <= 1) {
-                        Matcher matcher = whiteSpace.matcher(line);
-                        if (matcher.find()) {
-                            String whiteSpaceInLine = matcher.group();
-                            if (whiteSpaceInLine.startsWith("\t") || whiteSpaceInLine.startsWith(INDENT)) {
-                                String replaced = (whiteSpaceInLine.startsWith("\t") ? whiteSpaceInLine.replaceFirst("\t", "") : whiteSpaceInLine.replaceFirst(" {2}", ""));
-                                int lineStart = 0;
-                                for (int i = this.getCurrentParagraph() - 1; i >= 0; i--) {
-                                    lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
-                                }
-                                int textEnd = lineStart + whiteSpaceInLine.length();
-                                int finalLineStart = lineStart;
-                                Platform.runLater(() -> this.replaceText(finalLineStart, textEnd, replaced));
-                            }
-                        }
-                    } else {
-                        int start = this.getSelection().getStart();
-                        int end = this.getSelection().getEnd();
-                        String indentedBackwards = indentBackwards(getSelectedText());
-                        this.replaceText(start, end, indentedBackwards);
-                        this.selectRange(start,
-                                end + (indentedBackwards.length() - (end - start))
-                                );
-                    }
-                }
-            } else if (keyCode == KeyCode.TAB) {
-                if (!keyEvent.isControlDown() && autoCompletePopup.isShowing()) {
-                    if (factoryOrder.size() > selectionIndex) {
-                        keyEvent.consume();
-                        String text = factoryOrder.get(selectionIndex).getPutIn();
-                        if (text.length() > 0 && this.getSelectedText().equals("")) {
-                            insertAutocomplete();
-                        } else {
-                            int lineStart = 0;
-                            for (int i = this.getCurrentParagraph(); i >= 0; i--) {
-                                lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
-                            }
-                            lineStart--;
-                            this.replaceText(lineStart, lineStart, "");
-                        }
-                    }
-                } else if (!keyEvent.isControlDown() && !selectionQueue.isEmpty() && this.getSelectedText().equals("")) {
-                    selectNext();
-                    keyEvent.consume();
-                } else if (!keyEvent.isControlDown() && selectionQueue.isEmpty() && !this.getSelectedText().equals("")) {
-                    keyEvent.consume();
-                    int start = this.getSelection().getStart();
-                    int end = this.getSelection().getEnd();
-                    String indentForwards = indentForwards(getSelectedText());
-                    this.replaceText(start, end, indentForwards);
-                    this.selectRange(start,
-                            end + (indentForwards.length() - (end - start))
-                    );
-                }
-            }
-        });
-        this.caretBoundsProperty().addListener((observableValue, integer, t1) -> {
+
+        this.addEventFilter(KeyEvent.KEY_PRESSED, this::keyPressed);
+        this.caretBoundsProperty().addListener((observableValue, integer, t1) -> Platform.runLater(() -> {
             if (this.caretBoundsProperty().getValue().isPresent()) {
                 Bounds bounds = this.caretBoundsProperty().getValue().get();
-                Platform.runLater(() -> {
-                    autoCompletePopup.setX(bounds.getMaxX());
-                    autoCompletePopup.setY(bounds.getMaxY());
-                });
+                autoCompletePopup.setX(bounds.getMaxX());
+                autoCompletePopup.setY(bounds.getMaxY());
             }
-        });
+        }));
         this.sceneProperty().addListener((observableValue, scene, t1) -> {
             if (t1 != null) {
                 Window t11 = t1.getWindow();
@@ -582,6 +451,138 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         AnchorPane.setRightAnchor(virtualizedScrollPane, getWidth() / divideBy);
         AnchorPane.setRightAnchor(miniMap, 0D); AnchorPane.setTopAnchor(miniMap, 0D);
         AnchorPane.setBottomAnchor(miniMap, 15D);
+    }
+
+    private void keyPressed(KeyEvent keyEvent) {
+        // Getting certain important variables which are used a lot in other places.
+        String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
+        KeyCode keyCode = keyEvent.getCode();
+        String textAfterCaret = this.getText().substring(this.getCaretPosition());
+        // This code shows or closes the Find And Replace window
+        if ((keyCode == KeyCode.F || keyCode == KeyCode.R || keyCode == KeyCode.H) && keyEvent.isControlDown()) {
+            showingFindAndReplace.set(!showingFindAndReplace.get());
+        }
+        // Navigation in the AutoComplete Popup
+        if (!selectionQueue.isEmpty() && (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
+            if (autoCompletePopup.isShowing() && (keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
+                if (popupBox.getChildren().size() > selectionIndex) {
+                    keyEvent.consume();
+                    Node selected = this.popupBox.getChildren().get(selectionIndex);
+                    if (selected != null) {
+                        int indexOf = this.popupBox.getChildren().indexOf(selected);
+                        if (keyCode == KeyCode.UP) {
+                            indexOf--;
+                        } else {
+                            indexOf++;
+                        }
+                        if (indexOf >= this.popupBox.getChildren().size()) {
+                            indexOf = 0;
+                        } else if (indexOf < 0) {
+                            indexOf = this.popupBox.getChildren().size() - 1;
+                        }
+                        selected.getStyleClass().remove("selected-syntax");
+                        popupBox.getChildren().get(indexOf).getStyleClass().add("selected-syntax");
+                        selectionIndex = indexOf;
+                    }
+                }
+            } else {
+                selectionQueue.clear();
+            }
+        }
+        // Auto close brackets and quotes
+        // TODO add auto closing for parentheses and square brackets and single quotes
+        if (this.getSelectedText().length() > 0) {
+            if (keyEvent.isShiftDown() && (keyCode == KeyCode.QUOTE || keyCode == KeyCode.OPEN_BRACKET)) {
+                String selectionText = this.getSelectedText();
+                IndexRange selected = this.getSelection();
+                if (keyCode == KeyCode.QUOTE) {
+                    selectionText = "\"" + selectionText + "\"";
+                } else {
+                    selectionText = "{" + selectionText + "}";
+                }
+                String finalSelectionText = selectionText;
+                int start = selected.getStart();
+                int end = selected.getEnd();
+                this.replaceText(selected.getStart(), selected.getEnd(), finalSelectionText);
+                Platform.runLater(() -> {
+                    this.replaceText(end + 2, end + 3, "");
+                    this.selectRange(start + 1, end + 1);
+                });
+            }
+        } else if (keyEvent.isShiftDown() && keyCode == KeyCode.OPEN_BRACKET && !textAfterCaret.startsWith("}") && !keyEvent.isConsumed()) {
+            Platform.runLater( () -> {
+                this.insertText(this.getCaretPosition(), "}");
+                this.moveTo(this.getCaretPosition() - 1);
+            });
+        } else if (keyEvent.isShiftDown() && keyCode == KeyCode.QUOTE && !textAfterCaret.startsWith("\"") && !keyEvent.isConsumed()) {
+            Platform.runLater(() -> {
+                this.insertText(this.getCaretPosition(), "\"");
+                this.moveTo(this.getCaretPosition() - 1);
+            });
+        }
+        // Auto indent
+        if (keyCode == KeyCode.ENTER) {
+            Pattern whiteSpace = Pattern.compile( "^\\s+" );
+            Matcher m = whiteSpace.matcher(line);
+            Platform.runLater( () -> this.insertText(this.getCaretPosition(), (line.trim().startsWith("#") ? "#" : "") + (m.find() ? m.group() : "") + (line.endsWith(":") ? INDENT : "")));
+        } else if (keyEvent.isShiftDown()) {
+            if (keyCode == KeyCode.TAB) {
+                if (this.getSelectedText().length() <= 1) {
+                    Pattern whiteSpace = Pattern.compile( "^\\s+" );
+                    Matcher matcher = whiteSpace.matcher(line);
+                    if (matcher.find()) {
+                        String whiteSpaceInLine = matcher.group();
+                        if (whiteSpaceInLine.startsWith("\t") || whiteSpaceInLine.startsWith(INDENT)) {
+                            String replaced = (whiteSpaceInLine.startsWith("\t") ? whiteSpaceInLine.replaceFirst("\t", "") : whiteSpaceInLine.replaceFirst(" {2}", ""));
+                            int lineStart = 0;
+                            for (int i = this.getCurrentParagraph() - 1; i >= 0; i--) {
+                                lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
+                            }
+                            int textEnd = lineStart + whiteSpaceInLine.length();
+                            int finalLineStart = lineStart;
+                            Platform.runLater(() -> this.replaceText(finalLineStart, textEnd, replaced));
+                        }
+                    }
+                } else {
+                    int start = this.getSelection().getStart();
+                    int end = this.getSelection().getEnd();
+                    String indentedBackwards = indentBackwards(getSelectedText());
+                    this.replaceText(start, end, indentedBackwards);
+                    this.selectRange(start,
+                            end + (indentedBackwards.length() - (end - start))
+                    );
+                }
+            }
+        } else if (keyCode == KeyCode.TAB) {
+            if (!keyEvent.isControlDown() && autoCompletePopup.isShowing()) {
+                if (factoryOrder.size() > selectionIndex) {
+                    keyEvent.consume();
+                    String text = factoryOrder.get(selectionIndex).getPutIn();
+                    if (text.length() > 0 && this.getSelectedText().equals("")) {
+                        insertAutocomplete();
+                    } else {
+                        int lineStart = 0;
+                        for (int i = this.getCurrentParagraph(); i >= 0; i--) {
+                            lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
+                        }
+                        lineStart--;
+                        this.replaceText(lineStart, lineStart, "");
+                    }
+                }
+            } else if (!keyEvent.isControlDown() && !selectionQueue.isEmpty() && this.getSelectedText().equals("")) {
+                selectNext();
+                keyEvent.consume();
+            } else if (!keyEvent.isControlDown() && selectionQueue.isEmpty() && !this.getSelectedText().equals("")) {
+                keyEvent.consume();
+                int start = this.getSelection().getStart();
+                int end = this.getSelection().getEnd();
+                String indentForwards = indentForwards(getSelectedText());
+                this.replaceText(start, end, indentForwards);
+                this.selectRange(start,
+                        end + (indentForwards.length() - (end - start))
+                );
+            }
+        }
     }
 
     public AnchorPane getTextAreaHolder() {
