@@ -49,36 +49,6 @@ public class ComponentTabPane extends TabPane {
         this.setBackground(new Background(new BackgroundFill(BG_COLOR.darker(), CornerRadii.EMPTY, Insets.EMPTY)));
 
         this.getStylesheets().add(STYLE_SHEET);
-        this.getTabs().addListener((ListChangeListener<Tab>) change -> {
-            if (this.getTabs().isEmpty()) {
-                if (this.getParent() != null) {
-                    lastParent = getParent();
-                    if (this.getParent() instanceof Pane) {
-                        if (this.getParent().getParent() instanceof SplitPane) {
-                            lastLocation = ((SplitPane) this.getParent().getParent()).getItems().indexOf(getParent());
-                            System.out.println(((SplitPane) this.getParent().getParent()).getItems());
-                            ((SplitPane) this.getParent().getParent()).getItems().remove(this);
-                        } else {
-                            System.out.println("1");
-                            lastLocation = ((Pane) this.getParent()).getChildren().indexOf(this);
-                            ((Pane) this.getParent()).getChildren().remove(this);
-                        }
-                    } else if (this.getParent() instanceof SplitPane) {
-                        lastLocation = ((SplitPane) this.getParent()).getItems().indexOf(this);
-                        System.out.println(((SplitPane) this.getParent()).getItems());
-                        ((SplitPane) this.getParent()).getItems().remove(this);
-                    }
-                }
-            } else {
-                if (lastParent instanceof Pane) {
-                    ((Pane) lastParent).getChildren().add(Math.min(lastLocation, lastParent.getChildrenUnmodifiable().size()),
-                            this);
-                } else if (lastParent instanceof SplitPane) {
-                    ((SplitPane) lastParent).getItems().add(Math.min(lastLocation, lastParent.getChildrenUnmodifiable().size()), this);
-                }
-                lastParent = null;
-            }
-        });
     }
 
     public EventHandler<Event> getOnTabCloseRequested() {
@@ -106,4 +76,35 @@ public class ComponentTabPane extends TabPane {
     public void setVertical(SplitPane vertical) {
         this.vertical = vertical;
     }
+
+    public static void disappearWithoutChildren(ComponentTabPane tabPane) {
+        tabPane.getTabs().addListener((ListChangeListener<Tab>) change -> {
+            if (tabPane.getTabs().isEmpty()) {
+                if (tabPane.getParent() != null) {
+                    tabPane.lastParent = tabPane.getParent();
+                    if (tabPane.getParent() instanceof Pane) {
+                        if (tabPane.getParent().getParent() instanceof SplitPane) {
+                            tabPane.lastLocation = ((SplitPane) tabPane.getParent().getParent()).getItems().indexOf(tabPane.getParent());
+                            ((SplitPane) tabPane.getParent().getParent()).getItems().remove(tabPane);
+                        } else {
+                            tabPane.lastLocation = ((Pane) tabPane.getParent()).getChildren().indexOf(tabPane);
+                            ((Pane) tabPane.getParent()).getChildren().remove(tabPane);
+                        }
+                    } else if (tabPane.getParent() instanceof SplitPane) {
+                        tabPane.lastLocation = ((SplitPane) tabPane.getParent()).getItems().indexOf(tabPane);
+                        ((SplitPane) tabPane.getParent()).getItems().remove(tabPane);
+                    }
+                }
+            } else {
+                if (tabPane.lastParent instanceof Pane) {
+                    ((Pane) tabPane.lastParent).getChildren().add(Math.min(tabPane.lastLocation, tabPane.lastParent.getChildrenUnmodifiable().size()),
+                            tabPane);
+                } else if (tabPane.lastParent instanceof SplitPane) {
+                    ((SplitPane) tabPane.lastParent).getItems().add(Math.min(tabPane.lastLocation, tabPane.lastParent.getChildrenUnmodifiable().size()), tabPane);
+                }
+                tabPane.lastParent = null;
+            }
+        });
+    }
+
 }

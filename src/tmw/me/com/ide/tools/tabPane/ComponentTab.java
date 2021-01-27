@@ -72,6 +72,7 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
         init();
         horizontal.getStyleClass().add("dark-split-pane");
         vertical.getStyleClass().add("dark-split-pane");
+        pictureStage.setAutoFix(false);
     }
 
     private void init() {
@@ -100,12 +101,11 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
         splitHorizontally.setOnAction(actionEvent -> {
             ObservableList<Node> items = getTabPaneCTP().getHorizontal().getItems();
             int ourIndex = items.indexOf(getTabPaneCTP());
-            System.out.println(items.size() + " " + ourIndex);
             ComponentTabPane componentTabPane = new ComponentTabPane(new ComponentTab<>(label.getText(), value.createNewCopy()));
+            ComponentTabPane.disappearWithoutChildren(componentTabPane);
             componentTabPane.setVertical(getTabPaneCTP().getVertical());
             componentTabPane.setHorizontal(getTabPaneCTP().getHorizontal());
             items.add(ourIndex + 1, componentTabPane);
-//            }
         });
 
         save.setOnAction(actionEvent -> {
@@ -252,7 +252,7 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
         for (int i = 0; i < size; i++) {
             if (ComponentTabPane.ALL_TAB_PANES.size() - 1 >= i) {
                 ComponentTabPane tabPane = ComponentTabPane.ALL_TAB_PANES.get(i);
-                if (tabPane.getScene() != null && tabPane.getScene().getWindow().isShowing()) {
+                if (tabPane != null && tabPane.getParent() != null && tabPane.getScene() != null && tabPane.getScene().getWindow() != null && tabPane.getScene().getWindow().isShowing()) {
                     Bounds tabPaneBounds = tabPane.localToScene(tabPane.getBoundsInLocal());
                     Window window = tabPane.getScene().getWindow();
                     if (mouseEvent.getScreenX() > tabPaneBounds.getMinX() + window.getX() && mouseEvent.getScreenX() < tabPaneBounds.getMaxX() + window.getX()) {

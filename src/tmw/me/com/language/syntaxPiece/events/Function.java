@@ -1,6 +1,5 @@
 package tmw.me.com.language.syntaxPiece.events;
 
-import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.variable.Variable;
 
 import java.util.ArrayList;
@@ -101,8 +100,5 @@ public class Function<T> extends Event {
         return null;
     }
 
-    @Override
-    public void parsed(Parser parser) {
 
-    }
 }

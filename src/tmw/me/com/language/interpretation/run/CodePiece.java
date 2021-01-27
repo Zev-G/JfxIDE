@@ -1,8 +1,12 @@
 package tmw.me.com.language.interpretation.run;
 
 import tmw.me.com.language.interpretation.parse.Parser;
+import tmw.me.com.language.interpretation.parse.error.ParseError;
 import tmw.me.com.language.syntaxPiece.effects.Effect;
 import tmw.me.com.language.syntaxPiece.events.Event;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class CodePiece {
 
@@ -61,11 +65,21 @@ public class CodePiece {
         return line;
     }
 
-    public void parsed(Parser parser) {
-        if (effect != null)
-            effect.parsed(parser);
-        else if (event != null)
-            event.parsed(parser);
+    public final ArrayList<ParseError> parsed(Parser parser) {
+        ArrayList<ParseError> parseErrors = new ArrayList<>();
+        if (effect != null) {
+            Collection<ParseError> effectParseErrors = effect.parsed(parser);
+            if (effectParseErrors != null && !effectParseErrors.isEmpty()) {
+                parseErrors.addAll(effectParseErrors);
+            }
+        }
+        else if (event != null) {
+            Collection<ParseError> eventParseErrors = event.parsed(parser);
+            if (eventParseErrors != null && !eventParseErrors.isEmpty()) {
+                parseErrors.addAll(eventParseErrors);
+            }
+        }
+        return parseErrors;
     }
 
 }

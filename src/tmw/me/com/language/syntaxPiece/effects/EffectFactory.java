@@ -1,6 +1,7 @@
 package tmw.me.com.language.syntaxPiece.effects;
 
 import tmw.me.com.language.interpretation.parse.Parser;
+import tmw.me.com.language.interpretation.parse.error.ParseError;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.syntaxPiece.SyntaxPiece;
@@ -145,12 +146,14 @@ public class EffectFactory extends Effect implements SyntaxPieceFactory {
     }
 
     @Override
-    public void parsed(Parser parser) {
+    public ArrayList<ParseError> parsed(Parser parser) {
         classes.clear();
         classes.addAll(getArgs());
         if (finishedParsing != null)
             finishedParsing.accept(parser);
-        expressionArgs.forEach(expressionFactory -> expressionFactory.parsed(parser));
+        ArrayList<ParseError> parseErrors = new ArrayList<>();
+        expressionArgs.forEach(expressionFactory -> parseErrors.addAll(expressionFactory.parsed(parser)));
+        return parseErrors;
     }
 
 }

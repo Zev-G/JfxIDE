@@ -1,6 +1,5 @@
 package tmw.me.com.language.syntaxPiece.events.statements;
 
-import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.syntaxPiece.events.Event;
 import tmw.me.com.language.syntaxPiece.expressions.Expression;
 
@@ -49,8 +48,4 @@ public class ElseIfStatement extends Event {
         return elseIfStatement;
     }
 
-    @Override
-    public void parsed(Parser parser) {
-
-    }
 }

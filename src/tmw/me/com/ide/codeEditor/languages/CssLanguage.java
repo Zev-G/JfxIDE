@@ -35,7 +35,7 @@ public class CssLanguage extends LanguageSupport {
             "|(?<BRACE>" + BRACE_PATTERN + ")" +
             "");
 
-    CssLanguage() {
+    public CssLanguage() {
         super(CssLanguage.class.getResource("styles/css.css").toExternalForm(), "Css");
     }
 

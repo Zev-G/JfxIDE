@@ -113,7 +113,9 @@ public final class Parser {
                 }
                 if (addPiece != null) {
                     chunk.addPiece(addPiece);
-                    addPiece.parsed(this);
+                    for (ParseError error : addPiece.parsed(this)) {
+                        errorHandler.accept(error);
+                    }
                 }
             }
         }
@@ -310,9 +312,6 @@ public final class Parser {
             if (!code.contains("if")) {
                 return new ElseStatement();
             }
-//            else if (code.startsWith("else if")) {
-//
-//            }
         } else if (code.startsWith("function")) {
             ArrayList<String> spaces = new ArrayList<>(Arrays.asList(code.split(" ")));
             spaces.remove(0);

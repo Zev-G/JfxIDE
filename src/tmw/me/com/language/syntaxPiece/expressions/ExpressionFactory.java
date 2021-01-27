@@ -1,6 +1,7 @@
 package tmw.me.com.language.syntaxPiece.expressions;
 
 import tmw.me.com.language.interpretation.parse.Parser;
+import tmw.me.com.language.interpretation.parse.error.ParseError;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.syntaxPiece.SyntaxPiece;
@@ -185,12 +186,14 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
     }
 
     @Override
-    public void parsed(Parser parser) {
+    public ArrayList<ParseError> parsed(Parser parser) {
         classes.clear();
         classes.addAll(getArgs());
         if (finishedParsing != null)
             finishedParsing.accept(parser);
-        expressionArgs.forEach(expressionFactory -> expressionFactory.parsed(parser));
+        ArrayList<ParseError> errors = new ArrayList<>();
+        expressionArgs.forEach(expressionFactory -> errors.addAll(expressionFactory.parsed(parser)));
+        return errors;
     }
 
 

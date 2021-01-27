@@ -5,6 +5,7 @@ import tmw.me.com.ide.codeEditor.languages.components.Behavior;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 /**
  * NOT FINISHED
  * */
@@ -12,9 +13,8 @@ public class XmlLanguage extends LanguageSupport {
 
 
 
-    XmlLanguage() {
-//        super(XmlLanguage.class.getResource("xml.css").toExternalForm(), "Xml/Fxml");
-        super("", "Xml/Fxml");
+    public XmlLanguage() {
+        super("Xml/Fxml");
     }
 
     @Override

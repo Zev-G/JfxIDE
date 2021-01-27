@@ -41,6 +41,9 @@ public abstract class LanguageSupport {
         this.styleSheet = styleSheet;
         this.languageName = languageName;
     }
+    public LanguageSupport(String languageName) {
+        this(LanguageSupport.class.getResource("styles/plain.css").toExternalForm(), languageName);
+    }
 
     /**
      * @return A pattern which is used for sectioning the highlighting, if you don't want your language to have highlighting you can always
@@ -85,7 +88,7 @@ public abstract class LanguageSupport {
      * This method should be used for adding any additional functionality this language needs onto the IntegratedTextEditor, for example the highlighting of variables in the {@link SfsLanguage} is added here.
      * @param integratedTextEditor A reference to the {@link IntegratedTextEditor} which all functionality should be added onto.
      */
-    public abstract Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor);
+    public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) { return null; }
 
     public Behavior[] removeBehaviour(IntegratedTextEditor integratedTextEditor) {
         integratedTextEditor.getErrorLines().clear();
@@ -119,15 +122,15 @@ public abstract class LanguageSupport {
      */
     public static LanguageSupport getLanguageFromFile(File file) {
         if (file == null || !file.getName().contains(".")) {
-            return new SfsLanguage();
+            return new PlainTextLanguage();
         }
         String fileEnding = file.getName().split("\\.")[1];
         if (fileEnding.equals("java")) {
-            return LanguageLibrary.JAVA;
+            return new JavaLanguage();
         } else if (fileEnding.equals("css")) {
-            return LanguageLibrary.CSS;
+            return new CssLanguage();
         } else {
-            return new SfsLanguage();
+            return new PlainTextLanguage();
         }
     }
 

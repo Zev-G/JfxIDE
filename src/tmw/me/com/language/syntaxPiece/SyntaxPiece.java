@@ -1,7 +1,10 @@
 package tmw.me.com.language.syntaxPiece;
 
 import tmw.me.com.language.interpretation.parse.Parser;
+import tmw.me.com.language.interpretation.parse.error.ParseError;
 import tmw.me.com.language.interpretation.run.CodeChunk;
+
+import java.util.ArrayList;
 
 public abstract class SyntaxPiece<T extends SyntaxPiece<?>> {
 
@@ -10,7 +13,7 @@ public abstract class SyntaxPiece<T extends SyntaxPiece<?>> {
     protected String text;
 
     public abstract T duplicate();
-    public abstract void parsed(Parser parser);
+    public ArrayList<ParseError> parsed(Parser parser) { return null; }
 
     public String getCode() {
         return code;

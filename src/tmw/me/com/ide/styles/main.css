@@ -146,6 +146,7 @@
 
 .scroll-pane > .corner {
     -fx-background-color: -main-background-color;
+    -fx-background-insets: 0 0 0 0;
 }
 .scroll-pane {
     -fx-background-color: transparent;
@@ -183,6 +184,7 @@
 .scroll-bar > .increment-button > .increment-arrow,
 .scroll-bar > .decrement-button > .decrement-arrow {
     -fx-background-color: transparent;
+    -fx-padding: 2;
 }
 .scroll-pane:focused,
 .split-pane:focused,

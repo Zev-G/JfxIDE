@@ -21,6 +21,13 @@
     /*-fx-font-weight: bold;*/
 }
 
+.minimap-text {
+    -fx-font-family: "Montserrat";
+    /*-fx-font-size: 18;*/
+    -fx-padding: 0 0 0 8;
+    -fx-fill: -default-text-color;
+}
+
 .code-area .lineno, .lineno {
     /*-fx-text-fill: -default-text-color;*/
     -fx-font-size: 16;
@@ -57,6 +64,17 @@
 
 .paragraph-box:has-caret {
     -fx-background-color: -selected-line;
+}
+
+.has-caret {
+    -fx-background-color: -selected-line;
+}
+
+.mm-viewport {
+    -fx-background-color: rgb(255, 255, 255);
+}
+.mm-viewport-drag {
+    -fx-background-color: rgb(180, 247, 255) !important;
 }
 
 .selected-word {

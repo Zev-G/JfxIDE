@@ -11,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
@@ -34,6 +35,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -250,6 +252,26 @@ public class Ide extends AnchorPane {
             runSelector.setDisable(!autoSelect.isSelected());
             if (!autoSelect.isSelected()) {
                 runSelector.getSelectionModel().select((ComponentTab<IntegratedTextEditor>) tabPane.getSelectionModel().getSelectedItem());
+            }
+        });
+        rightTab.setOnDragOver(dragEvent -> {
+            if (dragEvent.getDragboard().getFiles() != null && !dragEvent.getDragboard().getFiles().isEmpty()) {
+                dragEvent.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+            }
+        });
+        rightTab.setOnDragDropped(dragEvent -> {
+            if (dragEvent.getDragboard().getFiles() != null && !dragEvent.getDragboard().getFiles().isEmpty()) {
+                List<File> files = dragEvent.getDragboard().getFiles();
+                for (File file : files) {
+                    if (file != null) {
+                        if (file.isDirectory()) {
+                            loadFile(file);
+                            break;
+                        } else {
+                            tabPane.getTabs().add(getNewEditorTab(file));
+                        }
+                    }
+                }
             }
         });
 

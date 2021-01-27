@@ -10,6 +10,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
@@ -37,7 +38,7 @@ import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
-import tmw.me.com.ide.codeEditor.languages.SfsLanguage;
+import tmw.me.com.ide.codeEditor.languages.PlainTextLanguage;
 import tmw.me.com.ide.codeEditor.languages.components.Behavior;
 import tmw.me.com.ide.tools.builders.SVGPathBuilder;
 import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
@@ -69,15 +70,18 @@ import java.util.regex.PatternSyntaxException;
  *     <li>More interactive highlighting features</li>
  *     <li>A nice context menu</li>
  *     <li>Tooltips</li>
+ *     <li>A Minimap</li>
  * </ul>
  * <p>*Controlled by LanguageSupport</p>
  */
 public class IntegratedTextEditor extends CodeArea implements ComponentTabContent<IntegratedTextEditor> {
 
     public static final String INDENT = "  ";
+    public static final String STYLE_SHEET = IntegratedTextEditor.class.getResource("ite.css").toExternalForm();
 
     // Properties
     private final ObservableList<Integer> errorLines = FXCollections.observableArrayList();
+    private final ObservableList<Behavior> behaviors = FXCollections.observableArrayList();
     private final BooleanProperty showingFindAndReplace = new SimpleBooleanProperty(this, "showing-find-and-replace", false);
     private final ObjectProperty<LanguageSupport> languageSupport = new SimpleObjectProperty<>();
 
@@ -91,6 +95,8 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     private final Label popupTitleText = new Label("Autocomplete Suggestions");
     private final Popup autoCompletePopup = new Popup();
     private final ArrayList<String> selectionQueue = new ArrayList<>();
+
+    private final MiniMap miniMap = new MiniMap();
 
     private final Label findLabel    = new Label("Find Next  ");
     private final Label replaceLabel = new Label("Replace All");
@@ -114,7 +120,7 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     private final HBox bottomPane = new HBox(currentLanguage);
 
     private final VirtualizedScrollPane<IntegratedTextEditor> virtualizedScrollPane = new VirtualizedScrollPane<>(this);
-    private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, findAndReplaceLayoutHolder, bottomPane);
+    private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, miniMap, findAndReplaceLayoutHolder, bottomPane);
 
     private double dragStart;
     private final ParallelTransition fadeOut;
@@ -144,10 +150,10 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
 
 
     /**
-     * Constructs a new IntegratedTextEditor with {@link SfsLanguage} as it's language support.
+     * Constructs a new IntegratedTextEditor with {@link PlainTextLanguage} as it's language support.
      */
     public IntegratedTextEditor() {
-        this(LanguageLibrary.SFS);
+        this(new PlainTextLanguage());
     }
 
     /**
@@ -204,6 +210,15 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }
         currentLanguage.getSelectionModel().select(languageSupport);
         currentLanguage.getSelectionModel().selectedItemProperty().addListener((observableValue, languageSupport1, t1) -> languageSupportProperty().set(t1));
+
+        behaviors.addListener((ListChangeListener<Behavior>) change -> {
+            for (Behavior behavior : change.getAddedSubList()) {
+                behavior.apply(this);
+            }
+            for (Behavior behavior : change.getRemoved()) {
+                behavior.remove(this);
+            }
+        });
 
         transition: {
             FadeTransition fadeOutTransition = new FadeTransition(new Duration(200));
@@ -279,14 +294,16 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
                     selectionQueue.clear();
                     autoCompletePopup.hide();
                 }
-                for (Behavior behavior : t1.removeBehaviour(this)) {
-                    behavior.remove(this);
+                Behavior[] removedBehaviors = languageSupport1.removeBehaviour(this);
+                if (removedBehaviors != null) {
+                    behaviors.removeAll(removedBehaviors);
                 }
             }
             if (t1 != null) {
                 this.getStylesheets().add(t1.getStyleSheet());
-                for (Behavior behavior : t1.addBehaviour(this)) {
-                    behavior.apply(this);
+                Behavior[] addedBehaviors = t1.addBehaviour(this);
+                if (addedBehaviors != null) {
+                    Collections.addAll(behaviors, addedBehaviors);
                 }
             }
         });
@@ -314,7 +331,7 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
 
         // Value tweaking and value setting
         this.popupScrollPane.setMaxHeight(300);
-        this.getStylesheets().add(IntegratedTextEditor.class.getResource("ite.css").toExternalForm());
+        this.getStylesheets().add(STYLE_SHEET);
         popupParent.getStylesheets().add(Ide.STYLE_SHEET);
         autoCompletePopup.getContent().add(popupParent);
         autoCompletePopup.setAutoHide(true);
@@ -336,7 +353,7 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
 
         // Layout
         AnchorPane.setTopAnchor(virtualizedScrollPane, 0D); AnchorPane.setBottomAnchor(virtualizedScrollPane, 25D);
-        AnchorPane.setRightAnchor(virtualizedScrollPane, 0D); AnchorPane.setLeftAnchor(virtualizedScrollPane, 0D);
+        AnchorPane.setLeftAnchor(virtualizedScrollPane, 0D);
 
         AnchorPane.setTopAnchor(findAndReplaceLayoutHolder, 0D);
         AnchorPane.setRightAnchor(findAndReplaceLayoutHolder, 25D);
@@ -347,13 +364,16 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         // This event handlers
         Pattern whiteSpace = Pattern.compile( "^\\s+" );
         this.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
+            // Getting certain important variables which are used a lot in other places.
             String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
             KeyCode keyCode = keyEvent.getCode();
             String textAfterCaret = this.getText().substring(this.getCaretPosition());
+            // This code shows or closes the Find And Replace window
             if ((keyCode == KeyCode.F || keyCode == KeyCode.R || keyCode == KeyCode.H) && keyEvent.isControlDown()) {
                 showingFindAndReplace.set(!showingFindAndReplace.get());
             }
-            if (!selectionQueue.isEmpty() && keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN) {
+            // Navigation in the AutoComplete Popup
+            if (!selectionQueue.isEmpty() && (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
                 if (autoCompletePopup.isShowing() && (keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
                     if (popupBox.getChildren().size() > selectionIndex) {
                         keyEvent.consume();
@@ -379,6 +399,8 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
                     selectionQueue.clear();
                 }
             }
+            // Auto close brackets and quotes
+            // TODO add auto closing for parentheses and square brackets and single quotes
             if (this.getSelectedText().length() > 0) {
                 if (keyEvent.isShiftDown() && (keyCode == KeyCode.QUOTE || keyCode == KeyCode.OPEN_BRACKET)) {
                     String selectionText = this.getSelectedText();
@@ -408,6 +430,7 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
                     this.moveTo(this.getCaretPosition() - 1);
                 });
             }
+            // Auto indent
             if (keyCode == KeyCode.ENTER) {
                 Matcher m = whiteSpace.matcher(line);
                 Platform.runLater( () -> this.insertText(this.getCaretPosition(), (line.trim().startsWith("#") ? "#" : "") + (m.find() ? m.group() : "") + (line.endsWith(":") ? INDENT : "")));
@@ -545,6 +568,20 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }));
         closeFr.setOnMousePressed(mouseEvent -> showingFindAndReplace.set(false));
         toggleRegex.setOnMousePressed(mouseEvent -> highlightFind());
+
+
+        miniMap.loadFromITE(this);
+        double divideBy = 9.5;
+        widthProperty().addListener((observableValue, number, t1) -> {
+            miniMap.setMaxWidth(t1.doubleValue() / divideBy);
+            miniMap.setMinWidth(t1.doubleValue() / divideBy);
+            AnchorPane.setRightAnchor(virtualizedScrollPane, getWidth() / divideBy);
+        });
+        miniMap.setMaxWidth(getWidth() / divideBy);
+        miniMap.setMinWidth(getWidth() / divideBy);
+        AnchorPane.setRightAnchor(virtualizedScrollPane, getWidth() / divideBy);
+        AnchorPane.setRightAnchor(miniMap, 0D); AnchorPane.setTopAnchor(miniMap, 0D);
+        AnchorPane.setBottomAnchor(miniMap, 15D);
     }
 
     public AnchorPane getTextAreaHolder() {
@@ -931,7 +968,10 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     public MenuItem[] addContext() {
         MenuItem run = new MenuItem("Run");
         run.setOnAction(actionEvent -> languageSupport.get().runCalled(this,null ));
-        return new MenuItem[]{ new SeparatorMenuItem(), run };
+        CheckMenuItem rapText = new CheckMenuItem("Wrap text");
+        this.wrapTextProperty().unbind();
+        this.wrapTextProperty().bind(rapText.selectedProperty());
+        return new MenuItem[]{ new SeparatorMenuItem(), run, rapText };
     }
 
     public static void linkITEs(IntegratedTextEditor... links) {
@@ -960,4 +1000,7 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }
     }
 
+    public VirtualizedScrollPane<IntegratedTextEditor> getVirtualizedScrollPane() {
+        return virtualizedScrollPane;
+    }
 }

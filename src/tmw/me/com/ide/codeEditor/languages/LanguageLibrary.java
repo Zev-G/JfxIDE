@@ -1,15 +1,23 @@
 package tmw.me.com.ide.codeEditor.languages;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public final class LanguageLibrary {
 
-    public static final CssLanguage CSS = new CssLanguage();
-    public static final SfsLanguage SFS = new SfsLanguage();
-    public static final JavaLanguage JAVA = new JavaLanguage();
-    public static final XmlLanguage XML = new XmlLanguage();
-    public static final MathLanguage MATH = new MathLanguage();
-    public static final LanguageSupport[] ALL_LANGUAGES = new LanguageSupport[] { SFS, CSS, XML, MATH, JAVA };
+    public static ArrayList<Class<? extends LanguageSupport>> allLanguageClasses = new ArrayList<>(Arrays.asList(
+            SfsLanguage.class, CssLanguage.class, XmlLanguage.class, MathLanguage.class, JavaLanguage.class, PlainTextLanguage.class));
 
     public static LanguageSupport[] genNewLanguages() {
-        return new LanguageSupport[] { new SfsLanguage(), new CssLanguage(), new XmlLanguage(), new MathLanguage(), new JavaLanguage() };
+        LanguageSupport[] languageSupports = new LanguageSupport[allLanguageClasses.size()];
+        for (int i = 0; i < allLanguageClasses.size(); i++) {
+            try {
+                languageSupports[i] = allLanguageClasses.get(i).getConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                System.err.println("Language " + allLanguageClasses.get(i).getSimpleName() + " does not have an empty constructor. (" + e.getClass().getSimpleName() + ")");
+            }
+        }
+        return languageSupports;
     }
 }

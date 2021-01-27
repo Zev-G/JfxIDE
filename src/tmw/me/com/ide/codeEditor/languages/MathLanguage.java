@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 public class MathLanguage extends LanguageSupport {
 
 
-    MathLanguage() {
+    public MathLanguage() {
         super(MathLanguage.class.getResource("styles/math.css").toExternalForm(), "Math");
     }
 

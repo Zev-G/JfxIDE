@@ -1,6 +1,5 @@
 package tmw.me.com.language.syntaxPiece.events.statements;
 
-import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntaxPiece.events.Event;
 
@@ -26,8 +25,5 @@ public class ElseStatement extends Event {
         return elseStatement;
     }
 
-    @Override
-    public void parsed(Parser parser) {
 
-    }
 }
