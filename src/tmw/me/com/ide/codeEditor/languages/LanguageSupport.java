@@ -31,6 +31,10 @@ public abstract class LanguageSupport {
      * If this is true then the subclass should Override {@link LanguageSupport#run(IntegratedTextEditor, Ide)}. If it isn't true then pressing the run button will do nothing if this is the selected tab.
      */
     protected boolean runnable = false;
+    /**
+     * If this is true then the subclass will have it's {@link LanguageSupport#getPossiblePieces(String)} method called, and the result used to populate the popup.
+     */
+    protected boolean usingAutoComplete = false;
 
     /**
      *
@@ -134,4 +138,7 @@ public abstract class LanguageSupport {
         }
     }
 
+    public boolean isUsingAutoComplete() {
+        return usingAutoComplete;
+    }
 }

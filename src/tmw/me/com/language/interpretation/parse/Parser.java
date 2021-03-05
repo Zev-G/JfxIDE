@@ -332,8 +332,8 @@ public final class Parser {
             ArrayList<Function.FunctionArgument> functionArguments = new ArrayList<>();
             for (String param : params.split(",( *)")) {
                 if (param.split(" ").length > 1) {
-                    System.out.println("Param: " + param);
                     Class<?> type = syntaxManager.SUPPORTED_TYPES.get(param.split(" ")[0].toLowerCase());
+                    System.out.println("Param: " + param + "(" + type.toGenericString() + ")");
                     String name = param.split(" ")[1];
                     functionArguments.add(new Function.FunctionArgument(type, name));
                 }

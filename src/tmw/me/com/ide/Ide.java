@@ -469,7 +469,12 @@ public class Ide extends AnchorPane {
         return bottomBox;
     }
 
-
+    public void println(Object print) {
+        print(print + "\n");
+    }
+    public void print(Object print) {
+        runConsole.addText("" + print, false);
+    }
 
     private void makeTabButton(Button button, Region putInTab, AnchorPane tab, SplitPane divider, double newDividerSpot) {
         tab.getStyleClass().add("darker-background");

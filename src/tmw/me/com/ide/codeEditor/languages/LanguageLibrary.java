@@ -7,7 +7,7 @@ import java.util.Arrays;
 public final class LanguageLibrary {
 
     public static ArrayList<Class<? extends LanguageSupport>> allLanguageClasses = new ArrayList<>(Arrays.asList(
-            SfsLanguage.class, CssLanguage.class, XmlLanguage.class, MathLanguage.class, JavaLanguage.class, PlainTextLanguage.class));
+            SfsLanguage.class, CssLanguage.class, XmlLanguage.class, MathLanguage.class, JavaLanguage.class, PlainTextLanguage.class, SkriptLanguage.class));
 
     public static LanguageSupport[] genNewLanguages() {
         LanguageSupport[] languageSupports = new LanguageSupport[allLanguageClasses.size()];

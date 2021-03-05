@@ -107,6 +107,8 @@ public class SyntaxManager {
 
         effects: {
 
+            EFFECT_FACTORIES.add(new EffectFactory("do nothing", (state, values, args) -> {}));
+
             addons: {
                 EFFECT_FACTORIES.add(new EffectFactory("run code in %file%", (state, values, args) -> {
                     File file = (File) values.get(0);
@@ -166,8 +168,19 @@ public class SyntaxManager {
 
             EFFECT_FACTORIES.add(new EffectFactory("IGNORE", "([A-z]+)\\((.*?)\\)", (state, values, args) -> {
                 String connectedArgs = appendAllArgs(new StringBuilder(), args).toString();
+                System.out.println("Args: " + connectedArgs);
+                String[] arguments = connectedArgs.split("\\(")[1].replaceAll("\\)", "").split(",( *)");
+                ArrayList<Object> objects = new ArrayList<>();
+                for (String argument : arguments) {
+                    if (argument.length() > 0) {
+                        ExpressionFactory<?> expressionFactory = FXScript.PARSER.parseExpression(argument);
+                        expressionFactory.setState(state);
+                        expressionFactory.forChildren(expressionFactory1 -> expressionFactory1.setState(expressionFactory.getState()));
+                        objects.add(expressionFactory.activate());
+                    }
+                }
                 Function<?> function = Function.ALL_FUNCTIONS.get(connectedArgs.split("\\(")[0]);
-                function.invoke();
+                function.invoke(objects.toArray());
             }));
             EFFECT_FACTORIES.add(new EffectFactory("return %object%", (state, values, args) -> {
                 state.setReturnedObject(values.get(0));
@@ -183,7 +196,7 @@ public class SyntaxManager {
             EFFECT_FACTORIES.add(new EffectFactory("remove %object% from %list%", (state, values, args) -> ((List) values.get(1)).removeObject(values.get(0))));
             EFFECT_FACTORIES.add(new EffectFactory("add %object% to %list%", (state, values, args) -> ((List) values.get(1)).add(values.get(0), values.get(0).toString())));
 
-            EFFECT_FACTORIES.add(new EffectFactory("print %object%", (state, values, args) -> printHandler.accept("" + values.get(0))));
+            EFFECT_FACTORIES.add(new EffectFactory("print %object%", (state, values, args) -> printHandler.accept(values.get(0) == null ? "null" : values.get(0).toString())));
         }
         events: {
 
@@ -376,6 +389,7 @@ public class SyntaxManager {
                 function: {
                     HIGHEST.get(Object.class).add(new ExpressionFactory<>("IGNORE", "([A-z]+)\\((.*?)\\)", (state, values, args) -> {
                         String connectedArgs = appendAllArgs(new StringBuilder(), args).toString();
+                        System.out.println("Args: " + connectedArgs);
                         String[] arguments = connectedArgs.split("\\(")[1].replaceAll("\\)", "").split(",( *)");
                         ArrayList<Object> objects = new ArrayList<>();
                         for (String argument : arguments) {

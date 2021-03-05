@@ -3,6 +3,7 @@ package tmw.me.com.language.syntaxPiece.events;
 import tmw.me.com.language.variable.Variable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class Function<T> extends Event {
@@ -34,6 +35,7 @@ public class Function<T> extends Event {
             this.setRunChunk(this.getRunChunk().duplicateWithoutVariables());
         }
         System.out.println("Run chunk: " + getRunChunk());
+        System.out.println(Arrays.toString(args));
         ran = true;
         for (FunctionArgument argument : arguments) {
             if (args.length - 1 < i) {

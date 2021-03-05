@@ -23,7 +23,20 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         // Script Lab
 
+//        IntegratedTextEditor tempEditor = new IntegratedTextEditor(new MathLanguage());
+//        tempEditor.replaceText("there are 108 chickens on planet 21321, the 3rd in the 4th galaxy");
+//        Highlighter highlighter = new Highlighter(tempEditor, new RegexStyleSpansFactory(tempEditor, tempEditor.getLanguage().generatePattern()),
+//                new SimpleRangeStyleSpansFactory(tempEditor, new IndexRange(1, 5), new IndexRange(8, 17)));
+//        tempEditor.setHighlighter(highlighter);
+//        long start = System.currentTimeMillis();
+//        StyleSpans<Collection<String>> spans = highlighter.createStyleSpans();
+//        long end = System.currentTimeMillis();
+//        System.out.println("Took: " + (end - start) + "ms");
+//        tempEditor.setStyleSpans(0, spans);
+//        System.out.println("\n--Final Spans--\n" + spans + "\n----------------");
+
         primaryStage.setScene(new Scene(new Ide(new File("C:\\Users\\Zev\\IdeaProjects\\SimpleCodingLanguage\\src\\tmw\\me\\com"))));
+//        primaryStage.setScene(new Scene(tempEditor.getTextAreaHolder()));
 //        primaryStage.setScene(new Scene(new JavaPlayground()));
         primaryStage.show();
         primaryStage.setWidth(800);
@@ -40,6 +53,9 @@ public class Main extends Application {
     public static void consoleExample() {
         CommandConsole console = new CommandConsole();
         AtomicReference<File> codeFile = new AtomicReference<>(new File("C:\\Users\\Windows\\Desktop\\McMods\\SimpleCodingLanguage"));
+        Stage stage = new Stage();
+        stage.setScene(new Scene(console));
+        stage.show();
         console.setOnUserInput((inputtedString, eventConsole) -> {
             if (!inputtedString.startsWith("/")) {
                 String[] lines = inputtedString.split("\\\\n");

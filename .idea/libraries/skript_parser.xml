@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="skript-parser">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../JavaStuff/skript-parser.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

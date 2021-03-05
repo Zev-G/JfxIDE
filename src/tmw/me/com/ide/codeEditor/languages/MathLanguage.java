@@ -13,6 +13,7 @@ public class MathLanguage extends LanguageSupport {
 
     public MathLanguage() {
         super(MathLanguage.class.getResource("styles/math.css").toExternalForm(), "Math");
+        usingAutoComplete = true;
     }
 
     public static final Pattern PATTERN = Pattern.compile("(?<NUMBER>" + NUMBER_PATTERN + ")");

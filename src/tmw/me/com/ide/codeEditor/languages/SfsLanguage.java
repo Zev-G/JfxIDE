@@ -34,6 +34,7 @@ public class SfsLanguage extends LanguageSupport {
     public SfsLanguage() {
         super(SfsLanguage.class.getResource("styles/sfs.css").toExternalForm(), "Software Scripting");
         runnable = true;
+        usingAutoComplete = true;
     }
 
     /**
@@ -47,7 +48,7 @@ public class SfsLanguage extends LanguageSupport {
      */
     public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
         caretListener = new ChangeListenerScheduler<>(200, (observableValue, integer, t1) -> {
-            if (!t1.equals(integer) && integratedTextEditor.getFindSelectedIndex() < 0) {
+            if (!t1.equals(integer) && integratedTextEditor.getFindAndReplace().getFindSelectedIndex() < 0) {
                 String fullText = integratedTextEditor.getText();
                 for (IndexRange indexRange : highlightedVariables) {
                     if (indexRange.getStart() > 0 && indexRange.getStart() < fullText.length() && indexRange.getEnd() < fullText.length()) {
@@ -228,7 +229,9 @@ public class SfsLanguage extends LanguageSupport {
         FXScript.restart();
         System.out.println("Parsing code...");
         if (ide != null) {
-            Parser parser = new Parser(SyntaxManager.SYNTAX_MANAGER, gotten -> {
+            SyntaxManager manager = new SyntaxManager();
+            manager.printHandler = s -> ide.getRunConsole().addText(s, true);
+            Parser parser = new Parser(manager, gotten -> {
                 String[] longMessageLines = gotten.createLongErrorMessage().split("\n");
                 for (String line : longMessageLines) {
                     if (line.startsWith("\t\tNumber: ")) {
@@ -243,10 +246,11 @@ public class SfsLanguage extends LanguageSupport {
                     }
                 }
             });
+            CodeChunk chunk = parser.parseChunk(textEditor.getText(), null);
+            System.out.println("Finished Parsing. Running");
+            chunk.run();
         }
-        Parser parser = new Parser(SyntaxManager.SYNTAX_MANAGER, parseError -> {});
-        CodeChunk chunk = parser.parseChunk(textEditor.getText(), null);
-        System.out.println("Finished Parsing. Running");
-        chunk.run();
+//        Parser parser = new Parser(SyntaxManager.SYNTAX_MANAGER, parseError -> {});
+
     }
 }

@@ -3,6 +3,7 @@
     -lighter-background-color: #38465d;
     -darker-background-color: #1c2532;
     -darkest-background-color: #171d2b;
+    -fx-near-black: #0d1018;
     -fx-background: #1c2532;
     -default-text-color: #bcc5d2;
     -fx-text-base-color: #bcc5d2;
@@ -294,7 +295,7 @@
     -fx-border-color: transparent;
 }
 .selected-syntax {
-    -fx-background-color: -darkest-background-color;
+    -fx-background-color: -fx-near-black;
 }
 .circle-highlight-background:hover {
     -fx-fill: -highlight-color;

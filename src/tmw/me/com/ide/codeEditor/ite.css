@@ -90,6 +90,13 @@
     -rtfx-border-stroke-color: rgba(64, 255, 89, 0.3);
 }
 
+.error-text {
+    -fx-underline: true;
+    -fx-strikethrough: true;
+    -fx-fill: red !important;
+    -fx-font-style: italic;
+}
+
 
 
 

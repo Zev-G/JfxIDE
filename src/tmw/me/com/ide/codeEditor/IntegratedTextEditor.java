@@ -1,18 +1,11 @@
 package tmw.me.com.ide.codeEditor;
 
-import javafx.animation.FadeTransition;
-import javafx.animation.ParallelTransition;
-import javafx.animation.ScaleTransition;
-import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.NodeOrientation;
@@ -22,33 +15,32 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
-import javafx.scene.shape.SVGPath;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import javafx.stage.Popup;
 import javafx.stage.Window;
-import javafx.util.Duration;
 import javafx.util.StringConverter;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.PlainTextChange;
 import org.fxmisc.richtext.model.StyleSpans;
-import org.fxmisc.richtext.model.StyleSpansBuilder;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
+import tmw.me.com.ide.codeEditor.highlighting.Highlighter;
+import tmw.me.com.ide.codeEditor.highlighting.LanguageSupportStyleSpansFactory;
 import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.codeEditor.languages.PlainTextLanguage;
 import tmw.me.com.ide.codeEditor.languages.components.Behavior;
-import tmw.me.com.ide.tools.builders.SVGPathBuilder;
-import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
+import tmw.me.com.ide.codeEditor.visualcomponents.FindAndReplace;
 import tmw.me.com.ide.tools.concurrent.schedulers.ConsumerEventScheduler;
 import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * <p>This {@link CodeArea} adds lots of extra functionality, much of which can be customized with custom {@link LanguageSupport}.</p>
@@ -70,11 +62,15 @@ import java.util.regex.PatternSyntaxException;
  *     <li>More interactive highlighting features</li>
  *     <li>A nice context menu</li>
  *     <li>Tooltips</li>
- *     <li>A Minimap</li>
+ *     <li>A Minimap WIP</li>
  * </ul>
  * <p>*Controlled by LanguageSupport</p>
  */
 public class IntegratedTextEditor extends CodeArea implements ComponentTabContent<IntegratedTextEditor> {
+
+    // Settings
+    private static final boolean USING_MINIMAP = false;
+    private static final boolean USING_AUTOCOMPLETE = true;
 
     public static final String INDENT = "  ";
     public static final String STYLE_SHEET = IntegratedTextEditor.class.getResource("ite.css").toExternalForm();
@@ -82,7 +78,6 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     // Properties
     private final ObservableList<Integer> errorLines = FXCollections.observableArrayList();
     private final ObservableList<Behavior> behaviors = FXCollections.observableArrayList();
-    private final BooleanProperty showingFindAndReplace = new SimpleBooleanProperty(this, "showing-find-and-replace", false);
     private final ObjectProperty<LanguageSupport> languageSupport = new SimpleObjectProperty<>();
 
     private final ArrayList<IntegratedTextEditor> linkedTextEditors = new ArrayList<>();
@@ -93,41 +88,18 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     private final BorderPane titleBox = new BorderPane();
     private final VBox popupParent = new VBox(titleBox, popupScrollPane);
     private final Label popupTitleText = new Label("Autocomplete Suggestions");
-    private final Popup autoCompletePopup = new Popup();
+    private final BoundsPopup autoCompletePopup = new BoundsPopup();
     private final ArrayList<String> selectionQueue = new ArrayList<>();
 
     private final MiniMap miniMap = new MiniMap();
 
-    private final Label findLabel    = new Label("Find Next  ");
-    private final Label replaceLabel = new Label("Replace All");
-    private final TextField findTextField = new TextField();
-    private final TextField replaceTextField = new TextField();
-    private final SVGPath closeFr = SVGPathBuilder.create().addStyleClass("fr-close").setPickOnBounds(true)
-            .setContent("M15.898,4.045c-0.271-0.272-0.713-0.272-0.986,0l-4.71,4.711L5.493,4.045c-0.272-0.272-0.714-0.272-0.986,0s-0.272,0.714,0,0.986l4.709,4.711l-4.71,4.711c-0.272,0.271-0.272,0.713,0,0.986c0.136,0.136,0.314,0.203,0.492,0.203c0.179,0,0.357-0.067,0.493-0.203l4.711-4.711l4.71,4.711c0.137,0.136,0.314,0.203,0.494,0.203c0.178,0,0.355-0.067,0.492-0.203c0.273-0.273,0.273-0.715,0-0.986l-4.711-4.711l4.711-4.711C16.172,4.759,16.172,4.317,15.898,4.045z")
-            .build();
-    private final SVGPath toggleRegex = SVGPathBuilder.create().addStyleClass("fr-tool-bar-item").setPickOnBounds(true).makeSelectable()
-            .setContent("M 9.3 10.5 V 6.9 l -2.9 1.8 l -1 -1.8 l 3.1 -1.7 l -3.1 -1.7 l 1.1 -1.8 l 2.9 1.8 V 0 h 2.1 v 3.6 l 2.9 -1.8 L 15.4 3.6 l -3.1 1.7 L 15.4 6.9 l -1.1 1.8 l -2.9 -1.8 v 3.5 H 9.3 z M 4.3 13.2 c 0 -1.7 -1.8 -2.7 -3.3 -1.9 c -1.4 0.8 -1.4 2.9 0 3.8 C 2.5 15.9 4.3 14.8 4.3 13.2 z")
-            .build();
-    private final HBox frRightToolBar = new HBox(toggleRegex);
-    private final Label centerFrText = new Label("Find and Replace");
-    private final BorderPane frTop = new BorderPane();
-    private final HBox findHBox = new HBox(findLabel, findTextField);
-    private final HBox replaceHBox = new HBox(replaceLabel, replaceTextField);
-    private final VBox findAndReplaceVBox = new VBox(frTop, findHBox, replaceHBox);
-    private final Pane findAndReplaceLayoutHolder = new Pane(findAndReplaceVBox);
+   private final FindAndReplace findAndReplace = new FindAndReplace(this);
 
     private final ChoiceBox<LanguageSupport> currentLanguage = new ChoiceBox<>();
     private final HBox bottomPane = new HBox(currentLanguage);
 
     private final VirtualizedScrollPane<IntegratedTextEditor> virtualizedScrollPane = new VirtualizedScrollPane<>(this);
-    private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, miniMap, findAndReplaceLayoutHolder, bottomPane);
-
-    private double dragStart;
-    private final ParallelTransition fadeOut;
-    private final ParallelTransition fadeIn;
-
-    private int findSelectedIndex;
-    private final ArrayList<IndexRange> found = new ArrayList<>();
+    private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, miniMap, findAndReplace, bottomPane);
 
     private int selectionIndex = 0;
 
@@ -147,6 +119,8 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
             }
         }
     };
+
+    private Highlighter highlighter = new Highlighter(this, new LanguageSupportStyleSpansFactory(this), findAndReplace.getFactory());
 
     /**
      * Constructs a new IntegratedTextEditor with {@link PlainTextLanguage} as it's language support.
@@ -183,7 +157,6 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         });
 
         // Some other listeners
-
         parentProperty().addListener((observableValue, parent, t1) -> {
             if (t1 != virtualizedScrollPane && t1 != null)
                 System.err.println("Integrated Text Area's parent must always be equal to textAreaHolder");
@@ -211,77 +184,13 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         currentLanguage.getSelectionModel().selectedItemProperty().addListener((observableValue, languageSupport1, t1) -> languageSupportProperty().set(t1));
 
         behaviors.addListener((ListChangeListener<Behavior>) change -> {
-            for (Behavior behavior : change.getAddedSubList()) {
-                behavior.apply(this);
-            }
-            for (Behavior behavior : change.getRemoved()) {
-                behavior.remove(this);
-            }
-        });
-
-        transition: {
-            FadeTransition fadeOutTransition = new FadeTransition(new Duration(200));
-            fadeOutTransition.setToValue(0);
-            ScaleTransition scaleOutTransition = new ScaleTransition(new Duration(200));
-            scaleOutTransition.setToX(0.6);
-            scaleOutTransition.setToY(0.6);
-            TranslateTransition translateOutTransition = new TranslateTransition(new Duration(200));
-            findAndReplaceVBox.heightProperty().addListener((observableValue, number, t1) -> translateOutTransition.setToY(-t1.doubleValue()));
-            fadeOut = new ParallelTransition(findAndReplaceVBox, fadeOutTransition, scaleOutTransition, translateOutTransition);
-            fadeOut.setOnFinished(actionEvent -> {
-                findAndReplaceVBox.setVisible(false);
-                findAndReplaceLayoutHolder.setVisible(false);
-                findAndReplaceLayoutHolder.setMouseTransparent(true);
-                findAndReplaceVBox.setTranslateY(0);
-                this.requestFocus();
-            });
-            TranslateTransition translateTransition = new TranslateTransition(new Duration(200));
-            translateTransition.setToY(0);
-            FadeTransition fadeTransition = new FadeTransition(new Duration(200));
-            fadeTransition.setToValue(1);
-            ScaleTransition scaleTransition = new ScaleTransition(new Duration(200));
-            scaleTransition.setToX(1);
-            scaleTransition.setToY(1);
-            fadeIn = new ParallelTransition(findAndReplaceVBox, fadeTransition, scaleTransition, translateTransition);
-
-        }
-        findAndReplaceVBox.setOnMousePressed(mouseEvent -> dragStart = mouseEvent.getSceneY());
-        findAndReplaceVBox.setOnMouseDragged(mouseEvent -> {
-            if (showingFindAndReplace.get()) {
-                double newFade = fadeOut.getTotalDuration().toMillis() - fadeOut.getTotalDuration().toMillis() * (mouseEvent.getSceneY() / dragStart);
-                fadeOut.play();
-                fadeOut.jumpTo(new Duration(newFade));
-                fadeOut.pause();
-            }
-        });
-        findAndReplaceVBox.setOnMouseReleased(mouseEvent -> {
-            if (showingFindAndReplace.get()) {
-                double newLoc = fadeOut.getTotalDuration().toMillis() - fadeOut.getTotalDuration().toMillis() * (mouseEvent.getSceneY() / dragStart);
-                if (newLoc > 55) {
-                    showingFindAndReplace.set(false);
-                } else {
-                    fadeIn.play();
+            while (change.next()) {
+                for (Behavior behavior : change.getAddedSubList()) {
+                    behavior.apply(this);
                 }
-            }
-        });
-
-        showingFindAndReplace.addListener((observableValue, aBoolean, t1) -> {
-            if (t1 && !aBoolean) {
-                findAndReplaceVBox.setOpacity(0);
-                findAndReplaceVBox.setScaleX(0.3);
-                findAndReplaceVBox.setScaleY(0.3);
-                findAndReplaceVBox.setTranslateY(-175);
-                findAndReplaceVBox.setVisible(true);
-                findAndReplaceLayoutHolder.setVisible(true);
-                findAndReplaceLayoutHolder.setMouseTransparent(false);
-                fadeIn.setOnFinished(actionEvent -> {
-                    highlightFind();
-                    fadeIn.setOnFinished(null);
-                });
-                fadeIn.play();
-            } else if (aBoolean && !t1) {
-                fadeOut.play();
-                highlight();
+                for (Behavior behavior : change.getRemoved()) {
+                    behavior.remove(this);
+                }
             }
         });
 
@@ -314,15 +223,6 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         this.plainTextChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(new ConsumerEventScheduler<>(200, false, plainTextChange -> highlight()));
 
         // Style classes
-        findAndReplaceVBox.getStyleClass().add("fr-vbox");
-        findHBox.getStyleClass().add("fr-hbox");
-        replaceHBox.getStyleClass().add("fr-hbox");
-        findTextField.getStyleClass().add("fr-text-field");
-        replaceTextField.getStyleClass().add("fr-text-field");
-        findLabel.getStyleClass().add("fr-label");
-        replaceLabel.getStyleClass().add("fr-label");
-        frTop.getStyleClass().add("fr-top-border-pane");
-        centerFrText.getStyleClass().add("fr-title");
         popupTitleText.getStyleClass().add("popup-title");
         popupParent.getStyleClass().add("auto-complete-parent");
         currentLanguage.getStyleClass().add("language-choice-box");
@@ -335,15 +235,6 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         autoCompletePopup.getContent().add(popupParent);
         autoCompletePopup.setAutoHide(true);
         this.setParagraphGraphicFactory(LineGraphicFactory.get(this));
-        findAndReplaceLayoutHolder.setMouseTransparent(false);
-        findAndReplaceLayoutHolder.setVisible(false);
-        findAndReplaceVBox.setVisible(false);
-        findAndReplaceVBox.setSpacing(5);
-        findHBox.setSpacing(3);
-        replaceHBox.setSpacing(3);
-        frTop.setLeft(closeFr);
-        frTop.setRight(frRightToolBar);
-        frTop.setCenter(centerFrText);
         titleBox.setCenter(popupTitleText);
         popupScrollPane.setFitToWidth(true);
         popupBox.setFillWidth(true);
@@ -354,22 +245,18 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         AnchorPane.setTopAnchor(virtualizedScrollPane, 0D); AnchorPane.setBottomAnchor(virtualizedScrollPane, 25D);
         AnchorPane.setLeftAnchor(virtualizedScrollPane, 0D);
 
-        AnchorPane.setTopAnchor(findAndReplaceLayoutHolder, 0D);
-        AnchorPane.setRightAnchor(findAndReplaceLayoutHolder, 25D);
+        AnchorPane.setTopAnchor(findAndReplace, 0D);
+        AnchorPane.setRightAnchor(findAndReplace, 25D);
 
         AnchorPane.setLeftAnchor(bottomPane, 0D); AnchorPane.setRightAnchor(bottomPane, 0D);
         AnchorPane.setBottomAnchor(bottomPane, 0D);
 
+        double divideBy = 9.5;
+        AnchorPane.setRightAnchor(virtualizedScrollPane, getWidth() / divideBy);
+
         // This event handlers
 
         this.addEventFilter(KeyEvent.KEY_PRESSED, this::keyPressed);
-        this.caretBoundsProperty().addListener((observableValue, integer, t1) -> Platform.runLater(() -> {
-            if (this.caretBoundsProperty().getValue().isPresent()) {
-                Bounds bounds = this.caretBoundsProperty().getValue().get();
-                autoCompletePopup.setX(bounds.getMaxX());
-                autoCompletePopup.setY(bounds.getMaxY());
-            }
-        }));
         this.sceneProperty().addListener((observableValue, scene, t1) -> {
             if (t1 != null) {
                 Window t11 = t1.getWindow();
@@ -413,44 +300,19 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
                 insertAutocomplete();
             }
         });
-        findLabel.setOnMousePressed(mouseEvent -> {
-            if (!found.isEmpty()) {
-                findSelectedIndex++;
-                if (findSelectedIndex >= found.size()) {
-                    findSelectedIndex = 0;
-                }
-                IndexRange indexRange = found.get(findSelectedIndex);
-                this.selectRange(indexRange.getStart(), indexRange.getEnd());
-                Platform.runLater(this::requestFocus);
-            }
-        });
-        replaceLabel.setOnMousePressed(mouseEvent -> {
-            int originalTextLength = getText().length();
-            for (IndexRange indexRange : found) {
-                int difference = getText().length() - originalTextLength;
-                this.replaceText(indexRange.getStart() + difference, indexRange.getEnd() + difference, replaceTextField.getText());
-            }
-        });
-        findTextField.textProperty().addListener(new ChangeListenerScheduler<>(400, false, (observableValue, s, t1) -> {
-            findTextField.getStyleClass().remove("fr-error");
-            highlightFind();
-        }));
-        closeFr.setOnMousePressed(mouseEvent -> showingFindAndReplace.set(false));
-        toggleRegex.setOnMousePressed(mouseEvent -> highlightFind());
 
-
-        miniMap.loadFromITE(this);
-        double divideBy = 9.5;
-        widthProperty().addListener((observableValue, number, t1) -> {
-            miniMap.setMaxWidth(t1.doubleValue() / divideBy);
-            miniMap.setMinWidth(t1.doubleValue() / divideBy);
-            AnchorPane.setRightAnchor(virtualizedScrollPane, getWidth() / divideBy);
-        });
-        miniMap.setMaxWidth(getWidth() / divideBy);
-        miniMap.setMinWidth(getWidth() / divideBy);
-        AnchorPane.setRightAnchor(virtualizedScrollPane, getWidth() / divideBy);
-        AnchorPane.setRightAnchor(miniMap, 0D); AnchorPane.setTopAnchor(miniMap, 0D);
-        AnchorPane.setBottomAnchor(miniMap, 15D);
+        if (USING_MINIMAP) {
+            miniMap.loadFromITE(this);
+            widthProperty().addListener((observableValue, number, t1) -> {
+                miniMap.setMaxWidth(t1.doubleValue() / divideBy);
+                miniMap.setMinWidth(t1.doubleValue() / divideBy);
+                AnchorPane.setRightAnchor(virtualizedScrollPane, getWidth() / divideBy);
+            });
+            miniMap.setMaxWidth(getWidth() / divideBy);
+            miniMap.setMinWidth(getWidth() / divideBy);
+            AnchorPane.setRightAnchor(miniMap, 0D); AnchorPane.setTopAnchor(miniMap, 0D);
+            AnchorPane.setBottomAnchor(miniMap, 15D);
+        }
     }
 
     private void keyPressed(KeyEvent keyEvent) {
@@ -459,12 +321,13 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         KeyCode keyCode = keyEvent.getCode();
         String textAfterCaret = this.getText().substring(this.getCaretPosition());
         // This code shows or closes the Find And Replace window
-        if ((keyCode == KeyCode.F || keyCode == KeyCode.R || keyCode == KeyCode.H) && keyEvent.isControlDown()) {
-            showingFindAndReplace.set(!showingFindAndReplace.get());
-        }
+        // TODO replace this with something which loops over a list of VisualComponents.
+        findAndReplace.receiveKeyEvent(keyEvent);
         // Navigation in the AutoComplete Popup
-        if (!selectionQueue.isEmpty() && (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
+        if (!factoryOrder.isEmpty() && (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
+            System.out.println("Got here");
             if (autoCompletePopup.isShowing() && (keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
+                System.out.println("Got here2");
                 if (popupBox.getChildren().size() > selectionIndex) {
                     keyEvent.consume();
                     Node selected = this.popupBox.getChildren().get(selectionIndex);
@@ -481,8 +344,15 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
                             indexOf = this.popupBox.getChildren().size() - 1;
                         }
                         selected.getStyleClass().remove("selected-syntax");
-                        popupBox.getChildren().get(indexOf).getStyleClass().add("selected-syntax");
+                        Node selecting = popupBox.getChildren().get(indexOf);
+                        selecting.getStyleClass().add("selected-syntax");
                         selectionIndex = indexOf;
+                        Platform.runLater(() -> {
+                            Bounds locOfNode = selecting.getBoundsInParent();
+                            double yLoc = locOfNode.getMinY();
+                            double parentHeight = popupBox.getChildren().get(popupBox.getChildren().size() - 1).getBoundsInParent().getMinY();
+                            popupScrollPane.setVvalue(yLoc / parentHeight);
+                        });
                     }
                 }
             } else {
@@ -589,61 +459,17 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         return textAreaHolder;
     }
 
-    public int getFindSelectedIndex() {
-        return findSelectedIndex;
+    public FindAndReplace getFindAndReplace() {
+        return findAndReplace;
     }
 
     /**
      * Computes and applies the highlighting on a separate thread.
      */
     public void highlight() {
-        if (!showingFindAndReplace.get()) {
-            HighlightingThread highlightingThread = new HighlightingThread();
-            highlightingThread.setText(this.getText());
-            highlightingThread.start();
-        } else {
-            highlightFind();
-        }
-    }
-
-    /**
-     * Computes and applies the default highlighting then computes and applies the find and replace highlighting.
-     */
-    public void highlightFind() {
-        new HighlightingThread() {
-
-            @Override
-            public String getText() {
-                return IntegratedTextEditor.this.getText();
-            }
-
-            @Override
-            public void run() {
-                super.run();
-                if (findTextField.getText().equals(""))
-                    return;
-                Pattern pattern;
-                try {
-                    pattern = toggleRegex.getPseudoClassStates().contains(PseudoClass.getPseudoClass("selected")) ?
-                            Pattern.compile(findTextField.getText()) : Pattern.compile(Pattern.quote(findTextField.getText()));
-                } catch (PatternSyntaxException e) {
-                    if (!findTextField.getStyleClass().contains("fr-error"))
-                        findTextField.getStyleClass().add("fr-error");
-                    return;
-                }
-                findTextField.getStyleClass().remove("fr-error");
-                Matcher matcher = pattern.matcher(getText());
-                found.clear();
-                while (matcher.find()) {
-                    found.add(new IndexRange(matcher.start(), matcher.end()));
-                }
-                Platform.runLater(() -> {
-                    for (IndexRange indexRange : connectIndexesToNeighbors(found)) {
-                        setStyle(indexRange.getStart(), indexRange.getEnd(), Collections.singleton("found"));
-                    }
-                });
-            }
-        }.start();
+        HighlightingThread highlightingThread = new HighlightingThread(this);
+        highlightingThread.setText(this.getText());
+        highlightingThread.start();
     }
 
     /**
@@ -708,20 +534,28 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }
     }
 
+    public boolean isCurrentlyUsingAutoComplete() {
+        return USING_AUTOCOMPLETE && languageSupport.get().isUsingAutoComplete();
+    }
+
     /**
      *
      * @param line The line which the text is sampled from; should be switched to an int, this is largely controlled by {@link LanguageSupport}
      */
     private void fillBox(String line) {
-        if (line.trim().length() > 0 && this.isFocused() || this.autoCompletePopup.isFocused()) {
+        if (isCurrentlyUsingAutoComplete() &&  (line.trim().length() > 0 && (this.isFocused() || this.autoCompletePopup.isFocused()))) {
             factoryOrder.clear();
             ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = languageSupport.get().getPossiblePieces(line);
             if (possiblePiecePackages != null && !possiblePiecePackages.isEmpty()) {
                 ArrayList<Node> newChildren = new ArrayList<>();
+                boolean showOverride = false;
                 for (IdeSpecialParser.PossiblePiecePackage entry : languageSupport.get().getPossiblePieces(line)) {
                     factoryOrder.add(entry);
                     Label filledIn = new Label(entry.getFilledIn());
                     Label notFilledIn = new Label(entry.getNotFilledIn());
+                    if (entry.getNotFilledIn().length() == 0) {
+                        showOverride = true;
+                    }
                     filledIn.getStyleClass().add("highlighted-label");
                     filledIn.setFont(new Font(16));
                     notFilledIn.setFont(new Font(16));
@@ -730,7 +564,7 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
                     box.setAccessibleText(entry.getPutIn());
                     newChildren.add(box);
                 }
-                if (!newChildren.isEmpty()) {
+                if (!showOverride && !newChildren.isEmpty()) {
                     popupBox.getChildren().setAll(newChildren);
                     popupBox.getChildren().get(0).getStyleClass().add("selected-syntax");
                     selectionIndex = 0;
@@ -856,7 +690,7 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }
         return occurrences;
     }
-    private List<IndexRange> connectIndexesToNeighbors(List<IndexRange> indexRanges) {
+    public List<IndexRange> connectIndexesToNeighbors(List<IndexRange> indexRanges) {
         if (indexRanges.isEmpty())
             return indexRanges;
         ArrayList<IndexRange> newIndexRanges = new ArrayList<>();
@@ -916,19 +750,26 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         return newIntegratedTextEditor;
     }
 
-    private class HighlightingThread extends Thread {
+    public void setHighlighter(Highlighter highlighter) {
+        this.highlighter = highlighter;
+        highlight();
+    }
+
+    public static class HighlightingThread extends Thread {
 
         private String text;
+        private final IntegratedTextEditor editor;
 
-        public HighlightingThread() {
+        public HighlightingThread(IntegratedTextEditor editor) {
             super();
+            this.editor = editor;
             this.setDaemon(true);
         }
 
         @Override
         public void run() {
-            findSelectedIndex = -1;
-            computeHighlighting(getText());
+            editor.getFindAndReplace().setFindSelectionIndex(-1);
+            computeHighlighting();
         }
 
 
@@ -940,29 +781,23 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
             this.text = text;
         }
 
-        private void computeHighlighting(String text) {
-            Pattern pattern = languageSupport.get().generatePattern();
+        private void computeHighlighting() {
+            Pattern pattern = editor.languageSupport.get().generatePattern();
             if (pattern != null) {
-                Matcher matcher = pattern.matcher(text);
-                int lastKwEnd = 0;
-                StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-                while (matcher.find()) {
-                    String styleClass = languageSupport.get().styleClass(matcher);
-                    spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
-                    spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
-                    lastKwEnd = matcher.end();
-                }
-                spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
-                StyleSpans<Collection<String>> styleSpans = spansBuilder.create();
+                StyleSpans<Collection<String>> styleSpans = editor.getHighlighter().createStyleSpans();
                 Platform.runLater(() -> {
                     try {
-                        setStyleSpans(0, styleSpans);
+                        editor.setStyleSpans(0, styleSpans);
                     } catch (IndexOutOfBoundsException ignored) {
                     }
                 });
             }
         }
 
+    }
+
+    private Highlighter getHighlighter() {
+        return highlighter;
     }
 
     @Override
