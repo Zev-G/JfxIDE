@@ -64,4 +64,5 @@ public class SortableStyleSpan<T> {
                 ", end=" + end +
                 '}';
     }
+
 }

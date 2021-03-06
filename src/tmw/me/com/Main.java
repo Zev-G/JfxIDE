@@ -35,7 +35,10 @@ public class Main extends Application {
 //        tempEditor.setStyleSpans(0, spans);
 //        System.out.println("\n--Final Spans--\n" + spans + "\n----------------");
 
-        primaryStage.setScene(new Scene(new Ide(new File("C:\\Users\\Zev\\IdeaProjects\\SimpleCodingLanguage\\src\\tmw\\me\\com"))));
+        Ide ide = new Ide();
+        ide.addEditorTab();
+
+        primaryStage.setScene(new Scene(ide));
 //        primaryStage.setScene(new Scene(tempEditor.getTextAreaHolder()));
 //        primaryStage.setScene(new Scene(new JavaPlayground()));
         primaryStage.show();

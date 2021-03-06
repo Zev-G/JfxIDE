@@ -416,15 +416,27 @@ public class Ide extends AnchorPane {
     }
     public Ide(File file) {
         this();
-        sceneProperty().addListener((observableValue, scene, t1) -> {
-            if (t1 != null && scene == null) {
-                t1.windowProperty().addListener((observableValue1, window, t11) -> {
+        if (getScene() != null) {
+            if (getScene().getWindow() != null) {
+                loadFile(file);
+            } else {
+                getScene().windowProperty().addListener((observableValue1, window, t11) -> {
                     if (t11 != null && window == null) {
                         loadFile(file);
                     }
                 });
             }
-        });
+        } else {
+            sceneProperty().addListener((observableValue, scene, t1) -> {
+                if (t1 != null && scene == null) {
+                    t1.windowProperty().addListener((observableValue1, window, t11) -> {
+                        if (t11 != null && window == null) {
+                            loadFile(file);
+                        }
+                    });
+                }
+            });
+        }
     }
 
     public void loadFile(File file) {
@@ -669,5 +681,12 @@ public class Ide extends AnchorPane {
 
     public VBox getNotificationPane() {
         return notificationPane;
+    }
+
+    public void addEditorTab() {
+        addEditorTab(null);
+    }
+    public void addEditorTab(File file) {
+        tabPane.getTabs().add(getNewEditorTab(file));
     }
 }
