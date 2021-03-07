@@ -1,10 +1,12 @@
 * {
     -main-background-color: #273245;
     -lighter-background-color: #38465d;
+    -even-lighter-background-color: #485975;
     -darker-background-color: #1c2532;
     -darkest-background-color: #171d2b;
     -fx-near-black: #0d1018;
     -fx-background: #1c2532;
+    -darkish-background-color: #222d3c;
     -default-text-color: #bcc5d2;
     -fx-text-base-color: #bcc5d2;
     -fx-focused-text-base-color: #bcc5d2;
@@ -19,6 +21,10 @@
     src: url('../codeEditor/Montserrat-Regular.ttf');
 }
 
+.white-text {
+    -fx-text-fill: white !important;
+}
+
 .selector-item {
     -fx-background-radius: 15;
     -fx-background-color: -lighter-background-color;
@@ -31,9 +37,81 @@
     -fx-font-size: 24;
 }
 
+.addon-title {
+    -fx-text-fill: -default-text-color;
+    -fx-font-weight: bold;
+    -fx-font-size: 20;
+}
+
+.l-title {
+    -fx-text-fill: -default-text-color;
+    -fx-font-weight: bold;
+    -fx-font-size: 28 !important;
+}
+.xl-title {
+    -fx-text-fill: -default-text-color;
+    -fx-font-weight: bold;
+    -fx-font-size: 32 !important;
+}
+.xxl-title {
+    -fx-text-fill: -default-text-color;
+    -fx-font-weight: bold;
+    -fx-font-size: 36 !important;
+}
+.style-pane {
+    -fx-border-color: -fx-near-black;
+    -fx-border-width: 0 0 3.5 0;
+}
+.style-label {
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+}
+.style-editor {
+    -fx-font-size: 18;
+    -fx-text-fill: #d4d3d3 !important;
+}
+.update-button {
+    -fx-background-color: -lighter-background-color !important;
+    -fx-background-radius: 5 !important;
+}
+.update-button:hover {
+    -fx-background-color: -even-lighter-background-color !important;
+}
+
+.tabs-holder {
+    -fx-background-color: -fx-background;
+    -fx-border-color: -fx-near-black;
+    -fx-border-radius: 0 0 3 0;
+}
+.tab-header {
+    -fx-background-color: -fx-background;
+    -fx-border-width: 0 0 0 3.5;
+    -fx-border-color: -fx-background;
+}
+.tab-header:hover {
+    -fx-background-color: -darkish-background-color;
+}
+.tab-header:selected {
+    -fx-background-color: -main-background-color;
+    -fx-border-color: -light-highlight-color;
+}
+.tab-header .tab-title {
+    -fx-font-size: 16;
+}
+.tab-header:selected .tab-title {
+    -fx-text-fill: white !important;
+}
+
 .selector-sub-title {
     -fx-text-fill: -subtitle-text-color;
     -fx-font-size: 16;
+}
+
+.editable-label {
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+    -fx-label-padding: 0;
+    -fx-background-color: transparent;
 }
 
 .text-field {
@@ -144,6 +222,9 @@
 .highlighted-label {
     -fx-text-fill: -highlight-color;
 }
+.simple-button {
+    -fx-background-color: transparent !important;
+}
 
 .scroll-pane > .corner {
     -fx-background-color: -main-background-color;
@@ -152,6 +233,7 @@
 .scroll-pane {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
+    -fx-padding: -1;
 }
 
 .scroll-bar:horizontal, .scroll-bar:vertical{
@@ -233,6 +315,9 @@
 .darker-background {
     -fx-background-color: -darker-background-color;
 }
+.dark-background {
+    -fx-background-color: -main-background-color;
+}
 
 .split-pane:horizontal > .split-pane-divider {
     -fx-background-color: -main-background-color;
@@ -256,6 +341,31 @@
 }
 .dark-split-pane:vertical > .split-pane-divider:hover {
     -fx-background-color: -darker-background-color;
+}
+.darker-split-pane {
+    -fx-background-color: -darker-background-color;
+    -fx-border-color: -darker-background-color;
+}
+.darker-split-pane:horizontal > .split-pane-divider {
+    -fx-background-color: -darker-background-color;
+}
+.darker-split-pane:vertical > .split-pane-divider {
+    -fx-background-color: -darker-background-color;
+}
+.darker-split-pane:horizontal > .split-pane-divider:hover {
+    -fx-background-color: -darker-background-color;
+}
+.darker-split-pane:vertical > .split-pane-divider:hover {
+    -fx-background-color: -darker-background-color;
+}
+
+.black-border {
+    -fx-border-color: -fx-near-black;
+    -fx-border-width: 3.5;
+}
+
+.large-dividers > .split-pane-divider {
+    -fx-padding: 0 2em 0 2em;
 }
 
 .tree-view {

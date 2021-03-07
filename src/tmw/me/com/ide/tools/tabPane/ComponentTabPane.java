@@ -49,6 +49,10 @@ public class ComponentTabPane extends TabPane {
         this.setBackground(new Background(new BackgroundFill(BG_COLOR.darker(), CornerRadii.EMPTY, Insets.EMPTY)));
 
         this.getStylesheets().add(STYLE_SHEET);
+
+        setOnDragOver(dragEvent -> {
+            System.out.println('a');
+        });
     }
 
     public EventHandler<Event> getOnTabCloseRequested() {
@@ -97,6 +101,7 @@ public class ComponentTabPane extends TabPane {
                 }
             } else {
                 if (tabPane.lastParent instanceof Pane) {
+                    // TODO fix possible IndexOutOfBoundsException here
                     ((Pane) tabPane.lastParent).getChildren().add(Math.min(tabPane.lastLocation, tabPane.lastParent.getChildrenUnmodifiable().size()),
                             tabPane);
                 } else if (tabPane.lastParent instanceof SplitPane) {

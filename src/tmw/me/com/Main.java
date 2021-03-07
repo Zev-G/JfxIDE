@@ -5,6 +5,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import tmw.me.com.betterfx.CommandConsole;
 import tmw.me.com.ide.Ide;
+import tmw.me.com.ide.settings.IdeSettings;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntax.SyntaxManager;
@@ -12,6 +13,7 @@ import tmw.me.com.panel.RunPanel;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -20,8 +22,9 @@ public class Main extends Application {
     private static CodeChunk executeChunk = new CodeChunk();
 
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) throws IOException {
         // Script Lab
+        IdeSettings.start();
 
 //        IntegratedTextEditor tempEditor = new IntegratedTextEditor(new MathLanguage());
 //        tempEditor.replaceText("there are 108 chickens on planet 21321, the 3rd in the 4th galaxy");
@@ -35,9 +38,13 @@ public class Main extends Application {
 //        tempEditor.setStyleSpans(0, spans);
 //        System.out.println("\n--Final Spans--\n" + spans + "\n----------------");
 
-        Ide ide = new Ide();
-        ide.addEditorTab();
+        Ide ide = new Ide(new File("D:\\Users\\Windows\\Desktop\\JavaMisc\\IDE Plugin Idea"));
 
+
+//        primaryStage.setScene(new Scene(
+//                new ComponentTabPane(true, new ComponentTab<>("Untitled", new IntegratedTextEditor()))
+//        ));
+//        primaryStage.getScene().getStylesheets().add(Ide.STYLE_SHEET);
         primaryStage.setScene(new Scene(ide));
 //        primaryStage.setScene(new Scene(tempEditor.getTextAreaHolder()));
 //        primaryStage.setScene(new Scene(new JavaPlayground()));

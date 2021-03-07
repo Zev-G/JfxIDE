@@ -18,7 +18,6 @@ public class Highlighter {
         this.factories.addAll(Arrays.asList(factories));
     }
 
-
     public StyleSpans<Collection<String>> createStyleSpans() {
         StyleSpansBuilder<Collection<String>> builder = new StyleSpansBuilder<>();
 
@@ -26,7 +25,12 @@ public class Highlighter {
         ArrayList<SortableStyleSpan<Collection<String>>> sortedByEndSpans = new ArrayList<>();
 
         String text = editor.getText();
-        for (StyleSpansFactory<Collection<String>> factory : factories) {
+        ArrayList<StyleSpansFactory<Collection<String>>> tempFactories = new ArrayList<>(factories);
+        StyleSpansFactory<Collection<String>> languageFactory = editor.getLanguage().getCustomStyleSpansFactory(editor);
+        if (languageFactory != null) {
+            tempFactories.add(languageFactory);
+        }
+        for (StyleSpansFactory<Collection<String>> factory : tempFactories) {
             Collection<SortableStyleSpan<Collection<String>>> factoryResult = factory.genSpans(text);
             sortedByStartSpans.addAll(factoryResult);
             sortedByEndSpans.addAll(factoryResult);
@@ -70,19 +74,10 @@ public class Highlighter {
             builder.add(new StyleSpan<>(Collections.emptyList(), text.length() - current));
 
 
-
         return builder.create();
     }
 
-    private ArrayList<StyleSpan<Collection<String>>> fromSortableSpans(Collection<SortableStyleSpan<Collection<String>>> sortableSpans) {
-        ArrayList<StyleSpan<Collection<String>>> spans = new ArrayList<>();
-        for (SortableStyleSpan<Collection<String>> span : sortableSpans) {
-            spans.add(span.toStyleSpan());
-        }
-        return spans;
-    }
-
-    private Collection<String> stringsInSortableSpans(Collection<SortableStyleSpan<Collection<String>>> spans) {
+    private static Collection<String> stringsInSortableSpans(Collection<SortableStyleSpan<Collection<String>>> spans) {
         if (spans.isEmpty())
             return Collections.emptyList();
         ArrayList<String> styles = new ArrayList<>();
@@ -96,4 +91,7 @@ public class Highlighter {
         return editor;
     }
 
+    public ArrayList<StyleSpansFactory<Collection<String>>> getFactories() {
+        return factories;
+    }
 }

@@ -1,23 +1,21 @@
 package tmw.me.com.ide.codeEditor.languages;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+import java.util.HashMap;
 
 public final class LanguageLibrary {
 
-    public static ArrayList<Class<? extends LanguageSupport>> allLanguageClasses = new ArrayList<>(Arrays.asList(
-            SfsLanguage.class, CssLanguage.class, XmlLanguage.class, MathLanguage.class, JavaLanguage.class, PlainTextLanguage.class, SkriptLanguage.class));
+    public static ObservableList<LanguageSupplier<? extends LanguageSupport>> defaultLanguages = FXCollections.observableArrayList(
+            LanguageSupplier.fromLanguages(new PlainTextLanguage(), new SfsLanguage(), new JavaLanguage(), new CssLanguage(), new MathLanguage(), new CssLanguage())
+    );
 
-    public static LanguageSupport[] genNewLanguages() {
-        LanguageSupport[] languageSupports = new LanguageSupport[allLanguageClasses.size()];
-        for (int i = 0; i < allLanguageClasses.size(); i++) {
-            try {
-                languageSupports[i] = allLanguageClasses.get(i).getConstructor().newInstance();
-            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                System.err.println("Language " + allLanguageClasses.get(i).getSimpleName() + " does not have an empty constructor. (" + e.getClass().getSimpleName() + ")");
-            }
+    public static HashMap<String, LanguageSupplier<? extends LanguageSupport>> genLanguagesMap() {
+        HashMap<String, LanguageSupplier<? extends LanguageSupport>> languagesMap = new HashMap<>();
+        for (LanguageSupplier<? extends LanguageSupport> langSupplier : defaultLanguages) {
+            languagesMap.put(langSupplier.getName(), langSupplier);
         }
-        return languageSupports;
+        return languagesMap;
     }
 }

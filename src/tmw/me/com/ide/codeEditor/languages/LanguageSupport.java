@@ -3,10 +3,12 @@ package tmw.me.com.ide.codeEditor.languages;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
 import tmw.me.com.ide.codeEditor.languages.components.Behavior;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,6 +37,13 @@ public abstract class LanguageSupport {
      * If this is true then the subclass will have it's {@link LanguageSupport#getPossiblePieces(String)} method called, and the result used to populate the popup.
      */
     protected boolean usingAutoComplete = false;
+    /**
+     * The language's style spans factory. This should be used to create custom styling for the language (other then the Regex-based styling which comes out-of-the-box with LanguageSupport).
+     * If you do ever want to override the out-of-the-box Regex-based styling just use the styling of {@link PlainTextLanguage} and then do all your styling via this factory.
+     */
+    protected StyleSpansFactory<Collection<String>> customStyleSpansFactory = null;
+
+    private LanguageSupplier<LanguageSupport> thisSupplier;
 
     /**
      *
@@ -97,7 +106,7 @@ public abstract class LanguageSupport {
     public Behavior[] removeBehaviour(IntegratedTextEditor integratedTextEditor) {
         integratedTextEditor.getErrorLines().clear();
         return null;
-    };
+    }
 
     /**
      * This method just insures that the run method on your LanguageSupport is only activated if it is runnable.
@@ -141,4 +150,26 @@ public abstract class LanguageSupport {
     public boolean isUsingAutoComplete() {
         return usingAutoComplete;
     }
+
+    public StyleSpansFactory<Collection<String>> getCustomStyleSpansFactory(IntegratedTextEditor editor) {
+        return customStyleSpansFactory;
+    }
+
+    public LanguageSupplier<LanguageSupport> toSupplier() {
+        if (thisSupplier == null) {
+            thisSupplier = new LanguageSupplier<>() {
+                @Override
+                public LanguageSupport get() {
+                    return LanguageSupport.this;
+                }
+
+                @Override
+                public String getName() {
+                    return getLanguageName();
+                }
+            };
+        }
+        return thisSupplier;
+    }
+
 }

@@ -7,6 +7,8 @@ import tmw.me.com.betterfx.TextModifier;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.highlighting.SimpleRangeStyleSpansFactory;
+import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
 import tmw.me.com.ide.codeEditor.languages.components.Behavior;
 import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
 import tmw.me.com.language.FXScript;
@@ -15,10 +17,7 @@ import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.syntaxPiece.SyntaxPieceFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,9 +26,51 @@ import java.util.regex.Pattern;
  */
 public class SfsLanguage extends LanguageSupport {
 
+    private static final String[] KEYWORDS = { "function", "if", "else" };
+    private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
+    private static final String COMMENT_PATTERN = "#[^\\n]*";
+    private static final String VARIABLE_PATTERN = "\\{([^\"\\\\]|\\\\.)*?}|[^\\s]+(: | = )";
+    private static final String SPECIAL_PATTERN = "\\b([A-z]+-[A-z]+)\\b";
+    private static final String INPUT_PATTERN = "%([^\\s]*?)%";
+    private static final String SYNTAX_START_PATTERN = "(expression|effect) (.*?)-";
+    private static final String SYNTAX_END_PATTERN = "> (.*?):";
+
+    private final ArrayList<String> addedSyntaxPatterns = new ArrayList<>();
+
+    private final String expressionPattern = generateSyntaxPattern(SyntaxManager.SYNTAX_MANAGER.getAllExpressionFactories());
+    private final String effectPattern = generateSyntaxPattern(SyntaxManager.SYNTAX_MANAGER.EFFECT_FACTORIES);
+    private final String eventPattern = generateSyntaxPattern(SyntaxManager.SYNTAX_MANAGER.EVENT_FACTORIES);
+
+    /**
+     * This pattern is a collection of other fields connected with Reg-ex named sections.
+     */
+    private final Pattern PATTERN = Pattern.compile("" +
+            "(?<COMMENT>" + COMMENT_PATTERN + ")" +
+            "|(?<STRING>" + STRING_PATTERN + ")" +
+            "|(?<VARIABLE>" + VARIABLE_PATTERN + ")" +
+            "|(?<INPUT>" + INPUT_PATTERN + ")" +
+            "|(?<SYNTAX1>" + SYNTAX_START_PATTERN + ")" +
+            "|(?<SYNTAX2>" + SYNTAX_END_PATTERN + ")" +
+            "|(?<NUMBER>" + NUMBER_PATTERN + ")" +
+            "|(?<SPECIAL>" + SPECIAL_PATTERN + ")" +
+            "|(?<EXPRESSION>" + expressionPattern + ")" +
+            "|(?<EFFECT>" + effectPattern + ")" +
+            "|(?<EVENT>" + eventPattern + ")" +
+            "|(?<KEYWORD>" + KEYWORD_PATTERN + ")" +
+            "");
+
     private final ArrayList<IndexRange> highlightedVariables = new ArrayList<>();
     private ChangeListenerScheduler<Integer> caretListener;
     private ChangeListenerScheduler<String> textListener;
+
+    /**
+     * This hashmap represents the relationship between a snippet's activation code and it's insert code.
+     */
+    private static final HashMap<String, String> SNIPPETS = new HashMap<>();
+    static {
+        SNIPPETS.put("@def", "set {stage} to new stage\nset {vbox} to new vbox\nset {button} to new button\nwhen {button} is pressed:\n  set text of {button} to \"Pressed\"\nadd {button} to children of {vbox}\nput {vbox} into {stage}\nset text of {button} to \"Some simple text\"\nshow {stage}");
+        SNIPPETS.put("function", "function %type% %name%():");
+    }
 
     public SfsLanguage() {
         super(SfsLanguage.class.getResource("styles/sfs.css").toExternalForm(), "Software Scripting");
@@ -61,21 +102,20 @@ public class SfsLanguage extends LanguageSupport {
                 }
                 highlightedVariables.clear();
                 int[] range = integratedTextEditor.expandFromPoint(t1, '{', '}', ' ', '%');
-                if (range[0] > 0 && range[1] < fullText.length()) {
+                if (range[0] > 0 && range[1] <= fullText.length()) {
                     String text = integratedTextEditor.getText(range[0], range[1]);
                     if (text.startsWith("{") && text.endsWith("}")) {
                         for (IndexRange variableRange : integratedTextEditor.allInstancesOfStringInString(fullText, text)) {
-                            if (variableRange.getStart() + 1 < fullText.length()) {
+                            if (variableRange.getStart() <= fullText.length()) {
                                 Collection<String> collection = new ArrayList<>(integratedTextEditor.getStyleAtPosition(variableRange.getStart() + 1));
                                 if (!collection.isEmpty()) {
-                                    collection.add("selected-word");
                                     highlightedVariables.add(variableRange);
-                                    integratedTextEditor.setStyle(variableRange.getStart(), variableRange.getEnd(), collection);
                                 }
                             }
                         }
                     }
                 }
+                integratedTextEditor.highlight();
             }
         });
         SyntaxManager syntaxManager = new SyntaxManager();
@@ -99,46 +139,10 @@ public class SfsLanguage extends LanguageSupport {
         return null;
     }
 
-    private final ArrayList<String> ADDED_SYNTAX_PATTERNS = new ArrayList<>();
-    private static final String[] KEYWORDS = { "function", "if", "else" };
-    private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
-    private static final String COMMENT_PATTERN = "#[^\\n]*";
-    private static final String VARIABLE_PATTERN = "\\{([^\"\\\\]|\\\\.)*?}|[^\\s]+(: | = )";
-    private static final String SPECIAL_PATTERN = "\\b([A-z]+-[A-z]+)\\b";
-    private static final String INPUT_PATTERN = "%([^\\s]*?)%";
-    private static final String SYNTAX_START_PATTERN = "(expression|effect) (.*?)-";
-    private static final String SYNTAX_END_PATTERN = "> (.*?):";
-
-    /**
-     * This hashmap represents the relationship between a snippet's activation code and it's insert code.
-     */
-    private static final HashMap<String, String> SNIPPETS = new HashMap<>();
-    static {
-        SNIPPETS.put("@def", "set {stage} to new stage\nset {vbox} to new vbox\nset {button} to new button\nwhen {button} is pressed:\n  set text of {button} to \"Pressed\"\nadd {button} to children of {vbox}\nput {vbox} into {stage}\nset text of {button} to \"Some simple text\"\nshow {stage}");
-        SNIPPETS.put("function", "function %type% %name%():");
+    @Override
+    public StyleSpansFactory<Collection<String>> getCustomStyleSpansFactory(IntegratedTextEditor editor) {
+        return new SimpleRangeStyleSpansFactory(editor, Collections.singleton("selected-word"), highlightedVariables.toArray(new IndexRange[0]));
     }
-
-    private final String EXPRESSION_PATTERN = generateSyntaxPattern(SyntaxManager.SYNTAX_MANAGER.getAllExpressionFactories());
-    private final String EFFECT_PATTERN = generateSyntaxPattern(SyntaxManager.SYNTAX_MANAGER.EFFECT_FACTORIES);
-    private final String EVENT_PATTERN = generateSyntaxPattern(SyntaxManager.SYNTAX_MANAGER.EVENT_FACTORIES);
-
-    /**
-     * This pattern is a collection of other fields connected with Reg-ex named sections.
-     */
-    private final Pattern PATTERN = Pattern.compile("" +
-            "(?<COMMENT>" + COMMENT_PATTERN + ")" +
-            "|(?<STRING>" + STRING_PATTERN + ")" +
-            "|(?<VARIABLE>" + VARIABLE_PATTERN + ")" +
-            "|(?<INPUT>" + INPUT_PATTERN + ")" +
-            "|(?<SYNTAX1>" + SYNTAX_START_PATTERN + ")" +
-            "|(?<SYNTAX2>" + SYNTAX_END_PATTERN + ")" +
-            "|(?<NUMBER>" + NUMBER_PATTERN + ")" +
-            "|(?<SPECIAL>" + SPECIAL_PATTERN + ")" +
-            "|(?<EXPRESSION>" + EXPRESSION_PATTERN + ")" +
-            "|(?<EFFECT>" + EFFECT_PATTERN + ")" +
-            "|(?<EVENT>" + EVENT_PATTERN + ")" +
-            "|(?<KEYWORD>" + KEYWORD_PATTERN + ")" +
-            "");
 
     /**
      *
@@ -182,10 +186,10 @@ public class SfsLanguage extends LanguageSupport {
                 String[] pieces = factory.getRegex().split("( %(.*?)%|%(.*?)% |%(.*?)%)");
                 for (String piece : pieces) {
                     piece = piece.trim();
-                    if (!ADDED_SYNTAX_PATTERNS.contains(piece) &&
+                    if (!addedSyntaxPatterns.contains(piece) &&
                             !piece.contains("\"") && !piece.contains("[0-9]")) {
                         patterns.add(piece);
-                        ADDED_SYNTAX_PATTERNS.add(piece);
+                        addedSyntaxPatterns.add(piece);
                     }
                 }
             }

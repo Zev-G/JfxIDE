@@ -10,8 +10,6 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
 import org.reactfx.collection.LiveList;
 import org.reactfx.value.Val;
 import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
@@ -24,7 +22,6 @@ import java.util.function.IntFunction;
 public class LineGraphicFactory implements IntFunction<Node> {
 
     private static final Insets DEFAULT_INSETS = new Insets(0.0D, 5.0D, 0.0D, 5.0D);
-    private static final Font DEFAULT_FONT;
     private static final Background DEFAULT_BACKGROUND;
     private final Val<Integer> nParagraphs;
     private final IntFunction<String> format;
@@ -48,9 +45,7 @@ public class LineGraphicFactory implements IntFunction<Node> {
     public Node apply(int idx) {
         Val<String> formatted = this.nParagraphs.map((n) -> this.format(idx + 1, n));
         Label lineNo = new Label(String.valueOf(idx + 1));
-        lineNo.setFont(DEFAULT_FONT);
         lineNo.setBackground(DEFAULT_BACKGROUND);
-//        lineNo.setTextFill(DEFAULT_TEXT_FILL);
         lineNo.setPadding(DEFAULT_INSETS);
         lineNo.textProperty().bind(formatted.conditionOnShowing(lineNo));
         lineNo.setAlignment(Pos.TOP_RIGHT);
@@ -93,7 +88,6 @@ public class LineGraphicFactory implements IntFunction<Node> {
     }
 
     static {
-        DEFAULT_FONT = Font.font("monospace", FontPosture.ITALIC, 13.0D);
         DEFAULT_BACKGROUND = new Background(new BackgroundFill(Color.rgb(36, 49, 64), null, null));
     }
 

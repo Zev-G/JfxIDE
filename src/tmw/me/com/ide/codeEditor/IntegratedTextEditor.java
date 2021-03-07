@@ -1,7 +1,9 @@
 package tmw.me.com.ide.codeEditor;
 
 import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -15,10 +17,8 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Window;
 import javafx.util.StringConverter;
@@ -30,7 +30,9 @@ import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.highlighting.Highlighter;
 import tmw.me.com.ide.codeEditor.highlighting.LanguageSupportStyleSpansFactory;
+import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
 import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
+import tmw.me.com.ide.codeEditor.languages.LanguageSupplier;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.codeEditor.languages.PlainTextLanguage;
 import tmw.me.com.ide.codeEditor.languages.components.Behavior;
@@ -38,6 +40,9 @@ import tmw.me.com.ide.codeEditor.visualcomponents.FindAndReplace;
 import tmw.me.com.ide.tools.concurrent.schedulers.ConsumerEventScheduler;
 import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,25 +50,22 @@ import java.util.regex.Pattern;
 /**
  * <p>This {@link CodeArea} adds lots of extra functionality, much of which can be customized with custom {@link LanguageSupport}.</p>
  * <br/>
- * <h3>Features</h3>
+ * <h2>Features</h3>
  * <ul>
- *     <li>Auto Indentation</li>
- *     <li>Comment continuation</li>
- *     <li>Backwards Indentation</li>
- *     <li>Surround selection with bracket/quote</li>
+ *     <li>Code Formatting</li>
  *     <li>Find and Replace</li>
- *     <li>Auto double quotes and double brackets</li>
  *     <li>Code Highlighting*</li>
+ *     <li>A powerful highlighting pipeline fueled by the {@link Highlighter} class.</li>
  *     <li>Auto Complete*</li>
  *     <li>Error line number highlighting*</li>
  * </ul>
- * <h3>Planned Features</h3>
+ * <h2>Planned Features</h3>
  * <ul>
- *     <li>More interactive highlighting features</li>
  *     <li>A nice context menu</li>
  *     <li>Tooltips</li>
- *     <li>A Minimap WIP</li>
+ *     <li>A Minimap (WIP)</li>
  * </ul>
+ * <h3>Notes:</h3>
  * <p>*Controlled by LanguageSupport</p>
  */
 public class IntegratedTextEditor extends CodeArea implements ComponentTabContent<IntegratedTextEditor> {
@@ -79,6 +81,7 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     private final ObservableList<Integer> errorLines = FXCollections.observableArrayList();
     private final ObservableList<Behavior> behaviors = FXCollections.observableArrayList();
     private final ObjectProperty<LanguageSupport> languageSupport = new SimpleObjectProperty<>();
+    private final IntegerProperty fontSize = new SimpleIntegerProperty();
 
     private final ArrayList<IntegratedTextEditor> linkedTextEditors = new ArrayList<>();
 
@@ -91,15 +94,16 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     private final BoundsPopup autoCompletePopup = new BoundsPopup();
     private final ArrayList<String> selectionQueue = new ArrayList<>();
 
-    private final MiniMap miniMap = new MiniMap();
+    private final MiniMap miniMap = USING_MINIMAP ? new MiniMap() : null;
 
-   private final FindAndReplace findAndReplace = new FindAndReplace(this);
+    private final FindAndReplace findAndReplace = new FindAndReplace(this);
 
-    private final ChoiceBox<LanguageSupport> currentLanguage = new ChoiceBox<>();
+    private final ChoiceBox<LanguageSupplier<? extends LanguageSupport>> currentLanguage = new ChoiceBox<>();
     private final HBox bottomPane = new HBox(currentLanguage);
 
     private final VirtualizedScrollPane<IntegratedTextEditor> virtualizedScrollPane = new VirtualizedScrollPane<>(this);
-    private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, miniMap, findAndReplace, bottomPane);
+    private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, findAndReplace, bottomPane);
+
 
     private int selectionIndex = 0;
 
@@ -135,7 +139,27 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
      */
     public IntegratedTextEditor(LanguageSupport languageSupport) {
 
+        if (USING_MINIMAP) {
+            textAreaHolder.getChildren().add(1, miniMap);
+        }
+
         // Linking
+        fontSize.addListener((observableValue, number, t1) -> setStyle("-fx-font-size: " + t1.intValue() + ";"));
+        setFontSize(18);
+        addEventFilter(ScrollEvent.ANY, e -> {
+            if (e.isControlDown()) {
+                e.consume();
+                double amount = (fontSize.get() * 0.1) + 1;
+                if (e.getDeltaY() != 0) {
+                    if (e.getDeltaY() < 0) {
+                        amount *= -1;
+                    }
+                    if (fontSize.get() + amount >= 6)
+                        fontSize.set(fontSize.get() + (int) amount);
+                }
+            }
+        });
+
         this.multiPlainChanges().subscribe(plainTextChanges -> {
             if (this.isFocused() || this.autoCompletePopup.isFocused()) {
                 for (PlainTextChange plainTextChange : plainTextChanges) {
@@ -164,24 +188,24 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
 
         currentLanguage.setConverter(new StringConverter<>() {
             @Override
-            public String toString(LanguageSupport languageSupport) {
-                return languageSupport.getLanguageName();
+            public String toString(LanguageSupplier<? extends LanguageSupport> languageSupport) {
+                return languageSupport.getName();
             }
 
             @Override
-            public LanguageSupport fromString(String s) {
+            public LanguageSupplier<LanguageSupport> fromString(String s) {
                 return null;
             }
         });
-        for (LanguageSupport loopSupport : LanguageLibrary.genNewLanguages()) {
-            if (!loopSupport.getLanguageName().equals(languageSupport.getLanguageName())) {
+        for (LanguageSupplier<? extends LanguageSupport> loopSupport : LanguageLibrary.defaultLanguages) {
+            if (loopSupport != null && !loopSupport.getName().equals(languageSupport.getLanguageName())) {
                 currentLanguage.getItems().add(loopSupport);
             } else {
-                currentLanguage.getItems().add(languageSupport);
+                currentLanguage.getItems().add(languageSupport.toSupplier());
             }
         }
-        currentLanguage.getSelectionModel().select(languageSupport);
-        currentLanguage.getSelectionModel().selectedItemProperty().addListener((observableValue, languageSupport1, t1) -> languageSupportProperty().set(t1));
+        currentLanguage.getSelectionModel().select(languageSupport.toSupplier());
+        currentLanguage.getSelectionModel().selectedItemProperty().addListener((observableValue, languageSupport1, t1) -> languageSupportProperty().set(t1.get()));
 
         behaviors.addListener((ListChangeListener<Behavior>) change -> {
             while (change.next()) {
@@ -234,12 +258,13 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         popupParent.getStylesheets().add(Ide.STYLE_SHEET);
         autoCompletePopup.getContent().add(popupParent);
         autoCompletePopup.setAutoHide(true);
-        this.setParagraphGraphicFactory(LineGraphicFactory.get(this));
         titleBox.setCenter(popupTitleText);
         popupScrollPane.setFitToWidth(true);
         popupBox.setFillWidth(true);
         popupParent.setEffect(new DropShadow());
         bottomPane.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+
+        this.setParagraphGraphicFactory(LineGraphicFactory.get(this));
 
         // Layout
         AnchorPane.setTopAnchor(virtualizedScrollPane, 0D); AnchorPane.setBottomAnchor(virtualizedScrollPane, 25D);
@@ -451,6 +476,23 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
                 this.selectRange(start,
                         end + (indentForwards.length() - (end - start))
                 );
+            }
+        }
+        // Scrolling
+        if (keyEvent.isControlDown()) {
+            if (keyCode == KeyCode.EQUALS) {
+                if (keyEvent.isShiftDown()) {
+                    keyEvent.consume();
+                    fontSize.set(fontSize.get() + 2);
+                } else {
+                    keyEvent.consume();
+                    fontSize.set(18);
+                }
+            } else if (keyCode == KeyCode.MINUS) {
+                keyEvent.consume();
+                if (fontSize.get() >= 8) {
+                    fontSize.set(fontSize.get() - 2);
+                }
             }
         }
     }
@@ -733,13 +775,19 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     }
 
     @Override
-    public Node getMainNode() {
+    public Region getMainNode() {
         return getTextAreaHolder();
     }
 
     @Override
-    public String getSaveText() {
-        return getText();
+    public void save(File file) {
+        try {
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write(getText());
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -753,6 +801,27 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     public void setHighlighter(Highlighter highlighter) {
         this.highlighter = highlighter;
         highlight();
+    }
+
+    public ArrayList<StyleSpansFactory<Collection<String>>> getFactories() {
+        return highlighter.getFactories();
+    }
+
+    public void lockLanguageUI() {
+        textAreaHolder.getChildren().remove(bottomPane);
+        AnchorPane.setBottomAnchor(virtualizedScrollPane, 0D);
+    }
+
+    public void setFontSize(int i) {
+        fontSize.set(i);
+    }
+
+    public int getFontSize() {
+        return fontSize.get();
+    }
+
+    public IntegerProperty fontSizeProperty() {
+        return fontSize;
     }
 
     public static class HighlightingThread extends Thread {
@@ -839,4 +908,5 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     public VirtualizedScrollPane<IntegratedTextEditor> getVirtualizedScrollPane() {
         return virtualizedScrollPane;
     }
+
 }

@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="skript-parser">
+  <library name="gson-2.8.6">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../JavaStuff/skript-parser.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../gson-2.8.6.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

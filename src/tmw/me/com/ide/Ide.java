@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -26,7 +27,9 @@ import javafx.util.StringConverter;
 import tmw.me.com.betterfx.Console;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
 import tmw.me.com.ide.fileTreeView.FileTreeView;
+import tmw.me.com.ide.images.Images;
 import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
 import tmw.me.com.ide.tools.tabPane.ComponentTab;
 import tmw.me.com.ide.tools.tabPane.ComponentTabPane;
@@ -49,6 +52,7 @@ import java.util.function.Consumer;
  */
 public class Ide extends AnchorPane {
 
+    public static final Image WINDOW_ICON = new Image(Images.get("icon.png"));
     public static final String STYLE_SHEET = Ide.class.getResource("styles/main.css").toExternalForm();
 
     private final ComponentTabPane tabPane = new ComponentTabPane();
@@ -67,9 +71,6 @@ public class Ide extends AnchorPane {
     private final AnchorPane leftTab = new AnchorPane();
     private final AnchorPane rightTab = new AnchorPane(tabPanesHorizontal, topBox);
 
-
-
-//    private final Console runConsole = Console.generateForJava();
     private final Console runConsole = new Console();
     private final VBox consoleAnchor = new VBox();
     private final SplitPane horizontalSplitPane = new SplitPane(leftTab, rightTab);
@@ -99,6 +100,10 @@ public class Ide extends AnchorPane {
     private final VBox notificationPane = new VBox();
 
     public Ide() {
+
+        SplitPane.setResizableWithParent(bottomTab, false);
+        SplitPane.setResizableWithParent(leftTab, false);
+
         // Booleans
         runSelector.setDisable(true);
         projectTabButton.setVisible(false);
@@ -120,6 +125,13 @@ public class Ide extends AnchorPane {
         confirmBox.getStyleClass().add("popup-item");
         autoSelect.getStyleClass().add("auto-select");
         tabPanesHorizontal.getStyleClass().add("dark-split-pane");
+
+        confirmText.getStyleClass().addAll("white-text", "xl-title");
+        confirm.getStyleClass().addAll("white-text", "l-title");
+
+        prompt.getStyleClass().addAll("white-text", "xl-title");
+        inputBox.getStyleClass().addAll("white-text", "l-title");
+
         this.getStyleClass().add("ide");
         this.getStylesheets().add(STYLE_SHEET);
 
@@ -146,6 +158,8 @@ public class Ide extends AnchorPane {
         projectTabButton.setLineSpacing(-5);
         topBox.setFillHeight(true);
         topBox.setSpacing(8);
+        confirmBox.setSpacing(10);
+        textInputBox.setSpacing(10);
         tabPane.setHorizontal(tabPanesHorizontal);
 
         // Children
@@ -221,7 +235,7 @@ public class Ide extends AnchorPane {
             if (t1 != null) {
                 t1.windowProperty().addListener((observableValue1, window, t11) -> {
                     if (t11 instanceof Stage) {
-                        // TODO Find a good icon to put on the stage here
+                        ((Stage) t11).getIcons().add(WINDOW_ICON);
                     }
                 });
             }
@@ -281,14 +295,16 @@ public class Ide extends AnchorPane {
         Menu newMenu = new Menu("New");
         MenuItem newProject = new MenuItem("New Project");
         MenuItem newFile = new MenuItem("New File");
+        MenuItem newAddon = new MenuItem("New Addon");
         newFile.setAccelerator(new KeyCodeCombination(KeyCode.T, KeyCombination.CONTROL_DOWN));
         newProject.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
         Menu openMenu = new Menu("Open");
         MenuItem openFile = new MenuItem("Open File");
         MenuItem openFolder = new MenuItem("Open Folder");
         MenuItem openProject = new MenuItem("Open Project");
-        openMenu.getItems().addAll(openProject, openFile, openFolder);
-        newMenu.getItems().addAll(newProject, newFile);
+        MenuItem openAddon = new MenuItem("Open Addon");
+        openMenu.getItems().addAll(openProject, openFile, openFolder, openAddon);
+        newMenu.getItems().addAll(newProject, newFile, newAddon);
         fileMenu.getItems().addAll(newMenu, openMenu);
 
         Menu tabMenu = new Menu("Tab");
@@ -320,6 +336,22 @@ public class Ide extends AnchorPane {
             tabPane.getTabs().add(newTab);
             tabPane.getSelectionModel().select(newTab);
         });
+        newAddon.setOnAction(actionEvent -> {
+            DirectoryChooser fileChooser = new DirectoryChooser();
+            File file = fileChooser.showDialog(this.getScene().getWindow());
+            if (file != null) {
+                File[] listFiles = file.listFiles();
+                if (listFiles == null || listFiles.length == 0 || LanguageAddon.verifyDir(file)) {
+                    try {
+                        LanguageAddon.createAtDir(file);
+                        loadFile(file);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        openAddon.setOnAction(newAddon.getOnAction());
         openFile.setOnAction(actionEvent -> {
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(this.getScene().getWindow());
@@ -397,7 +429,7 @@ public class Ide extends AnchorPane {
 
         // Tooltips
         autoSelect.setTooltip(
-                ToolTipBuilder.create().setHeader("Toggle AutoSelect").setMainText("Toggles whether or not the run tab selector\nautomatically switches to the selected tab.").build()
+                ToolTipBuilder.create().setHeader("Toggle Auto Select").setMainText("Toggles whether or not the run tab selector\nautomatically switches to the selected tab.").build()
         );
         playButton.setTooltip(
                 ToolTipBuilder.create().setHeader("Run Button").setMainText("Runs the tab selected in the run tab selector").build()
@@ -441,22 +473,20 @@ public class Ide extends AnchorPane {
 
     public void loadFile(File file) {
         if (file != null && file.exists()) {
-            if (projectView == null) {
-                if (file.isDirectory()) {
-                    projectView = new FileTreeView(file, this);
-                } else {
-                    projectView = new FileTreeView(file.getParentFile(), this);
-                }
-                if (this.getScene().getWindow() instanceof Stage) {
-                    ((Stage) getScene().getWindow()).setTitle(projectView.getFileRoot().getName() + " - " + (getTabPane().getSelectedTab() != null ? getTabPane().getSelectedTab().getLabel().getText() : ""));
-                }
-                projectTabButton.setVisible(true);
-                projectViewAnchorPane.getChildren().add(projectView);
-                AnchorPane.setTopAnchor(projectView, 0D);
-                AnchorPane.setBottomAnchor(projectView, 0D);
-                AnchorPane.setRightAnchor(projectView, 0D);
-                AnchorPane.setLeftAnchor(projectView, 0D);
+            if (file.isDirectory()) {
+                projectView = new FileTreeView(file, this);
+            } else {
+                projectView = new FileTreeView(file.getParentFile(), this);
             }
+            if (this.getScene().getWindow() instanceof Stage) {
+                ((Stage) getScene().getWindow()).setTitle(projectView.getFileRoot().getName() + " - " + (getTabPane().getSelectedTab() != null ? getTabPane().getSelectedTab().getLabel().getText() : ""));
+            }
+            projectTabButton.setVisible(true);
+            projectViewAnchorPane.getChildren().add(projectView);
+            AnchorPane.setTopAnchor(projectView, 0D);
+            AnchorPane.setBottomAnchor(projectView, 0D);
+            AnchorPane.setRightAnchor(projectView, 0D);
+            AnchorPane.setLeftAnchor(projectView, 0D);
             if (!file.isDirectory()) {
                 Tab newTab = getNewEditorTab(file);
                 tabPane.getTabs().add(newTab);
@@ -525,7 +555,11 @@ public class Ide extends AnchorPane {
         this.inputBox.requestFocus();
     }
     public void showConfirmation(String confirmText, Consumer<Boolean> gotten) {
+        showConfirmation(confirmText, "Confirm", gotten);
+    }
+    public void showConfirmation(String confirmText, String prompt, Consumer<Boolean> gotten) {
         this.confirmText.setText(confirmText);
+        this.confirm.setText(prompt);
         confirm.setOnAction(actionEvent -> {
             gotten.accept(true);
             hidePopup();
@@ -573,6 +607,18 @@ public class Ide extends AnchorPane {
         componentTab.setFile(file);
         componentTab.setMainNode(integratedTextEditor);
         return componentTab;
+    }
+
+    public static String readFile(File file) {
+        try {
+            FileInputStream fileInputStream = new FileInputStream(file);
+            byte[] fileContent = new byte[(int) file.length()];
+            fileInputStream.read(fileContent);
+            return new String(fileContent);
+        } catch (IOException e) {
+            System.err.println("Invalid File: " + file.getPath());
+        }
+        return "Wasn't able to read file: " + file;
     }
 
     public SVGPath getPlaySvg() {

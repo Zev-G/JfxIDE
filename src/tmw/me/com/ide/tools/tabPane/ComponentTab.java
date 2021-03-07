@@ -30,8 +30,6 @@ import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -39,16 +37,21 @@ import java.util.ArrayList;
  */
 public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
 
+    private static final String DEFAULT_TEXT = "Untitled";
+    private static final double MIN_WIDTH = 150;
+    private static final double IMAGE_OPACITY = 0.7;
+    private static final double IMAGE_RATIO = 0.3;
+
     private final Label label = new Label();
+
     private Ide ide;
-    private final Stage stage = new Stage();
-
+    private Stage stage;
     private TabPane ogTabPane;
-
-    private final Popup pictureStage = new Popup();
-    private final ImageView imageView = new ImageView();
-    private final AnchorPane pictureAnchorPane = new AnchorPane(imageView);
+    private Popup pictureStage;
+    private ImageView imageView;
+    private AnchorPane pictureAnchorPane;
     private ComponentTabPane lastTabPane;
+
     private final T value;
 
     private final SimpleObjectProperty<File> fileProperty = new SimpleObjectProperty<>();
@@ -56,6 +59,8 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
 
     private final SplitPane horizontal = new SplitPane();
     private final SplitPane vertical = new SplitPane(horizontal);
+
+    private boolean dragInitialized = false;
 
     public ComponentTab(String s, T node) {
         super("");
@@ -72,7 +77,6 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
         init();
         horizontal.getStyleClass().add("dark-split-pane");
         vertical.getStyleClass().add("dark-split-pane");
-        pictureStage.setAutoFix(false);
     }
 
     private void init() {
@@ -98,26 +102,21 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
         MenuItem openInNewWindow = new MenuItem("Open in New Window");
         MenuItem splitHorizontally = new MenuItem("Split Horizontally");
 
-        splitHorizontally.setOnAction(actionEvent -> {
-            ObservableList<Node> items = getTabPaneCTP().getHorizontal().getItems();
-            int ourIndex = items.indexOf(getTabPaneCTP());
-            ComponentTabPane componentTabPane = new ComponentTabPane(new ComponentTab<>(label.getText(), value.createNewCopy()));
-            ComponentTabPane.disappearWithoutChildren(componentTabPane);
-            componentTabPane.setVertical(getTabPaneCTP().getVertical());
-            componentTabPane.setHorizontal(getTabPaneCTP().getHorizontal());
-            items.add(ourIndex + 1, componentTabPane);
-        });
+        if (value.canSplitHorizontally()) {
+            splitHorizontally.setOnAction(actionEvent -> {
+                ObservableList<Node> items = getTabPaneCTP().getHorizontal().getItems();
+                int ourIndex = items.indexOf(getTabPaneCTP());
+                ComponentTabPane componentTabPane = new ComponentTabPane(new ComponentTab<>(label.getText(), value.createNewCopy()));
+                ComponentTabPane.disappearWithoutChildren(componentTabPane);
+                componentTabPane.setVertical(getTabPaneCTP().getVertical());
+                componentTabPane.setHorizontal(getTabPaneCTP().getHorizontal());
+                items.add(ourIndex + 1, componentTabPane);
+            });
+        }
 
         save.setOnAction(actionEvent -> {
             if (fileProperty.get() != null && getValue() != null) {
-                String text = value.getSaveText();
-                try {
-                    FileWriter fileWriter = new FileWriter(fileProperty.get());
-                    fileWriter.write(text);
-                    fileWriter.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                value.save(fileProperty.get());
             }
         });
         close.setOnAction(actionEvent -> {
@@ -144,72 +143,95 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
         });
         SeparatorMenuItem separator1 = new SeparatorMenuItem();
         separator1.getStyleClass().add("darkish-separator-item");
-        ContextMenu contextMenu = new ContextMenu(save, close, openInNewWindow, separator1, splitHorizontally);
+        ContextMenu contextMenu = new ContextMenu(save, close, openInNewWindow, separator1);
+        if (value.canSplitHorizontally()) {
+            contextMenu.getItems().add(splitHorizontally);
+        }
         contextMenu.getItems().addAll(value.addContext());
         return contextMenu;
     }
 
     public void makeDraggable() {
-        // Initialisation
-        Scene s = new Scene(getIde());
-        s.setFill(Color.TRANSPARENT);
-        stage.setScene(s);
-        pictureStage.getContent().add(pictureAnchorPane);
-        imageView.setPreserveRatio(true);
-        pictureAnchorPane.setMaxHeight(100);
-        pictureAnchorPane.setMaxWidth(300);
-        pictureAnchorPane.setOpacity(0.5);
-        pictureAnchorPane.setMouseTransparent(true);
-        AnchorPane.setTopAnchor(imageView, 0D); AnchorPane.setBottomAnchor(imageView, 0D);
-        AnchorPane.setRightAnchor(imageView, 0D); AnchorPane.setLeftAnchor(imageView, 0D);
-
-        // Buttons
-        SVGPath closeShape = new SVGPath(); closeShape.setContent("M 4 2 L 2 4 L 21 24 L 23 22 L 4 2 M 23 4 L 21 2 L 2 22 L 4 24 L 23 4");
-        closeShape.setFill(Color.GRAY);
-        Button closeButton = new Button("", closeShape);
-        closeButton.setCursor(Cursor.HAND);
-        Background blankBg = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
-        Background redBg = new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY));
-        closeButton.setBackground(blankBg);
-        closeButton.setOnMouseEntered(mouseEvent -> { closeButton.setBackground(redBg); closeShape.setFill(Color.WHITE); });
-        closeButton.setOnMouseExited(mouseEvent -> { closeButton.setBackground(blankBg); closeShape.setFill(Color.GRAY); });
-        closeButton.setOnAction(actionEvent -> this.stage.hide());
-        AnchorPane.setRightAnchor(closeButton, 3D); AnchorPane.setTopAnchor(closeButton, 3D);
 
         // Event Listeners
-        this.label.setOnMousePressed(mouseEvent -> {
+        this.label.setOnDragDetected(mouseEvent -> {
+            if (!dragInitialized) {
+                stage = new Stage();
+                pictureStage = new Popup();
+                imageView = new ImageView();
+                pictureAnchorPane = new AnchorPane(imageView);
+                pictureStage.setAutoFix(false);
+                Scene s = new Scene(getIde());
+                s.setFill(Color.TRANSPARENT);
+                stage.setScene(s);
+                pictureStage.getContent().add(pictureAnchorPane);
+                imageView.setPreserveRatio(true);
+                pictureAnchorPane.setMaxHeight(100);
+                pictureAnchorPane.setMaxWidth(300);
+                pictureAnchorPane.setOpacity(0.5);
+                pictureAnchorPane.setMouseTransparent(true);
+                AnchorPane.setTopAnchor(imageView, 0D);
+                AnchorPane.setBottomAnchor(imageView, 0D);
+                AnchorPane.setRightAnchor(imageView, 0D);
+                AnchorPane.setLeftAnchor(imageView, 0D);
+
+                // Buttons
+                SVGPath closeShape = new SVGPath();
+                closeShape.setContent("M 4 2 L 2 4 L 21 24 L 23 22 L 4 2 M 23 4 L 21 2 L 2 22 L 4 24 L 23 4");
+                closeShape.setFill(Color.GRAY);
+                Button closeButton = new Button("", closeShape);
+                closeButton.setCursor(Cursor.HAND);
+                Background blankBg = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
+                Background redBg = new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY));
+                closeButton.setBackground(blankBg);
+                closeButton.setOnMouseEntered(mouseEvent1 -> {
+                    closeButton.setBackground(redBg);
+                    closeShape.setFill(Color.WHITE);
+                });
+                closeButton.setOnMouseExited(mouseEvent1 -> {
+                    closeButton.setBackground(blankBg);
+                    closeShape.setFill(Color.GRAY);
+                });
+                closeButton.setOnAction(actionEvent -> this.stage.hide());
+                AnchorPane.setRightAnchor(closeButton, 3D);
+                AnchorPane.setTopAnchor(closeButton, 3D);
+                dragInitialized = true;
+            }
         });
         this.label.setOnMouseDragged(mouseEvent -> {
-            Bounds bounds = label.localToScene(label.getBoundsInLocal());
-            if (mouseEvent.getSceneY() > bounds.getMaxY() || mouseEvent.getSceneY() < bounds.getMinY() || pictureStage.isShowing()) {
-                SnapshotParameters snapshotParameters = new SnapshotParameters();
-                snapshotParameters.setFill(Color.TRANSPARENT);
-                if (!pictureStage.isShowing()) {
-                    Image image = this.getContent().snapshot(snapshotParameters, null);
-                    this.imageView.setImage(image);
-                    imageView.setFitWidth(image.getWidth() / 2.3);
-                    imageView.setFitHeight(image.getHeight() / 2.3);
-                    pictureStage.show(this.getContent().getScene().getWindow());
-                    pictureStage.setWidth(image.getWidth());
-                    pictureStage.setHeight(image.getHeight());
-                    this.getContent().setOpacity(0.1);
-                    label.getParent().getParent().getParent().setOpacity(0.1);
-                }
-                pictureStage.setX(mouseEvent.getX() + this.getContent().getScene().getWindow().getX() + bounds.getMinX() - 30);
-                pictureStage.setY(mouseEvent.getY() + this.getContent().getScene().getWindow().getY() + bounds.getMinY() + 30);
-                ComponentTabPane pane = getTopTabPane(mouseEvent);
-                if (pane != null) {
-                    pane.setEffect(new Glow(0.8));
-                    lastTabPane = pane;
-                }
-                if (lastTabPane != null && lastTabPane != pane) {
-                    lastTabPane.setEffect(null);
+            if (dragInitialized) {
+                Bounds bounds = label.localToScene(label.getBoundsInLocal());
+                if (mouseEvent.getSceneY() > bounds.getMaxY() || mouseEvent.getSceneY() < bounds.getMinY() || pictureStage.isShowing()) {
+                    SnapshotParameters snapshotParameters = new SnapshotParameters();
+                    snapshotParameters.setFill(Color.TRANSPARENT);
+                    if (!pictureStage.isShowing()) {
+                        Image image = this.getContent().snapshot(snapshotParameters, null);
+                        this.imageView.setImage(image);
+                        imageView.setFitWidth(image.getWidth() / 2.3);
+                        imageView.setFitHeight(image.getHeight() / 2.3);
+                        pictureStage.show(this.getContent().getScene().getWindow());
+                        pictureStage.setWidth(image.getWidth());
+                        pictureStage.setHeight(image.getHeight());
+                        this.getContent().setOpacity(0.1);
+                        label.getParent().getParent().getParent().setOpacity(0.1);
+                    }
+                    pictureStage.setX(mouseEvent.getX() + this.getContent().getScene().getWindow().getX() + bounds.getMinX() - 30);
+                    pictureStage.setY(mouseEvent.getY() + this.getContent().getScene().getWindow().getY() + bounds.getMinY() + 30);
+                    ComponentTabPane pane = getTopTabPane(mouseEvent);
+                    if (pane != null) {
+                        pane.setEffect(new Glow(0.8));
+                        lastTabPane = pane;
+                    }
+                    if (lastTabPane != null && lastTabPane != pane) {
+                        lastTabPane.setEffect(null);
+                    }
                 }
             }
         });
         this.label.setOnMouseReleased(mouseEvent -> {
             if (mouseEvent.getButton() != MouseButton.MIDDLE) {
-                pictureStage.hide();
+                if (pictureStage != null)
+                    pictureStage.hide();
                 this.getContent().setOpacity(1);
                 label.getParent().getParent().getParent().setOpacity(1);
                 ComponentTabPane pane = getTopTabPane(mouseEvent);
@@ -268,6 +290,8 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
     }
 
     public void attachToStage() {
+        stage.setHeight(this.getContent().getScene().getWindow().getHeight());
+        stage.setWidth(this.getContent().getScene().getWindow().getWidth());
         if (this.getTabPane() != null) {
             this.getTabPane().getTabs().remove(this);
         }
@@ -280,11 +304,7 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
                 }
             }
         });
-//            stage.setHeight(this.getContent().getBoundsInLocal().getHeight() + 50);
-//            stage.setWidth(this.getContent().getBoundsInLocal().getHeight() + 50);
         getIde().getTabPane().getTabs().add(this);
-        stage.setHeight(this.getContent().getBoundsInLocal().getHeight() + 80);
-        stage.setWidth(this.getContent().getBoundsInLocal().getWidth() + 30);
     }
 
     public Label getLabel() {
