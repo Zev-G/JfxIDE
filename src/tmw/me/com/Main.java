@@ -41,6 +41,7 @@ public class Main extends Application {
         Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-Regular.ttf").toExternalForm(), 10);
         Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-Thin.ttf").toExternalForm(), 10);
         Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-ThinItalic.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/Montserrat-Regular.ttf").toExternalForm(), 10);
 
 //        IntegratedTextEditor tempEditor = new IntegratedTextEditor(new MathLanguage());
 //        tempEditor.replaceText("there are 108 chickens on planet 21321, the 3rd in the 4th galaxy");

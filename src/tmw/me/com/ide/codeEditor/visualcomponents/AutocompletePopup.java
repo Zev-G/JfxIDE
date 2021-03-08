@@ -1,11 +1,13 @@
 package tmw.me.com.ide.codeEditor.visualcomponents;
 
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -13,6 +15,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Popup;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
@@ -24,7 +27,9 @@ import java.util.ArrayList;
 public class AutocompletePopup extends Popup implements VisualComponent<AutocompletePopup> {
 
     private final VBox itemsBox = new VBox();
-    private final ScrollPane itemsScroller = new ScrollPane(itemsBox);
+    private final ScrollPane itemsScroller = new ScrollPane(itemsBox) { @Override public void requestFocus() { } };
+    private final Label resultsCount = new Label("Results: 0");
+    private final Label selectedLabel = new Label("Selected: 1/1");
     private final BorderPane bottomPane = new BorderPane();
     private final VBox topBox = new VBox(itemsScroller, bottomPane);
 
@@ -52,6 +57,11 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
 
     public AutocompletePopup(IntegratedTextEditor editor) {
         topBox.getStyleClass().add("auto-complete-parent");
+        itemsScroller.getStyleClass().add("ac-scroller");
+        itemsBox.getStyleClass().add("ac-items-box");
+        bottomPane.getStyleClass().add("ac-bottom");
+        resultsCount.getStyleClass().add("ac-results");
+        selectedLabel.getStyleClass().add("ac-out-of");
         itemsScroller.setMaxHeight(300);
         topBox.getStylesheets().add(Ide.STYLE_SHEET);
 
@@ -59,12 +69,17 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
         setAutoHide(true);
         itemsScroller.setFitToWidth(true);
         itemsBox.setFillWidth(true);
-        topBox.setEffect(new DropShadow());
+        topBox.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.web("#121324"), 20, 0.3, 0, 2));
+
+        bottomPane.setLeft(resultsCount);
+        bottomPane.setRight(selectedLabel);
+
+        itemsBox.getChildren().addListener((ListChangeListener<Node>) change -> selectedLabel.setText((selectionIndex + 1) + "/" + change.getList().size()));
 
         itemsScroller.setOnKeyPressed(keyEvent -> {
             keyEvent.consume();
-            if (isFocused()) {
-                editor.fireEvent(new KeyEvent(editor, editor, keyEvent.getEventType(), keyEvent.getCharacter(), keyEvent.getText(), keyEvent.getCode(), keyEvent.isShiftDown(), keyEvent.isControlDown(), keyEvent.isAltDown(), keyEvent.isMetaDown()));
+            if (isFocused() && !itemsScroller.isFocused()) {
+                editor.fireEvent(new KeyEvent(this, editor, keyEvent.getEventType(), keyEvent.getCharacter(), keyEvent.getText(), keyEvent.getCode(), keyEvent.isShiftDown(), keyEvent.isControlDown(), keyEvent.isAltDown(), keyEvent.isMetaDown()));
             }
             if (keyEvent.getCode() == KeyCode.TAB) {
                 editor.insertAutocomplete();
@@ -106,6 +121,8 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
                             double yLoc = locOfNode.getMinY();
                             double parentHeight = itemsBox.getChildren().get(itemsBox.getChildren().size() - 1).getBoundsInParent().getMinY();
                             itemsScroller.setVvalue(yLoc / parentHeight);
+
+                            selectedLabel.setText((selectionIndex + 1) + "/" + itemsBox.getChildren().size());
                         });
                     }
                 }
@@ -164,14 +181,25 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
                     filledIn.getStyleClass().addAll("ac-label", "ac-filled-in");
                     notFilledIn.getStyleClass().addAll("ac-label", "ac-not-filled-in");
                     HBox box = new HBox(filledIn, notFilledIn);
+                    box.getStyleClass().add("syntax-box");
+
                     box.setOnMousePressed(popupItemEvent);
                     box.setAccessibleText(entry.getPutIn());
                     newChildren.add(box);
                 }
                 if (!showOverride && !newChildren.isEmpty()) {
+                    if (newChildren.size() > 4) {
+                        if (!topBox.getChildren().contains(bottomPane)) {
+                            topBox.getChildren().add(bottomPane);
+                        }
+                        resultsCount.setText("Results: " + newChildren.size());
+                    } else {
+                        topBox.getChildren().remove(bottomPane);
+                    }
                     itemsBox.getChildren().setAll(newChildren);
                     itemsBox.getChildren().get(0).getStyleClass().add("selected-syntax");
                     selectionIndex = 0;
+                    selectedLabel.setText((selectionIndex + 1) + "/" + newChildren.size());
                     this.show(editor.getScene().getWindow());
                     this.setHeight(itemsScroller.getHeight());
                     itemsScroller.setVvalue(0);
@@ -188,4 +216,7 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
         }
     }
 
+    public VBox getTopBox() {
+        return topBox;
+    }
 }

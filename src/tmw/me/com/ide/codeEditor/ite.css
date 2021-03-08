@@ -72,8 +72,6 @@
 
 .selected-word {
     -rtfx-background-color: rgba(100, 146, 234, 0.1);
-    -rtfx-border-stroke-width: 1px;
-    -rtfx-border-stroke-color: rgba(100, 146, 234, 0.2);
 }
 
 .found {

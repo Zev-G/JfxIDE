@@ -1,8 +1,10 @@
 package tmw.me.com.ide.codeEditor.languages;
 
+import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.languages.components.Behavior;
 
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +39,7 @@ public class CssLanguage extends LanguageSupport {
 
     public CssLanguage() {
         super(CssLanguage.class.getResource("styles/css.css").toExternalForm(), "Css");
+        usingAutoComplete = true;
     }
 
 
@@ -64,5 +67,19 @@ public class CssLanguage extends LanguageSupport {
     @Override
     public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
         return null;
+    }
+
+    @Override
+    public ArrayList<IdeSpecialParser.PossiblePiecePackage> getPossiblePieces(String line) {
+        ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = new ArrayList<>();
+        String[] words = line.split(" ");
+        String lastWord = words[words.length - 1];
+        for (String keyWord : KEYWORDS) {
+            if (keyWord.startsWith(lastWord)) {
+                IdeSpecialParser.PossiblePiecePackage piecePackage = new IdeSpecialParser.PossiblePiecePackage(lastWord, keyWord.substring(lastWord.length()), line + keyWord.substring(lastWord.length()));
+                possiblePiecePackages.add(piecePackage);
+            }
+        }
+        return possiblePiecePackages;
     }
 }

@@ -117,7 +117,10 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }
 
         // Linking
-        fontSize.addListener((observableValue, number, t1) -> setStyle("-fx-font-size: " + t1.intValue() + ";"));
+        fontSize.addListener((observableValue, number, t1) -> {
+            setStyle("-fx-font-size: " + t1.intValue() + ";");
+            autoCompletePopup.getTopBox().setStyle("-fx-font-size: " + t1.intValue() + ";");
+        });
         setFontSize(18);
         addEventFilter(ScrollEvent.ANY, e -> {
             if (e.isControlDown()) {
@@ -293,8 +296,8 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
 
                 if (getCaretBounds().isPresent()) {
                     Bounds caretBounds = getCaretBounds().get();
-                    autoCompletePopup.setX(caretBounds.getMinX());
-                    autoCompletePopup.setY(caretBounds.getMinY());
+                    autoCompletePopup.setX(caretBounds.getMinX() - fontSize.get());
+                    autoCompletePopup.setY(caretBounds.getMinY() + fontSize.get());
                 }
             });
 

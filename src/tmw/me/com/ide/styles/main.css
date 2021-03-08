@@ -16,11 +16,6 @@
     -highlight-color: #b94646;
 }
 
-@font-face {
-    font-family: Montserrat;
-    src: url('../codeEditor/Montserrat-Regular.ttf');
-}
-
 .white-text {
     -fx-text-fill: white !important;
 }
@@ -218,17 +213,6 @@
     -fx-text-fill: -highlight-color;
 }
 
-.ac-label {
-    -fx-font-size: 16;
-    -fx-font-family: "JetBrains Mono";
-}
-.ac-filled-in {
-    -fx-text-fill: #ffe6e6;
-}
-.ac-not-filled-in {
-    -fx-text-fill: #dbdbdb;
-}
-
 .simple-button {
     -fx-background-color: transparent !important;
 }
@@ -303,7 +287,6 @@
 
 .button {
     -fx-background-color: -main-background-color;
-    -fx-font-family: "Montserrat";
     -fx-font-size: 14;
     -fx-padding: 2;
     -fx-background-radius: 0;
@@ -411,8 +394,48 @@
 .tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
     -fx-border-color: transparent;
 }
+
+.ac-label {
+    -fx-font-family: "JetBrains Mono";
+}
+.ac-filled-in {
+    -fx-text-fill: #ff6f6f;
+}
+.ac-not-filled-in {
+    -fx-text-fill: #dbdbdb;
+}
 .selected-syntax {
-    -fx-background-color: -fx-near-black;
+    -fx-background-color: -lighter-background-color;;
+    -fx-alignment: center-left;
+}
+.selected-syntax .ac-not-filled-in {
+    -fx-text-fill: white;
+}
+.selected-syntax .ac-filled-in {
+    -fx-text-fill: #ff7777;
+}
+.syntax-box {
+    -fx-padding: 0 5 0 5;
+    -fx-border-color: -darkest-background-color;
+    -fx-border-width: 0 0 0.15em 0
+}
+.auto-complete-parent {
+    -fx-background-color: -main-background-color !important;
+    -fx-background-radius: 0.3em;
+}
+.ac-scroller, .ac-items-box {
+    -fx-background-color: -main-background-color !important;
+}
+.ac-bottom {
+    -fx-background-color: -darkest-background-color;
+    -fx-font-family: "Montserrat";
+    -fx-padding: 0.2em;
+}
+.ac-results {
+    -fx-text-fill: #f6f6f6;
+}
+.ac-out-of {
+    -fx-text-fill: #e2e2e2;
 }
 .circle-highlight-background:hover {
     -fx-fill: -highlight-color;
@@ -452,7 +475,6 @@
 }
 .tree-cell .text {
     -fx-font-size: 13;
-    -fx-font-family: "Montserrat";
     -fx-fill: -default-text-color;
 }
 .tree-cell:selected {
@@ -463,12 +485,6 @@
 }
 .tree-cell:selected .text {
     -fx-fill: -light-highlight-color;
-}
-
-.auto-complete-parent {
-    -fx-background-color: -darker-background-color !important;
-    -fx-padding: 0 5 0 5;
-    -fx-background-radius: 10;
 }
 
 .popup-title {
