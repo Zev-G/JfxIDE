@@ -118,11 +118,6 @@
     -fx-accent: -selected-line;
 }
 
-.root {
-    -fx-font-family: Montserrat;
-    -fx-font-weight: 600;
-}
-
 .ide {
     -fx-background-color: -darker-background-color;
 }

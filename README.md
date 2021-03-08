@@ -1,9 +1,5 @@
-# SimpleCodingLanguage
+#Simple Coding Language
 
-This project can be broken up into two parts:
- * The scripting language, which resembles Skript.
- * The IDE
- 
-## Scripting Language
- 
- ## The IDE
+This project is far from complete, currently, I'm working on creating an IDE via javafx + richtextfx.
+
+

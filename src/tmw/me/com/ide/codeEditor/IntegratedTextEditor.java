@@ -104,7 +104,6 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     private final VirtualizedScrollPane<IntegratedTextEditor> virtualizedScrollPane = new VirtualizedScrollPane<>(this);
     private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, findAndReplace, bottomPane);
 
-
     private int selectionIndex = 0;
 
     private final EventHandler<MouseEvent> popupItemEvent = mouseEvent -> {

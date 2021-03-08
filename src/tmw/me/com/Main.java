@@ -2,9 +2,11 @@ package tmw.me.com;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import tmw.me.com.betterfx.CommandConsole;
 import tmw.me.com.ide.Ide;
+import tmw.me.com.ide.codeEditor.fonts.Fonts;
 import tmw.me.com.ide.settings.IdeSettings;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.interpretation.run.CodeChunk;
@@ -25,6 +27,20 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws IOException {
         // Script Lab
         IdeSettings.start();
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-Bold.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-BoldItalic.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-ExtraBold.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-ExtraBoldItalic.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-ExtraLight.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-ExtraLightItalic.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-Italic.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-Light.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-LightItalic.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-Medium.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-MediumItalic.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-Regular.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-Thin.ttf").toExternalForm(), 10);
+        Font.loadFont(Fonts.class.getResource("ttf/JetBrainsMono-ThinItalic.ttf").toExternalForm(), 10);
 
 //        IntegratedTextEditor tempEditor = new IntegratedTextEditor(new MathLanguage());
 //        tempEditor.replaceText("there are 108 chickens on planet 21321, the 3rd in the 4th galaxy");
