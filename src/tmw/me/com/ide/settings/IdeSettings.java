@@ -1,5 +1,7 @@
 package tmw.me.com.ide.settings;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -14,6 +16,7 @@ public final class IdeSettings {
 
     // Properties
     public static final ObservableList<String> ADDON_PATHS = FXCollections.observableArrayList();
+    public static final IntegerProperty TAB_SIZE = new SimpleIntegerProperty(4);
     // ----------
 
     private static final String PROGRAM_NAME = "JfxIDE";
@@ -63,6 +66,10 @@ public final class IdeSettings {
                 }
             }
         });
+    }
+
+    public static String tabSize() {
+        return " ".repeat(TAB_SIZE.get());
     }
 
 }

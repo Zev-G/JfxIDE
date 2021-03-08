@@ -49,6 +49,7 @@ public class StylesListPane extends AnchorPane {
 
         originalCSS = Ide.readFile(addon.getStyleFile());
         cssEditor.replaceText(originalCSS);
+        originalCSS = cssEditor.getTabbedText();
         cssEditor.lockLanguageUI();
         cssEditor.textProperty().addListener((observableValue, s, t1) -> refreshUpdatePane());
 
@@ -118,7 +119,7 @@ public class StylesListPane extends AnchorPane {
             }
             return;
         }
-        if (!cssEditor.getText().equals(originalCSS)) {
+        if (!cssEditor.getTabbedText().equals(originalCSS)) {
             if (!updatePaneIsShowing) {
                 showUpdatePane();
             }
@@ -153,7 +154,7 @@ public class StylesListPane extends AnchorPane {
         }
         addon.getHighlighterJSON().styles = jsonOrder;
         cssEditor.save(addon.getStyleFile());
-        originalCSS = cssEditor.getText();
+        originalCSS = cssEditor.getTabbedText();
         JSONHelper.toFile(addon.getHighlighterFile(), addon.getHighlighterJSON());
         addonEditor.updated();
     }

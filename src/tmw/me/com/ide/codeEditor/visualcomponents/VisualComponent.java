@@ -1,16 +1,15 @@
 package tmw.me.com.ide.codeEditor.visualcomponents;
 
-import javafx.scene.Node;
 import javafx.scene.input.KeyEvent;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 
-public interface VisualComponent<T extends Node> {
+public interface VisualComponent<T> {
 
     default T get() {
         return (T) this;
     }
 
     void addToITE(IntegratedTextEditor ite);
-    void receiveKeyEvent(KeyEvent event);
+    void receiveKeyEvent(KeyEvent event, IntegratedTextEditor textEditor);
 
 }

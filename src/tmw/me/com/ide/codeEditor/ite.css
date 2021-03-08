@@ -1,9 +1,9 @@
 * {
-    -default-text-color: #808da7;
+    -default-text-color: #909ebc;
     -editor-background-color: #273245;
-    -selected-line: #222d3b;
+    -selected-line: #2e394c;
     -fx-background: #273245;
-    -editor-selection: rgba(117, 183, 255, 0.13);
+    -editor-selection: rgb(65, 78, 100);
 }
 
 
@@ -15,6 +15,7 @@
     -fx-font-weight: normal;
     -fx-padding: 0 0 0 8;
     /*-fx-font-weight: bold;*/
+    -fx-tab-size: 10px !important;
 }
 
 .minimap-text {
@@ -48,6 +49,7 @@
 
 .styled-text-area .selection {
     -fx-fill: -editor-selection !important;
+    -fx-border-width: 0;
 }
 .caret {
     -fx-stroke: white;

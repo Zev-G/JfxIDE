@@ -1,9 +1,9 @@
 .string {
-    -fx-fill: #88d258 !important;
+    -fx-fill: #9df166 !important;
 }
 
 .class {
-    -fx-fill: #eea807 !important;
+    -fx-fill: #ecc800 !important;
     -fx-font-style: italic !important;
 }
 
@@ -12,11 +12,11 @@
 }
 
 .comment {
-    -fx-fill: #5f636b !important;
+    -fx-fill: #606060 !important;
 }
 
 .number {
-    -fx-fill: #f3af3a !important;
+    -fx-fill: #f1ab30 !important;
 }
 
 .semicolon {
@@ -24,7 +24,7 @@
 }
 
 .brace {
-    -fx-fill: #30d8e7 !important;
+    -fx-fill: #30b3e7 !important;
 }
 
 .color-code {
@@ -36,7 +36,7 @@
 }
 
 .pseudo-class {
-    -fx-fill: #bb76f1 !important;
+    -fx-fill: #bc78f3 !important;
     -fx-font-style: italic;
 }
 

@@ -217,6 +217,18 @@
 .highlighted-label {
     -fx-text-fill: -highlight-color;
 }
+
+.ac-label {
+    -fx-font-size: 16;
+    -fx-font-family: "JetBrains Mono";
+}
+.ac-filled-in {
+    -fx-text-fill: #ffe6e6;
+}
+.ac-not-filled-in {
+    -fx-text-fill: #dbdbdb;
+}
+
 .simple-button {
     -fx-background-color: transparent !important;
 }

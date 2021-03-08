@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
  */
 public class CssLanguage extends LanguageSupport {
 
-    private static final String[] KEYWORDS = { "italic", "bold" };
+    private static final String[] KEYWORDS = { "italic", "bold", "!important", "bolder", "light", "lighter", "normal", "px", "em" };
 
     private static final String KEYWORDS_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
     private static final String COMMENT_PATTERN = "\\/\\*.*?\\*\\/";

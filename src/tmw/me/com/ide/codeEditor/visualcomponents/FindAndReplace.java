@@ -225,7 +225,7 @@ public class FindAndReplace extends Pane implements VisualComponent<FindAndRepla
     }
 
     @Override
-    public void receiveKeyEvent(KeyEvent event) {
+    public void receiveKeyEvent(KeyEvent event, IntegratedTextEditor editor) {
         KeyCode keyCode = event.getCode();
         if ((keyCode == KeyCode.F || keyCode == KeyCode.R || keyCode == KeyCode.H) && event.isControlDown()) {
             showingFindAndReplace.set(!showingFindAndReplace.get());
