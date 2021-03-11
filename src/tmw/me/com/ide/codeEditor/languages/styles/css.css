@@ -27,8 +27,13 @@
     -fx-fill: #30b3e7 !important;
 }
 
+.value {
+    -fx-fill: #ee9e25 !important;
+}
+
 .color-code {
     -fx-fill: #30d8e7 !important;
+    -fx-font-style: italic;
 }
 
 .paren {
