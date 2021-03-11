@@ -17,13 +17,16 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Window;
 import javafx.util.StringConverter;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.Paragraph;
 import org.fxmisc.richtext.model.PlainTextChange;
 import org.fxmisc.richtext.model.StyleSpans;
+import org.fxmisc.richtext.model.StyledSegment;
 import org.reactfx.collection.LiveList;
 import tmw.me.com.ide.codeEditor.highlighting.Highlighter;
 import tmw.me.com.ide.codeEditor.highlighting.LanguageSupportStyleSpansFactory;
@@ -32,8 +35,9 @@ import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupplier;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.codeEditor.languages.PlainTextLanguage;
-import tmw.me.com.ide.codeEditor.languages.components.Behavior;
+import tmw.me.com.ide.codeEditor.languages.Behavior;
 import tmw.me.com.ide.codeEditor.visualcomponents.AutocompletePopup;
+import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 import tmw.me.com.ide.codeEditor.visualcomponents.FindAndReplace;
 import tmw.me.com.ide.settings.IdeSettings;
 import tmw.me.com.ide.tools.concurrent.schedulers.ConsumerEventScheduler;
@@ -85,10 +89,9 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     private final ArrayList<IntegratedTextEditor> linkedTextEditors = new ArrayList<>();
 
     private final AutocompletePopup autoCompletePopup = new AutocompletePopup(this);
-
     private final MiniMap miniMap = USING_MINIMAP ? new MiniMap() : null;
-
     private final FindAndReplace findAndReplace = new FindAndReplace(this);
+    private final EditorTooltip tooltip = new EditorTooltip(this);
 
     private final ChoiceBox<LanguageSupplier<? extends LanguageSupport>> currentLanguage = new ChoiceBox<>();
     private final HBox bottomPane = new HBox(currentLanguage);
@@ -118,8 +121,10 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
 
         // Linking
         fontSize.addListener((observableValue, number, t1) -> {
-            setStyle("-fx-font-size: " + t1.intValue() + ";");
-            autoCompletePopup.getTopBox().setStyle("-fx-font-size: " + t1.intValue() + ";");
+            String newStyle = "-fx-font-size: " + t1.intValue() + ";";
+            setStyle(newStyle);
+            autoCompletePopup.getTopBox().setStyle(newStyle);
+            tooltip.getNode().setStyle(newStyle);
         });
         setFontSize(18);
         addEventFilter(ScrollEvent.ANY, e -> {
@@ -363,9 +368,10 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         if (keyCode == KeyCode.ENTER) {
             Pattern whiteSpace = Pattern.compile( "^\\s+" );
             Matcher m = whiteSpace.matcher(line);
-            if (m.find()) {
-                String s = m.group();
-                Platform.runLater( () -> this.insertText(this.getCaretPosition(), s + (line.endsWith(":") ? IdeSettings.TAB_SIZE : "")));
+            boolean found = m.find();
+            if (found || line.endsWith(":")) {
+                String s = found ? m.group() : "";
+                Platform.runLater( () -> this.insertText(this.getCaretPosition(), s + (line.endsWith(":") ? IdeSettings.tabSize() : "")));
             }
         } else if (keyEvent.isShiftDown()) {
             if (keyCode == KeyCode.TAB) {
@@ -432,9 +438,46 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }
     }
 
+    public TextFlow copyLine(int line) {
+        TextFlow textFlow = new TextFlow();
+        Paragraph<Collection<String>, String, Collection<String>> par = getParagraph(line);
+        for (StyledSegment<String, Collection<String>> segment : par.getStyledSegments()) {
+            textFlow.getChildren().add(copySegment(segment));
+        }
+        textFlow.getStylesheets().addAll(STYLE_SHEET, getLanguage().getStyleSheet());
+        return textFlow;
+    }
+
+    public StyledSegment<String, Collection<String>> getSegmentAtPos(int pos) {
+        int loopPos = 0;
+        for (Paragraph<Collection<String>, String, Collection<String>> par : getParagraphs()) {
+            int newPos = loopPos + par.getText().length() + 1;
+            if (newPos >= pos) {
+                for (StyledSegment<String, Collection<String>> segment : par.getStyledSegments()) {
+                    newPos = loopPos + segment.getSegment().length();
+                    if (newPos >= pos) {
+                        return segment;
+                    } else {
+                        loopPos = newPos;
+                    }
+                }
+            } else {
+                loopPos = newPos;
+            }
+        }
+        return null;
+    }
+
+    public TextExt copySegment(StyledSegment<String, Collection<String>> segment) {
+        TextExt text = new TextExt(segment.getSegment());
+        text.getStyleClass().addAll(segment.getStyle());
+        text.getStyleClass().add("apply-font");
+        return text;
+    }
+
     public String getTabbedText() {
         String text = super.getText();
-        text.replaceAll(IdeSettings.tabSize(), "\t");
+        text = text.replaceAll(IdeSettings.tabSize(), "\t");
         return text;
     }
 
@@ -619,6 +662,15 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }
         return lineStart;
     }
+    public int lineFromAbsoluteLocation(int absoluteLocation) {
+        int at = 0;
+        for (int i = 0; i < getParagraphs().size(); i++) {
+            at += getParagraph(i).getText().length() + 1;
+            if (at >= absoluteLocation)
+                return i;
+        }
+        return -1;
+    }
     private int stringOccurrences(String string, char checkFor) {
         int occurrences = 0;
         for (char c : string.toCharArray()) {
@@ -716,6 +768,10 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
 
     public IntegerProperty fontSizeProperty() {
         return fontSize;
+    }
+
+    public void selectLine(int finalI) {
+        selectRange(finalI, 0, finalI, getParagraph(finalI).getText().length());
     }
 
     public static class HighlightingThread extends Thread {

@@ -8,7 +8,7 @@ import java.util.HashMap;
 public final class LanguageLibrary {
 
     public static ObservableList<LanguageSupplier<? extends LanguageSupport>> defaultLanguages = FXCollections.observableArrayList(
-            LanguageSupplier.fromLanguages(new PlainTextLanguage(), new SfsLanguage(), new JavaLanguage(), new CssLanguage(), new MathLanguage(), new CssLanguage())
+            LanguageSupplier.fromLanguages( new PlainTextLanguage(), new SfsLanguage(), new JavaLanguage(), new CssLanguage(), new MathLanguage() )
     );
 
     public static HashMap<String, LanguageSupplier<? extends LanguageSupport>> genLanguagesMap() {

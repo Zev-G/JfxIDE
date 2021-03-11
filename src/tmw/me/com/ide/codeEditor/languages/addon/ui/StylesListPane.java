@@ -14,8 +14,10 @@ import tmw.me.com.ide.codeEditor.languages.CssLanguage;
 import tmw.me.com.ide.codeEditor.languages.addon.JSONHelper;
 import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
 import tmw.me.com.ide.codeEditor.languages.addon.StyleFactoryJSON;
+import tmw.me.com.ide.tools.customtabpane.FinalTabPane;
 import tmw.me.com.ide.tools.NodeUtils;
 import tmw.me.com.ide.tools.SVG;
+import tmw.me.com.ide.tools.customtabpane.Tab;
 import tmw.me.com.ide.tools.control.SVGHoverButton;
 
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ public class StylesListPane extends AnchorPane {
     private final LanguageAddon addon;
     private final AddonEditor addonEditor;
 
-    private final FinalTabPane tabPane = new FinalTabPane(new Tab("Json View", itemsScroller), new Tab("Css View", cssEditor.getMainNode()));
+    private final FinalTabPane tabPane = new FinalTabPane(new Tab("Json View", itemsScroller, true), new Tab("Css View", cssEditor.getMainNode(), true));
 
     public StylesListPane(LanguageAddon addon, AddonEditor editor) {
         this.addon = addon;

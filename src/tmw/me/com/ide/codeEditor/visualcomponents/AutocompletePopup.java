@@ -26,6 +26,8 @@ import java.util.ArrayList;
 
 public class AutocompletePopup extends Popup implements VisualComponent<AutocompletePopup> {
 
+    public static final Color SHADOW_COLOR = Color.web("#121324");
+
     private final VBox itemsBox = new VBox();
     private final ScrollPane itemsScroller = new ScrollPane(itemsBox) { @Override public void requestFocus() { } };
     private final Label resultsCount = new Label("Results: 0");
@@ -69,7 +71,7 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
         setAutoHide(true);
         itemsScroller.setFitToWidth(true);
         itemsBox.setFillWidth(true);
-        topBox.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.web("#121324"), 20, 0.3, 0, 2));
+        topBox.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, SHADOW_COLOR, 20, 0.3, 0, 2));
 
         bottomPane.setLeft(resultsCount);
         bottomPane.setRight(selectedLabel);

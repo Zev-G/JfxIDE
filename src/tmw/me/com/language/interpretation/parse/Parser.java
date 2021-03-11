@@ -304,8 +304,7 @@ public final class Parser {
         code = code.trim();
         if (code.startsWith("if")) {
             Expression<?> expression = parseExpression(code.replaceFirst("if ", "").replaceAll(":", ""), file, lineNum);
-            assert expression != null;
-            if (expression.getGenericClass() == Boolean.class) {
+            if (expression != null && expression.getGenericClass() == Boolean.class) {
                 return new IfStatement((Expression<Boolean>) expression);
             }
         } else if (code.startsWith("else")) {
@@ -333,9 +332,11 @@ public final class Parser {
             for (String param : params.split(",( *)")) {
                 if (param.split(" ").length > 1) {
                     Class<?> type = syntaxManager.SUPPORTED_TYPES.get(param.split(" ")[0].toLowerCase());
-                    System.out.println("Param: " + param + "(" + type.toGenericString() + ")");
-                    String name = param.split(" ")[1];
-                    functionArguments.add(new Function.FunctionArgument(type, name));
+                    if (type != null) {
+                        System.out.println("Param: " + param + "(" + type.toGenericString() + ")");
+                        String name = param.split(" ")[1];
+                        functionArguments.add(new Function.FunctionArgument(type, name));
+                    }
                 }
             }
             Function<?> function = new Function<>(functionName);

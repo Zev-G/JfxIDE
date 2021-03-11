@@ -26,6 +26,13 @@
     -fx-effect: dropshadow(gaussian, -darkest-background-color, 10, 0.0, 7, 7);
 }
 
+.lighter-background {
+    -fx-background-color: -lighter-background-color;
+}
+.underline-hover-label:hover {
+    -fx-underline: true;
+}
+
 .selector-title {
     -fx-text-fill: -default-text-color;
     -fx-font-weight: bold;
@@ -412,7 +419,7 @@
     -fx-text-fill: white;
 }
 .selected-syntax .ac-filled-in {
-    -fx-text-fill: #ff7777;
+    -fx-text-fill: #fd5353;
 }
 .syntax-box {
     -fx-padding: 0 5 0 5;
@@ -436,6 +443,20 @@
 }
 .ac-out-of {
     -fx-text-fill: #e2e2e2;
+}
+
+.tooltip-top {
+    -fx-background-color: -main-background-color !important;
+    -fx-background-radius: 0.3em;
+    -fx-padding: 0.35em;
+}
+.tooltip-divider {
+    -fx-border-width: 1;
+    -fx-border-color: -darker-background-color;
+}
+.line-num-holder {
+    -fx-border-width: 0 1.5 0 0;
+    -fx-border-color: rgb(65, 78, 100);
 }
 .circle-highlight-background:hover {
     -fx-fill: -highlight-color;

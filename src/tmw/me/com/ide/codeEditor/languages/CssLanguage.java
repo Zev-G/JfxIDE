@@ -2,7 +2,6 @@ package tmw.me.com.ide.codeEditor.languages;
 
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
-import tmw.me.com.ide.codeEditor.languages.components.Behavior;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -76,7 +75,9 @@ public class CssLanguage extends LanguageSupport {
         String lastWord = words[words.length - 1];
         for (String keyWord : KEYWORDS) {
             if (keyWord.startsWith(lastWord)) {
-                IdeSpecialParser.PossiblePiecePackage piecePackage = new IdeSpecialParser.PossiblePiecePackage(lastWord, keyWord.substring(lastWord.length()), line + keyWord.substring(lastWord.length()));
+                String notFilledIn = keyWord.substring(lastWord.length());
+                String putIn = line.trim() + notFilledIn;
+                IdeSpecialParser.PossiblePiecePackage piecePackage = new IdeSpecialParser.PossiblePiecePackage(lastWord, notFilledIn, putIn);
                 possiblePiecePackages.add(piecePackage);
             }
         }

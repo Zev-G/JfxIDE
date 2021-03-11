@@ -21,7 +21,7 @@ public abstract class EventSchedulerBase<T> {
     protected int timesActivated = 0;
     protected T getsRan;
     protected boolean runOnFx = true;
-    private TimerTask lastTimerTask;
+    protected TimerTask lastTimerTask;
 
     protected final Timer timer = new Timer(true);
 

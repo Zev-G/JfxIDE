@@ -1,4 +1,4 @@
-package tmw.me.com.ide.codeEditor.languages.components;
+package tmw.me.com.ide.codeEditor.languages;
 
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 

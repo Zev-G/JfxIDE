@@ -1,15 +1,28 @@
 package tmw.me.com.ide.codeEditor.languages;
 
 import javafx.application.Platform;
+import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.control.IndexRange;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+import org.fxmisc.richtext.TextExt;
+import org.fxmisc.richtext.model.Paragraph;
+import org.fxmisc.richtext.model.StyledSegment;
+import org.reactfx.collection.LiveList;
 import tmw.me.com.betterfx.TextModifier;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.highlighting.SimpleRangeStyleSpansFactory;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
-import tmw.me.com.ide.codeEditor.languages.components.Behavior;
+import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.interpretation.parse.Parser;
@@ -25,6 +38,8 @@ import java.util.regex.Pattern;
  * This file contains the main language support for the IDE, {@link LanguageSupport} contains lots of information on the methods used whereas the docs here refer more to the specific elements of this class.
  */
 public class SfsLanguage extends LanguageSupport {
+
+    private static final boolean ERROR_HIGHLIGHTING = false;
 
     private static final String[] KEYWORDS = { "function", "if", "else" };
     private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
@@ -88,18 +103,9 @@ public class SfsLanguage extends LanguageSupport {
      * @param integratedTextEditor A reference to the {@link IntegratedTextEditor} which all functionality should be added onto.
      */
     public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
-        caretListener = new ChangeListenerScheduler<>(200, (observableValue, integer, t1) -> {
-            if (!t1.equals(integer) && integratedTextEditor.getFindAndReplace().getFindSelectedIndex() < 0) {
+        caretListener = new ChangeListenerScheduler<>(150, (observableValue, integer, t1) -> {
+            if ((integratedTextEditor.getSelectedText() == null || integratedTextEditor.getSelectedText().length() <= 1) && !t1.equals(integer) && integratedTextEditor.getFindAndReplace().getFindSelectedIndex() < 0) {
                 String fullText = integratedTextEditor.getText();
-                for (IndexRange indexRange : highlightedVariables) {
-                    if (indexRange.getStart() > 0 && indexRange.getStart() < fullText.length() && indexRange.getEnd() < fullText.length()) {
-                        Collection<String> collection = new ArrayList<>(integratedTextEditor.getStyleAtPosition(indexRange.getStart() + 1));
-                        if (collection.contains("selected-word")) {
-                            collection.remove("selected-word");
-                            integratedTextEditor.setStyle(indexRange.getStart(), indexRange.getEnd(), collection);
-                        }
-                    }
-                }
                 highlightedVariables.clear();
                 int[] range = integratedTextEditor.expandFromPoint(t1, '{', '}', ' ', '%');
                 if (range[0] > 0 && range[1] <= fullText.length()) {
@@ -123,11 +129,13 @@ public class SfsLanguage extends LanguageSupport {
             FXScript.restart(syntaxManager);
             ArrayList<Integer> errors = new ArrayList<>();
             Parser parser = new Parser(syntaxManager, parseError -> errors.add(parseError.getLineNumber()));
-            parser.parseChunk(t1, null);
+            parser.parseChunk(integratedTextEditor.getTabbedText(), null);
             Platform.runLater(() -> integratedTextEditor.getErrorLines().setAll(errors));
         });
+        if (ERROR_HIGHLIGHTING) {
+            integratedTextEditor.textProperty().addListener(textListener);
+        }
         integratedTextEditor.caretPositionProperty().addListener(caretListener);
-        integratedTextEditor.textProperty().addListener(textListener);
         return null;
     }
 
@@ -250,11 +258,97 @@ public class SfsLanguage extends LanguageSupport {
                     }
                 }
             });
-            CodeChunk chunk = parser.parseChunk(textEditor.getText(), null);
+            System.out.println(textEditor.getTabbedText() + "\t");
+            CodeChunk chunk = parser.parseChunk(textEditor.getTabbedText().replaceAll("\t", "  "), null);
             System.out.println("Finished Parsing. Running");
             chunk.run();
         }
 //        Parser parser = new Parser(SyntaxManager.SYNTAX_MANAGER, parseError -> {});
 
+    }
+
+    @Override
+    public boolean showingTooltip(EditorTooltip tooltip, int pos) {
+        IntegratedTextEditor editor = tooltip.getEditor(); // Utility variable to store the editor which the tooltip is attached to.
+        StyledSegment<String, Collection<String>> segmentAtPos = editor.getSegmentAtPos(pos); // Gets and stores the segment which the user hovered over.
+        int line = editor.lineFromAbsoluteLocation(pos); // Stores the line which the user hovered over.
+        // Insures that the segment isn't null and that the segment contains the "variable" style since we only want to show lines for variables.
+        if (segmentAtPos != null && segmentAtPos.getStyle().contains("variable")) {
+            VBox variableReferences = new VBox(); // This VBox is used to layout the entire style, it is used as the content for the tooltip.
+            variableReferences.setSpacing(4); // Add some spacing between the lines.
+            ArrayList<Node> newChildren = new ArrayList<>();
+            int pars = editor.getParagraphs().size(); // Store the number of lines.
+            int found = 0; // Store the number of lines containing the variable we've found. This is later used to insure that we don't show more than our max number of lines.
+            int lastIndex = -1; // Store the last location we found a line containing the variable at.
+            LiveList<Paragraph<Collection<String>, String, Collection<String>>> paragraphs = editor.getParagraphs(); // Store the list of paragraphs.
+            int totalDigits = (int) (Math.log(paragraphs.size() - 1));
+            System.out.println("total digits: " + totalDigits);
+            // Loop through the paragraphs.
+            for (int i = 0; i < pars; i++) {
+                Paragraph<Collection<String>, String, Collection<String>> par = paragraphs.get(i); // The loop-paragraph.
+                if (par.getText().contains(segmentAtPos.getSegment())) {
+                    // Check if we have yet to find 12 lines.
+                    TextFlow flow = new TextFlow(); // The TextFlow which is used to display the code on the line.
+                    // Loop through the segments in the paragraph.
+                    for (StyledSegment<String, Collection<String>> segment : par.getStyledSegments()) {
+                        // Check if the segment is the variable-containing segment, if it is add the "tooltip-highlight" style class to the list of styles.
+                        if (segment.getSegment().equals(segmentAtPos.getSegment())) {
+                            ArrayList<String> styles = new ArrayList<>(segment.getStyle());
+                            styles.add("tooltip-highlight");
+                            segment = new StyledSegment<>(segment.getSegment(), styles);
+                        }
+                        flow.getChildren().add(editor.copySegment(segment)); // Add the segment to the text flow.
+                    }
+                    int digitsInI = (int) (Math.log10(i + 1) + 1);
+                    System.out.println("digits in i: " + digitsInI + " log10: " + Math.log10(i));
+                    TextExt lineNum = new TextExt(" ".repeat(totalDigits - digitsInI) + (i + 1) + ":"); // Creates the TextExt node used to display the line number.
+                    lineNum.getStyleClass().addAll("apply-font", "underline-hover-label");
+                    lineNum.setCursor(Cursor.HAND);
+                    int finalI = i;
+                    lineNum.setOnMousePressed(event -> {
+                        tooltip.hide();
+                        editor.selectLine(finalI);
+                        editor.showParagraphAtTop(finalI);
+                    });
+                    Pane lineNumHolder = new BorderPane(lineNum); // Create a BorderPane to store the line number in.
+                    HBox layoutBox = new HBox(lineNumHolder, flow); // The HBox which stores the line number and the line's code in it.
+                    layoutBox.setSpacing(editor.getFontSize());
+                    layoutBox.getStylesheets().addAll(Ide.STYLE_SHEET, IntegratedTextEditor.STYLE_SHEET, editor.getLanguage().getStyleSheet()); // Add the relevant stylesheets to the layoutBox.
+                    // Highlight the line if it is the line which the tooltip was sourced from.
+                    if (line == i) {
+                        layoutBox.getStyleClass().add("lighter-background");
+                    }
+                    // Add the separator if we've skipped one or more lines between the one we're currently showing and the last one which was added.
+                    if (lastIndex >= 0 && lastIndex + 1 != i) {
+                        BorderPane dividerPane = new BorderPane();
+                        dividerPane.getStyleClass().add("tooltip-divider");
+                        newChildren.add(dividerPane);
+                    }
+                    newChildren.add(layoutBox); // Add the line's code to the VBox.
+                    lastIndex = i; // Update the lastIndex.
+                    found++; // Update the number of lines found.
+                }
+            }
+            // Add the "...and x more" text to the VBox.
+            variableReferences.getChildren().addAll(found > 12 ? newChildren.subList(0, 12) : newChildren);
+            ScrollPane scroller = new ScrollPane(variableReferences);
+            if (found > 12) {
+                Label loadMore = new Label("...and " + (found - 12) + " more");
+                loadMore.setCursor(Cursor.HAND);
+                loadMore.getStyleClass().add("underline-hover-label");
+                variableReferences.getChildren().add(loadMore);
+                loadMore.setOnMouseReleased(event -> {
+                    variableReferences.getChildren().remove(loadMore);
+                    variableReferences.getChildren().addAll(newChildren.subList(12, newChildren.size()));
+                    scroller.setPrefWidth(scroller.getWidth() + editor.getFontSize());
+                });
+            }
+            scroller.getStyleClass().add("ac-scroller");
+            scroller.setFitToWidth(true);
+            variableReferences.getStyleClass().add("ac-items-box");
+            tooltip.setContent(scroller); // Set the content of the tooltip
+            return true;
+        }
+        return false; // Return false if we aren't hovering over a variable.
     }
 }

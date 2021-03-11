@@ -4,7 +4,7 @@ import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
-import tmw.me.com.ide.codeEditor.languages.components.Behavior;
+import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -170,6 +170,10 @@ public abstract class LanguageSupport {
             };
         }
         return thisSupplier;
+    }
+
+    public boolean showingTooltip(EditorTooltip tooltip, int pos) {
+        return false;
     }
 
 }

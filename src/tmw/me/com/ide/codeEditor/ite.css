@@ -4,17 +4,19 @@
     -selected-line: #2e394c;
     -fx-background: #273245;
     -editor-selection: rgb(65, 78, 100);
+    -fx-fill: -default-text-color;
 }
 
-
+.apply-font {
+    -fx-font-family: "JetBrains Mono" !important;
+}
 .code-area {
     -fx-background-color: -editor-background-color;
 }
 .code-area .paragraph-box .paragraph-text,.paragraph-text .text{
     -fx-font-family: "JetBrains Mono" !important;
     -fx-font-weight: normal;
-    -fx-padding: 0 0 0 8;
-    /*-fx-font-weight: bold;*/
+    -fx-padding: 0 0 0 3;
     -fx-tab-size: 10px !important;
 }
 
@@ -38,9 +40,9 @@
 }
 
 .code-area .left-holder {
-    -fx-effect: dropshadow(gaussian, rgb(27, 37, 48), 10, 0, 5, 3);
+    -fx-border-width: 0 1.5 0 0;
+    -fx-border-color: -editor-selection;
     -fx-background-color: rgb(36, 49, 64);
-
 }
 
 .code-area .text {
@@ -71,7 +73,11 @@
 }
 
 .selected-word {
-    -rtfx-background-color: rgba(100, 146, 234, 0.1);
+    -rtfx-background-color: rgba(100, 146, 234, 0.1) !important;
+}
+
+.tooltip-highlight {
+    -fx-underline: true;
 }
 
 .found {

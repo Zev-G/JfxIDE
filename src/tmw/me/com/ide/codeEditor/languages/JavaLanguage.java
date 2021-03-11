@@ -4,7 +4,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
-import tmw.me.com.ide.codeEditor.languages.components.Behavior;
 
 import javax.tools.JavaCompiler;
 import javax.tools.SimpleJavaFileObject;

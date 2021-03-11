@@ -1,9 +1,8 @@
-package tmw.me.com.ide.codeEditor.languages.addon.ui;
+package tmw.me.com.ide.tools.customtabpane;
 
 import javafx.css.PseudoClass;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import tmw.me.com.ide.tools.NodeUtils;
 
 public class FinalTabPane extends AnchorPane {
@@ -21,7 +20,6 @@ public class FinalTabPane extends AnchorPane {
 
         tabsHBox.getChildren().addAll(tabs);
         for (Tab tab : tabs) {
-            HBox.setHgrow(tab, Priority.ALWAYS);
             tab.setMinHeight(MIN_TABS_HEIGHT);
             tab.setTabPane(this);
         }
@@ -42,16 +40,26 @@ public class FinalTabPane extends AnchorPane {
     }
 
     public void select(Tab tab) {
-        if (selectedTab != null) {
-            selectedTab.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), false);
+        if (tab != selectedTab) {
+            if (selectedTab != null) {
+                selectedTab.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), false);
+            }
+            tab.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), true);
         }
         selectedTab = tab;
-        tab.pseudoClassStateChanged(PseudoClass.getPseudoClass("selected"), true);
-        contentPane.getChildren().setAll(tab.getNode());
-        NodeUtils.anchor(tab.getNode());
+        contentPane.getChildren().setAll(tab.getContent());
+        NodeUtils.anchor(tab.getContent());
     }
 
     public Tab[] getTabs() {
         return tabs;
+    }
+
+    public Tab getSelectedTab() {
+        return selectedTab;
+    }
+
+    public void updateContent() {
+        select(getSelectedTab());
     }
 }

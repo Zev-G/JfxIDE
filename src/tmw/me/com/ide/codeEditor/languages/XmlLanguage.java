@@ -1,7 +1,6 @@
 package tmw.me.com.ide.codeEditor.languages;
 
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
-import tmw.me.com.ide.codeEditor.languages.components.Behavior;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
