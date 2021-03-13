@@ -5,6 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 public final class NodeUtils {
@@ -28,6 +29,13 @@ public final class NodeUtils {
         fadeTransition.setToValue(to);
         fadeTransition.setOnFinished(onFinished);
         fadeTransition.play();
+    }
+
+    public static String colorToWeb(Color color) {
+        return String.format( "#%02X%02X%02X",
+                (int)( color.getRed() * 255 ),
+                (int)( color.getGreen() * 255 ),
+                (int)( color.getBlue() * 255 ) );
     }
 
 }

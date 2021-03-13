@@ -169,11 +169,11 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
     public void fillBox(IntegratedTextEditor editor, String line) {
         if (editor.isCurrentlyUsingAutoComplete() &&  (line.trim().length() > 0 && (editor.isFocused() || this.isFocused()))) {
             factoryOrder.clear();
-            ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = editor.getLanguage().getPossiblePieces(line);
+            ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = editor.getLanguage().getPossiblePieces(line, editor);
             if (possiblePiecePackages != null && !possiblePiecePackages.isEmpty()) {
                 ArrayList<Node> newChildren = new ArrayList<>();
                 boolean showOverride = false;
-                for (IdeSpecialParser.PossiblePiecePackage entry : editor.getLanguage().getPossiblePieces(line)) {
+                for (IdeSpecialParser.PossiblePiecePackage entry : editor.getLanguage().getPossiblePieces(line, editor)) {
                     factoryOrder.add(entry);
                     Label filledIn = new Label(entry.getFilledIn());
                     Label notFilledIn = new Label(entry.getNotFilledIn());

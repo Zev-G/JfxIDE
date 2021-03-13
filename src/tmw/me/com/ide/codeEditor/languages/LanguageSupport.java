@@ -34,7 +34,7 @@ public abstract class LanguageSupport {
      */
     protected boolean runnable = false;
     /**
-     * If this is true then the subclass will have it's {@link LanguageSupport#getPossiblePieces(String)} method called, and the result used to populate the popup.
+     * If this is true then the subclass will have it's {@link LanguageSupport#getPossiblePieces(String, IntegratedTextEditor)} method called, and the result used to populate the popup.
      */
     protected boolean usingAutoComplete = false;
     /**
@@ -91,9 +91,10 @@ public abstract class LanguageSupport {
     /**
      *
      * @param line The line which the user is typing on.
+     * @param editor The relevant ITE
      * @return Return a list of {@link tmw.me.com.ide.IdeSpecialParser.PossiblePiecePackage}, these will be put into the autocomplete popup.
      */
-    public ArrayList<IdeSpecialParser.PossiblePiecePackage> getPossiblePieces(String line) {
+    public ArrayList<IdeSpecialParser.PossiblePiecePackage> getPossiblePieces(String line, IntegratedTextEditor editor) {
         return null;
     }
 

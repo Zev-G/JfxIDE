@@ -33,7 +33,7 @@ public class MathLanguage extends LanguageSupport {
     }
 
     @Override
-    public ArrayList<IdeSpecialParser.PossiblePiecePackage> getPossiblePieces(String line) {
+    public ArrayList<IdeSpecialParser.PossiblePiecePackage> getPossiblePieces(String line, IntegratedTextEditor editor) {
         ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = new ArrayList<>();
         if (line.trim().endsWith("=")) {
             String notPutIn = String.valueOf(eval(line.trim().substring(0, line.trim().length() - 1)));

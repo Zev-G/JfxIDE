@@ -200,10 +200,11 @@ public class SfsLanguage extends LanguageSupport {
     /**
      *
      * @param line The line which the user is typing on.
+     * @param editor
      * @return A list of {@link tmw.me.com.ide.IdeSpecialParser.PossiblePiecePackage} which is curated from the possible effect and events grabbed from what the user has punched in and from the valid snippets.
      */
     @Override
-    public ArrayList<IdeSpecialParser.PossiblePiecePackage> getPossiblePieces(String line) {
+    public ArrayList<IdeSpecialParser.PossiblePiecePackage> getPossiblePieces(String line, IntegratedTextEditor editor) {
         line = line.trim();
         ArrayList<SyntaxPieceFactory> allSyntaxPieceFactories = new ArrayList<>();
         allSyntaxPieceFactories.addAll(SyntaxManager.SYNTAX_MANAGER.EFFECT_FACTORIES);

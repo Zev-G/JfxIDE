@@ -1,18 +1,25 @@
 package tmw.me.com.ide.codeEditor.languages;
 
+import com.jfoenix.controls.JFXColorPicker;
 import javafx.geometry.Insets;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import org.fxmisc.richtext.model.Paragraph;
 import org.fxmisc.richtext.model.StyledSegment;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
+import tmw.me.com.ide.tools.NodeUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -81,11 +88,19 @@ public class CssLanguage extends LanguageSupport {
     }
 
     @Override
-    public ArrayList<IdeSpecialParser.PossiblePiecePackage> getPossiblePieces(String line) {
+    public ArrayList<IdeSpecialParser.PossiblePiecePackage> getPossiblePieces(String line, IntegratedTextEditor editor) {
         ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = new ArrayList<>();
         String[] words = line.split(" ");
         String lastWord = words[words.length - 1];
-        for (String keyWord : KEYWORDS) {
+        ArrayList<String> highlightWords = new ArrayList<>(Arrays.asList(KEYWORDS));
+        for (Paragraph<Collection<String>, String, Collection<String>> par : editor.getParagraphs()) {
+            for (StyledSegment<String, Collection<String>> segment : par.getStyledSegments()) {
+                if (segment.getStyle().contains("class") && !highlightWords.contains(segment.getSegment())) {
+                    highlightWords.add(segment.getSegment());
+                }
+            }
+        }
+        for (String keyWord : highlightWords) {
             if (keyWord.startsWith(lastWord)) {
                 String notFilledIn = keyWord.substring(lastWord.length());
                 String putIn = line.trim() + notFilledIn;
@@ -103,9 +118,20 @@ public class CssLanguage extends LanguageSupport {
         if (segmentAtPos.getStyle().contains("class") || segmentAtPos.getStyle().contains("value")) {
             return LanguageUtils.loadSimpleTooltip(tooltip, pos, segment -> segment.getStyle().contains("class") || segment.getStyle().contains("value"));
         } else if (segmentAtPos.getStyle().contains("color-code")) {
-            Pane colorPane = new Pane();
+            ColorPicker colorPicker = new ColorPicker();
+            Pane colorPane = new Pane(colorPicker);
             colorPane.setMinSize(75, 35);
             colorPane.setBackground(new Background(new BackgroundFill(Color.web(segmentAtPos.getSegment()), new CornerRadii(7.5), Insets.EMPTY)));
+            AtomicReference<String> text = new AtomicReference<>(segmentAtPos.getSegment());
+//            colorPicker.valueProperty().addListener((observableValue, color, t1) -> {
+//                colorPane.setBackground(new Background(new BackgroundFill(t1, new CornerRadii(7.5), Insets.EMPTY)));
+//                String oldText = text.get();
+//                text.set(NodeUtils.colorToWeb(t1));
+//                editor.replace(pos, pos + oldText.length(), text.get(), Collections.singleton("color-code"));
+//            });
+            colorPane.setOnMouseClicked(mouseEvent -> {
+//                colorPicker.show();
+            });
             tooltip.setContent(colorPane);
             return true;
         }
