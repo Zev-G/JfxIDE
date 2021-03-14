@@ -20,19 +20,19 @@ public class MyCustomColorPicker extends VBox {
     private final ObjectProperty<Color> currentColorProperty = new SimpleObjectProperty<>(Color.WHITE);
     private final ObjectProperty<Color> customColorProperty = new SimpleObjectProperty<>(Color.TRANSPARENT);
 
-    private Pane colorRect;
+    private final Pane colorRect;
     private final Pane colorBar;
     private final Pane colorRectOverlayOne;
     private final Pane colorRectOverlayTwo;
-    private Region colorRectIndicator;
+    private final Region colorRectIndicator;
     private final Region colorBarIndicator;
-    private Pane newColorRect;
+    private final Pane newColorRect;
 
-    private DoubleProperty hue = new SimpleDoubleProperty(-1);
-    private DoubleProperty sat = new SimpleDoubleProperty(-1);
-    private DoubleProperty bright = new SimpleDoubleProperty(-1);
+    private final DoubleProperty hue = new SimpleDoubleProperty(-1);
+    private final DoubleProperty sat = new SimpleDoubleProperty(-1);
+    private final DoubleProperty bright = new SimpleDoubleProperty(-1);
 
-    private DoubleProperty alpha = new SimpleDoubleProperty(100) {
+    private final DoubleProperty alpha = new SimpleDoubleProperty(100) {
         @Override protected void invalidated() {
             setCustomColor(new Color(getCustomColor().getRed(), getCustomColor().getGreen(),
                     getCustomColor().getBlue(), clamp(alpha.get() / 100)));
@@ -60,13 +60,12 @@ public class MyCustomColorPicker extends VBox {
         colorRect.getStyleClass().addAll("color-rect", "transparent-pattern");
 
         Pane colorRectHue = new Pane();
-        colorRectHue.backgroundProperty().bind(new ObjectBinding<Background>() {
-
+        colorRectHue.backgroundProperty().bind(new ObjectBinding<>() {
             {
                 bind(hue);
             }
-
-            @Override protected Background computeValue() {
+            @Override
+            protected Background computeValue() {
                 return new Background(new BackgroundFill(
                         Color.hsb(hue.getValue(), 1.0, 1.0),
                         CornerRadii.EMPTY, Insets.EMPTY));
@@ -133,11 +132,13 @@ public class MyCustomColorPicker extends VBox {
         newColorRect = new Pane();
         newColorRect.getStyleClass().add("color-new-rect");
         newColorRect.setId("new-color");
-        newColorRect.backgroundProperty().bind(new ObjectBinding<Background>() {
+        newColorRect.backgroundProperty().bind(new ObjectBinding<>() {
             {
                 bind(customColorProperty);
             }
-            @Override protected Background computeValue() {
+
+            @Override
+            protected Background computeValue() {
                 return new Background(new BackgroundFill(customColorProperty.get(), CornerRadii.EMPTY, Insets.EMPTY));
             }
         });
@@ -154,6 +155,8 @@ public class MyCustomColorPicker extends VBox {
             currentColorProperty.set(Color.TRANSPARENT);
         }
         updateValues();
+
+        getStylesheets().add(MyCustomColorPicker.class.getResource("color.css").toExternalForm());
 
     }
 
@@ -192,7 +195,7 @@ public class MyCustomColorPicker extends VBox {
         double offset;
         Stop[] stops = new Stop[255];
         for (int x = 0; x < 255; x++) {
-            offset = (double)((1.0 / 255) * x);
+            offset = (1.0 / 255) * x;
             int h = (int)((x / 255.0) * 360);
             stops[x] = new Stop(offset, Color.hsb(h, 1.0, 1.0));
         }
@@ -204,19 +207,19 @@ public class MyCustomColorPicker extends VBox {
         updateValues();
     }
 
-    Color getCurrentColor() {
+    public Color getCurrentColor() {
         return currentColorProperty.get();
     }
 
-    final ObjectProperty<Color> customColorProperty() {
+    public final ObjectProperty<Color> customColorProperty() {
         return customColorProperty;
     }
 
-    void setCustomColor(Color color) {
+    public void setCustomColor(Color color) {
         customColorProperty.set(color);
     }
 
-    Color getCustomColor() {
+    public Color getCustomColor() {
         return customColorProperty.get();
     }
 }

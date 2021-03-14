@@ -6,5 +6,6 @@
     <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/codeEditor/languages/styles/java.css" dialect="CLASSIC" />
     <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/styles/light.css" dialect="JavaFX" />
     <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/styles/main.css" dialect="JavaFX" />
+    <file url="file://$PROJECT_DIR$/src/tmw/me/com/ide/tools/colorpicker/color.css" dialect="JavaFX" />
   </component>
 </project>

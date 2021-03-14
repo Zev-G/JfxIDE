@@ -1,25 +1,16 @@
 package tmw.me.com.ide.codeEditor.languages;
 
-import com.jfoenix.controls.JFXColorPicker;
-import javafx.geometry.Insets;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import org.fxmisc.richtext.model.Paragraph;
 import org.fxmisc.richtext.model.StyledSegment;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.highlighting.SortableStyleSpan;
+import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.ide.tools.colorpicker.ColorMapper;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +30,10 @@ public class CssLanguage extends LanguageSupport {
     private static final String VALUE_PATTERN = "([A-z]|-)+?: ";
     private static final String COLOR_CODE_PATTERN = "#([A-z]|[0-9])+";
     private static final String PSEUDO_CLASS_PATTERN = ":([A-z]|-)+";
+
+    private static final ArrayList<Character> ALLOWED_CHARS = new ArrayList<>(Arrays.asList(
+            ' ', ':', ';', '\n'
+    ));
 
     private static final Pattern PATTERN = Pattern.compile("" +
             "(?<COMMENT>" + COMMENT_PATTERN + ")" +
@@ -84,6 +79,27 @@ public class CssLanguage extends LanguageSupport {
 
     @Override
     public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
+        customStyleSpansFactory = new StyleSpansFactory<>(integratedTextEditor) {
+            @Override
+            public Collection<SortableStyleSpan<Collection<String>>> genSpans(String text) {
+                ArrayList<SortableStyleSpan<Collection<String>>> textColors = new ArrayList<>();
+                HashMap<String, Color> colorMap = ColorMapper.getColorMap();
+                text = text.toLowerCase();
+                int textEnd = text.length();
+                char[] textArray = text.toCharArray();
+                for (String s : colorMap.keySet()) {
+                    Matcher matcher = Pattern.compile(s.toLowerCase()).matcher(text);
+                    while (matcher.find()) {
+                        int start = matcher.start();
+                        int end = matcher.end();
+                        if ((start == 0 || end == textEnd - 1) || (ALLOWED_CHARS.contains(textArray[start - 1]) && ALLOWED_CHARS.contains(textArray[end]))) {
+                            textColors.add(new SortableStyleSpan<>(Collections.singleton("color-code"), matcher.start(), matcher.end()));
+                        }
+                    }
+                }
+                return textColors;
+            }
+        };
         return null;
     }
 
@@ -93,10 +109,19 @@ public class CssLanguage extends LanguageSupport {
         String[] words = line.split(" ");
         String lastWord = words[words.length - 1];
         ArrayList<String> highlightWords = new ArrayList<>(Arrays.asList(KEYWORDS));
-        for (Paragraph<Collection<String>, String, Collection<String>> par : editor.getParagraphs()) {
-            for (StyledSegment<String, Collection<String>> segment : par.getStyledSegments()) {
-                if (segment.getStyle().contains("class") && !highlightWords.contains(segment.getSegment())) {
-                    highlightWords.add(segment.getSegment());
+        if (lastWord.length() >= 2) {
+            for (Paragraph<Collection<String>, String, Collection<String>> par : editor.getParagraphs()) {
+                for (StyledSegment<String, Collection<String>> segment : par.getStyledSegments()) {
+                    if ((segment.getStyle().contains("class") || segment.getStyle().contains("value")) && !highlightWords.contains(segment.getSegment().trim())) {
+                        highlightWords.add(segment.getSegment().trim());
+                    }
+                }
+            }
+            HashMap<String, Color> colorMap = ColorMapper.getColorMap();
+            for (String key : colorMap.keySet()) {
+                key = key.toLowerCase();
+                if (key.startsWith(lastWord)) {
+                    highlightWords.add(key);
                 }
             }
         }
@@ -116,24 +141,9 @@ public class CssLanguage extends LanguageSupport {
         IntegratedTextEditor editor = tooltip.getEditor();
         StyledSegment<String, Collection<String>> segmentAtPos = editor.getSegmentAtPos(pos + 1);
         if (segmentAtPos.getStyle().contains("class") || segmentAtPos.getStyle().contains("value")) {
-            return LanguageUtils.loadSimpleTooltip(tooltip, pos, segment -> segment.getStyle().contains("class") || segment.getStyle().contains("value"));
-        } else if (segmentAtPos.getStyle().contains("color-code")) {
-            ColorPicker colorPicker = new ColorPicker();
-            Pane colorPane = new Pane(colorPicker);
-            colorPane.setMinSize(75, 35);
-            colorPane.setBackground(new Background(new BackgroundFill(Color.web(segmentAtPos.getSegment()), new CornerRadii(7.5), Insets.EMPTY)));
-            AtomicReference<String> text = new AtomicReference<>(segmentAtPos.getSegment());
-//            colorPicker.valueProperty().addListener((observableValue, color, t1) -> {
-//                colorPane.setBackground(new Background(new BackgroundFill(t1, new CornerRadii(7.5), Insets.EMPTY)));
-//                String oldText = text.get();
-//                text.set(NodeUtils.colorToWeb(t1));
-//                editor.replace(pos, pos + oldText.length(), text.get(), Collections.singleton("color-code"));
-//            });
-            colorPane.setOnMouseClicked(mouseEvent -> {
-//                colorPicker.show();
-            });
-            tooltip.setContent(colorPane);
-            return true;
+            return LanguageUtils.loadSameTextViewTooltip(tooltip, pos, segment -> segment.getStyle().contains("class") || segment.getStyle().contains("value"));
+        } else if (segmentAtPos.getStyle().contains("color-code") && segmentAtPos.getStyle().size() == 1) {
+            return LanguageUtils.loadColorChangerTooltip(tooltip, pos);
         }
         return false;
     }

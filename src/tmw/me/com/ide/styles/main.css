@@ -360,6 +360,10 @@
     -fx-border-color: -fx-near-black;
     -fx-border-width: 3.5;
 }
+.small-black-border {
+    -fx-border-color: -fx-near-black;
+    -fx-border-width: 1.5;
+}
 
 .large-dividers > .split-pane-divider {
     -fx-padding: 0 2em 0 2em;

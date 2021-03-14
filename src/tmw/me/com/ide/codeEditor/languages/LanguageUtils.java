@@ -1,14 +1,16 @@
 package tmw.me.com.ide.codeEditor.languages;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.TextFlow;
+import javafx.stage.Popup;
 import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.Paragraph;
 import org.fxmisc.richtext.model.StyledSegment;
@@ -16,14 +18,20 @@ import org.reactfx.collection.LiveList;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
+import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.ide.tools.colorpicker.ColorMapper;
+import tmw.me.com.ide.tools.colorpicker.MyCustomColorPicker;
+import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public final class LanguageUtils {
 
-    public static boolean loadSimpleTooltip(EditorTooltip tooltip, int pos, Function<StyledSegment<String, Collection<String>>, Boolean> posIsValidFunction) {
+    public static boolean loadSameTextViewTooltip(EditorTooltip tooltip, int pos, Function<StyledSegment<String, Collection<String>>, Boolean> posIsValidFunction) {
         IntegratedTextEditor editor = tooltip.getEditor(); // Utility variable to store the editor which the tooltip is attached to.
         StyledSegment<String, Collection<String>> segmentAtPos = editor.getSegmentAtPos(pos + 1); // Gets and stores the segment which the user hovered over.
         int line = editor.lineFromAbsoluteLocation(pos); // Stores the line which the user hovered over.
@@ -105,6 +113,46 @@ public final class LanguageUtils {
             return true;
         }
         return false; // Return false if we aren't hovering over a variable.
+    }
+
+    public static boolean loadColorChangerTooltip(EditorTooltip tooltip, int pos) {
+        IntegratedTextEditor editor = tooltip.getEditor();
+        StyledSegment<String, Collection<String>> segmentAtPos = editor.getSegmentAtPos(pos + 1);
+        Color ogColor;
+        try {
+            ogColor = ColorMapper.fromString(segmentAtPos.getSegment());
+        } catch (Exception e) {
+            return false;
+        }
+        ObjectProperty<Color> currentColor = new SimpleObjectProperty<>(ogColor);
+        Pane colorPane = new Pane();
+        colorPane.setMinSize(75, 35);
+        colorPane.setBackground(new Background(new BackgroundFill(currentColor.get(), new CornerRadii(7.5), Insets.EMPTY)));
+        colorPane.getStyleClass().add("small-black-border");
+        AtomicReference<String> text = new AtomicReference<>(segmentAtPos.getSegment());
+        int startOfSegment = editor.absoluteStartOfSegment(segmentAtPos);
+        currentColor.addListener(new ChangeListenerScheduler<>(5, (observableValue, color, t1) -> {
+            colorPane.setBackground(new Background(new BackgroundFill(t1, new CornerRadii(7.5), Insets.EMPTY)));
+            String oldText = text.get();
+            text.set(NodeUtils.colorToWeb(t1));
+            editor.replace(startOfSegment, startOfSegment + oldText.length(), text.get(), Collections.singleton("color-code"));
+        }));
+        colorPane.setOnMouseClicked(mouseEvent -> {
+            MyCustomColorPicker colorPicker = new MyCustomColorPicker();
+            colorPicker.setOpacity(0);
+            colorPicker.setCurrentColor(currentColor.get());
+            colorPicker.customColorProperty().addListener((observableValue, color, t1) -> {
+                currentColor.set(t1);
+            });
+            Popup colorChooser = new Popup();
+            colorChooser.getContent().add(colorPicker);
+            colorChooser.setAutoHide(true);
+            colorChooser.show(colorPane.getScene().getWindow(), mouseEvent.getScreenX() - 10, mouseEvent.getScreenY() - 10);
+            NodeUtils.transOpacity(colorPicker, 1, 150, actionEvent ->
+                    colorPicker.setOnMouseExited(event -> colorChooser.hide()));
+        });
+        tooltip.setContent(colorPane);
+        return true;
     }
 
 }

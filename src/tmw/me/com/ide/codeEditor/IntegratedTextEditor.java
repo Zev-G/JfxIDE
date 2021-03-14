@@ -671,6 +671,25 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }
         return -1;
     }
+    public int absoluteStartOfSegment(StyledSegment<String, Collection<String>> segmentAtPos) {
+        int at = 0;
+        for (int i = 0; i < getParagraphs().size(); i++) {
+            Paragraph<Collection<String>, String, Collection<String>> par = getParagraph(i);
+            if (par.getStyledSegments().contains(segmentAtPos)) {
+                int startAt = at;
+                for (StyledSegment<String, Collection<String>> segment : par.getStyledSegments()) {
+                    if (segment != segmentAtPos) {
+                        at += segment.getSegment().length();
+                    } else {
+                        return at;
+                    }
+                }
+                at = startAt;
+            }
+            at += par.getText().length() + 1;
+        }
+        return -1;
+    }
     private int stringOccurrences(String string, char checkFor) {
         int occurrences = 0;
         for (char c : string.toCharArray()) {

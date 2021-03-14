@@ -257,7 +257,7 @@ public class SfsLanguage extends LanguageSupport {
 
     @Override
     public boolean showingTooltip(EditorTooltip tooltip, int pos) {
-        return LanguageUtils.loadSimpleTooltip(tooltip, pos, segment -> segment.getStyle().contains("variable"));
+        return LanguageUtils.loadSameTextViewTooltip(tooltip, pos, segment -> segment.getStyle().contains("variable"));
     }
 
 }
