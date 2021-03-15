@@ -1,6 +1,7 @@
 package tmw.me.com.ide.tools.colorpicker;
 
 import javafx.scene.paint.Color;
+import tmw.me.com.ide.tools.NodeUtils;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -28,8 +29,43 @@ public final class ColorMapper {
         segment = segment.toLowerCase().trim();
         if (COLOR_MAP.containsKey(segment)) {
             return COLOR_MAP.get(segment);
-        } else {
-            return Color.web(segment);
+        } else if (isValidColorFunction(segment)) {
+            if (segment.startsWith("rgb")) {
+                boolean isRGBA = segment.startsWith("rgba");
+                String postRGB = segment.substring(
+                        isRGBA ? 5 : 4
+                );
+                postRGB = postRGB.substring(0, postRGB.length() - 1).replaceAll("[()]", "");
+                String[] colors = postRGB.split(",\\s+");
+                if (colors.length >= 3) {
+                    int red = Integer.parseInt(colors[0]);
+                    int green = Integer.parseInt(colors[1]);
+                    int blue = Integer.parseInt(colors[2]);
+                    System.out.println("red: " + red + " green: " + green + " blue: " + blue);
+                    if (!isRGBA) {
+                        return Color.rgb(red, green, blue);
+                    } else if (colors.length > 3) {
+                        double opacity = Double.parseDouble(colors[3]);
+                        return Color.rgb(red, green, blue, opacity);
+                    }
+                }
+            }
         }
+        return Color.web(segment);
     }
+
+    public static String colorToString(Color color, String findTypeFrom) {
+        String trimmedType = findTypeFrom.trim();
+        if (trimmedType.startsWith("rgba")) {
+            return "rgba(" + (int) (color.getRed() * 255) + ", " + (int) (color.getGreen() * 255) + ", " + (int) (color.getBlue() * 255) + ", " + (((double) ((int) (color.getOpacity() * 100))) / 100) + ")";
+        } else if (trimmedType.startsWith("rgb")) {
+            return "rgb(" + (int) (color.getRed() * 255) + ", " + (int) (color.getGreen() * 255) + ", " + (int) (color.getBlue() * 255) + ")";
+        }
+        return NodeUtils.colorToWeb(color);
+    }
+
+    public static boolean isValidColorFunction(String segment) {
+        return segment.startsWith("rgb(") || segment.startsWith("rgba(") || segment.startsWith("hsb(") || segment.startsWith("hsba(");
+    }
+
 }

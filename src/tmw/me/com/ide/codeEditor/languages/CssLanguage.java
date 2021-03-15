@@ -22,10 +22,10 @@ public class CssLanguage extends LanguageSupport {
     private static final String[] KEYWORDS = { "italic", "bold", "!important", "bolder", "light", "lighter", "normal", "px", "em" };
 
     private static final String KEYWORDS_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
-    private static final String COMMENT_PATTERN = "\\/\\*.*?\\*\\/";
-    private static final String BRACE_PATTERN = "\\{|\\}";
+    private static final String COMMENT_PATTERN = "/\\*.*?\\*/";
+    private static final String BRACE_PATTERN = "[{}]";
     private static final String SEMICOLON_PATTERN = ";";
-    private static final String PAREN_PATTERN = "((|([A-z]*))\\()|\\)";
+    private static final String PAREN_PATTERN = "[A-z]+?\\(((\\n|.)*?)\\)";
     private static final String CLASS_PATTERN = "\\.([A-z]|-|\\\\|\\|)+";
     private static final String VALUE_PATTERN = "([A-z]|-)+?: ";
     private static final String COLOR_CODE_PATTERN = "#([A-z]|[0-9])+";
@@ -142,7 +142,7 @@ public class CssLanguage extends LanguageSupport {
         StyledSegment<String, Collection<String>> segmentAtPos = editor.getSegmentAtPos(pos + 1);
         if (segmentAtPos.getStyle().contains("class") || segmentAtPos.getStyle().contains("value")) {
             return LanguageUtils.loadSameTextViewTooltip(tooltip, pos, segment -> segment.getStyle().contains("class") || segment.getStyle().contains("value"));
-        } else if (segmentAtPos.getStyle().contains("color-code") && segmentAtPos.getStyle().size() == 1) {
+        } else if ((segmentAtPos.getStyle().contains("color-code") || ColorMapper.isValidColorFunction(segmentAtPos.getSegment())) && segmentAtPos.getStyle().size() == 1) {
             return LanguageUtils.loadColorChangerTooltip(tooltip, pos);
         }
         return false;

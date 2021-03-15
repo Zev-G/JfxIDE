@@ -118,6 +118,7 @@ public final class LanguageUtils {
     public static boolean loadColorChangerTooltip(EditorTooltip tooltip, int pos) {
         IntegratedTextEditor editor = tooltip.getEditor();
         StyledSegment<String, Collection<String>> segmentAtPos = editor.getSegmentAtPos(pos + 1);
+        String style = segmentAtPos.getStyle().size() >= 1 ? new ArrayList<>(segmentAtPos.getStyle()).get(0) : "DONT SET";
         Color ogColor;
         try {
             ogColor = ColorMapper.fromString(segmentAtPos.getSegment());
@@ -134,13 +135,16 @@ public final class LanguageUtils {
         currentColor.addListener(new ChangeListenerScheduler<>(5, (observableValue, color, t1) -> {
             colorPane.setBackground(new Background(new BackgroundFill(t1, new CornerRadii(7.5), Insets.EMPTY)));
             String oldText = text.get();
-            text.set(NodeUtils.colorToWeb(t1));
-            editor.replace(startOfSegment, startOfSegment + oldText.length(), text.get(), Collections.singleton("color-code"));
+            text.set(ColorMapper.colorToString(t1, oldText));
+            editor.replace(startOfSegment, startOfSegment + oldText.length(), text.get(),
+                    style.equals("DONT SET") ? Collections.emptyList() : Collections.singleton(style));
         }));
         colorPane.setOnMouseClicked(mouseEvent -> {
-            MyCustomColorPicker colorPicker = new MyCustomColorPicker();
+            String trimmedSegment = segmentAtPos.getSegment().trim();
+            MyCustomColorPicker colorPicker = new MyCustomColorPicker(trimmedSegment.startsWith("rgba") || trimmedSegment.startsWith("hsba"));
             colorPicker.setOpacity(0);
-            colorPicker.setCurrentColor(currentColor.get());
+            colorPicker.setCurrentColor(NodeUtils.copyWithoutOpacity(currentColor.get()));
+            colorPicker.setAlpha((int) (currentColor.get().getOpacity() * 100));
             colorPicker.customColorProperty().addListener((observableValue, color, t1) -> {
                 currentColor.set(t1);
             });

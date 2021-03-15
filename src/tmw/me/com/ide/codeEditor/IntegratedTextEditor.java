@@ -51,21 +51,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * <p>This {@link CodeArea} adds lots of extra functionality, much of which can be customized with custom {@link LanguageSupport}.</p>
+ * <p>This class adds lots of extra functionality over the {@link CodeArea} which it is built upon. Much of that functionality can be customized with custom {@link LanguageSupport}.</p>
  * <br/>
  * <h2>Features</h3>
  * <ul>
- *     <li>Code Formatting</li>
+ *     <li>Code Formatting*</li>
  *     <li>Find and Replace</li>
  *     <li>Code Highlighting*</li>
  *     <li>A powerful highlighting pipeline fueled by the {@link Highlighter} class.</li>
  *     <li>Auto Complete*</li>
  *     <li>Error line number highlighting*</li>
+ *     <li>Tooltips*</li>
  * </ul>
  * <h2>Planned Features</h3>
  * <ul>
  *     <li>A nice context menu</li>
- *     <li>Tooltips</li>
  *     <li>A Minimap (WIP)</li>
  * </ul>
  * <h3>Notes:</h3>

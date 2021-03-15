@@ -8,17 +8,19 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
+import javafx.scene.paint.*;
+import tmw.me.com.ide.images.Images;
 
 public class MyCustomColorPicker extends VBox {
 
     private final ObjectProperty<Color> currentColorProperty = new SimpleObjectProperty<>(Color.WHITE);
     private final ObjectProperty<Color> customColorProperty = new SimpleObjectProperty<>(Color.TRANSPARENT);
+
+    private Pane opacityBar = null;
+    private Region opacityBarIndicator = null;
 
     private final Pane colorRect;
     private final Pane colorBar;
@@ -40,6 +42,11 @@ public class MyCustomColorPicker extends VBox {
     };
 
     public MyCustomColorPicker() {
+        this(true);
+    }
+    public MyCustomColorPicker(boolean includeOpacity) {
+
+        System.out.println(includeOpacity);
 
         getStyleClass().add("my-custom-color");
 
@@ -107,6 +114,47 @@ public class MyCustomColorPicker extends VBox {
         colorBar.setBackground(new Background(new BackgroundFill(createHueGradient(),
                 CornerRadii.EMPTY, Insets.EMPTY)));
 
+        StackPane opacityBarSecondaryBG = null;
+        if (includeOpacity) {
+
+            opacityBar = new Pane();
+
+            opacityBarSecondaryBG = new StackPane(opacityBar);
+            opacityBarSecondaryBG.setBackground(new Background(new BackgroundFill(new ImagePattern(new Image(Images.get("opacity.png")), 0, 0, 10, 10, false), CornerRadii.EMPTY, Insets.EMPTY)));
+            opacityBarSecondaryBG.getStyleClass().add("color-bar");
+
+            opacityBarIndicator = new Region();
+            opacityBarIndicator.setId("opacity-bar-indicator");
+            opacityBarIndicator.setMouseTransparent(true);
+            opacityBarIndicator.setCache(true);
+
+            opacityBarIndicator.layoutXProperty().bind(
+                    alpha.divide(100).multiply(opacityBar.widthProperty()));
+
+
+            StackPane finalOpacityBarSecondaryBG = opacityBarSecondaryBG;
+            EventHandler<MouseEvent> opacityMouseHandler = event -> {
+                final double x = event.getX();
+                alpha.set(clamp(x / finalOpacityBarSecondaryBG.getWidth()) * 100);
+                updateHSBColor();
+            };
+
+            opacityBar.setOnMouseDragged(opacityMouseHandler);
+            opacityBar.setOnMousePressed(opacityMouseHandler);
+
+            opacityBar.backgroundProperty().bind(new ObjectBinding<>() {
+                {
+                    bind(customColorProperty);
+                }
+
+                @Override
+                protected Background computeValue() {
+                    return new Background(new BackgroundFill(createOpacityGradient(customColorProperty.get()), CornerRadii.EMPTY, Insets.EMPTY));
+                }
+            });
+            opacityBar.getChildren().setAll(opacityBarIndicator);
+        }
+
         colorBarIndicator = new Region();
         colorBarIndicator.setId("color-bar-indicator");
         colorBarIndicator.setMouseTransparent(true);
@@ -132,22 +180,15 @@ public class MyCustomColorPicker extends VBox {
         newColorRect = new Pane();
         newColorRect.getStyleClass().add("color-new-rect");
         newColorRect.setId("new-color");
-        newColorRect.backgroundProperty().bind(new ObjectBinding<>() {
-            {
-                bind(customColorProperty);
-            }
-
-            @Override
-            protected Background computeValue() {
-                return new Background(new BackgroundFill(customColorProperty.get(), CornerRadii.EMPTY, Insets.EMPTY));
-            }
-        });
 
         colorBar.getChildren().setAll(colorBarIndicator);
         colorRectOpacityContainer.getChildren().setAll(colorRectHue, colorRectOverlayOne, colorRectOverlayTwo);
         colorRect.getChildren().setAll(colorRectOpacityContainer, colorRectBlackBorder, colorRectIndicator);
         VBox.setVgrow(colorRect, Priority.SOMETIMES);
-        box.getChildren().addAll(colorBar, colorRect, newColorRect);
+        box.getChildren().addAll(colorBar, colorRect);
+        if (includeOpacity) {
+            box.getChildren().add(opacityBarSecondaryBG);
+        }
 
         getChildren().add(box);
 
@@ -202,6 +243,13 @@ public class MyCustomColorPicker extends VBox {
         return new LinearGradient(0f, 0f, 1f, 0f, true, CycleMethod.NO_CYCLE, stops);
     }
 
+    private static LinearGradient createOpacityGradient(Color paint) {
+        Color opacity0 = Color.rgb((int) (paint.getRed() * 255), (int) (paint.getGreen() * 255), (int) (paint.getBlue() * 255), 0);
+        Color opacity1 = Color.rgb((int) (paint.getRed() * 255), (int) (paint.getGreen() * 255), (int) (paint.getBlue() * 255), 1);
+        return new LinearGradient(0, 0, 1, 0, true, CycleMethod.NO_CYCLE,
+                new Stop(0, opacity0), new Stop(1, opacity1));
+    }
+
     public void setCurrentColor(Color currentColor) {
         this.currentColorProperty.set(currentColor);
         updateValues();
@@ -222,4 +270,13 @@ public class MyCustomColorPicker extends VBox {
     public Color getCustomColor() {
         return customColorProperty.get();
     }
+
+    public double getAlpha() {
+        return alpha.get();
+    }
+
+    public void setAlpha(int alpha) {
+        this.alpha.set(alpha);
+    }
+
 }

@@ -46,7 +46,7 @@
 
 .my-custom-color > .color-rect-pane #color-rect-indicator {
     -fx-background-color: null;
-    -fx-border-color: white;
+    -fx-border-color: #ffffff;
     -fx-border-radius: 0.4166667em;
     -fx-translate-x: -0.4166667em;
     -fx-translate-y: -0.4166667em;
@@ -62,10 +62,10 @@
     -fx-border-color: derive(-main-color, -20%);
 }
 
-.my-custom-color > .color-rect-pane > .color-bar > #color-bar-indicator {
+.my-custom-color > .color-rect-pane > .color-bar > #color-bar-indicator, #opacity-bar-indicator {
     -fx-border-radius: 0.333333em;
-    -fx-border-color: white;
-    -fx-effect: dropshadow(three-pass-box, black, 2, 0.0, 0, 1);
+    -fx-border-color: #ffffff;
+    -fx-effect: dropshadow(three-pass-box, #000000, 2, 0.0, 0, 1);
     -fx-pref-height: 2em;
     -fx-pref-width: 0.833333em;
     -fx-translate-y: -0.1666667em;

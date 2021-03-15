@@ -38,4 +38,8 @@ public final class NodeUtils {
                 (int)( color.getBlue() * 255 ) );
     }
 
+    public static Color copyWithoutOpacity(Color color) {
+        return Color.web(colorToWeb(color));
+    }
+
 }
