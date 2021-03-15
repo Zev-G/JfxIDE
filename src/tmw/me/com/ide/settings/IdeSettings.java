@@ -32,8 +32,12 @@ public final class IdeSettings {
 
     public static void start() throws IOException {
         createListeners();
-        if (!PROGRAM_FILE.exists()) { PROGRAM_FILE.mkdir(); }
-        if (!SETTINGS_FOLDER.exists()) { SETTINGS_FOLDER.mkdir(); }
+        if (!PROGRAM_FILE.exists()) {
+            PROGRAM_FILE.mkdir();
+        }
+        if (!SETTINGS_FOLDER.exists()) {
+            SETTINGS_FOLDER.mkdir();
+        }
         if (!ADDONS_FILE.exists()) {
             ADDONS_FILE.createNewFile();
             addonJSON = AddonSettingJSON.makeDefault();

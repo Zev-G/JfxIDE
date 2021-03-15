@@ -36,6 +36,7 @@ public final class Parser {
             System.out.println("Printer from here");
         };
     }
+
     public Parser(SyntaxManager syntaxManager, Consumer<ParseError> errorHandler) {
         this.errorHandler = errorHandler;
         this.syntaxManager = syntaxManager;
@@ -44,6 +45,7 @@ public final class Parser {
     public Consumer<ParseError> getErrorHandler() {
         return errorHandler;
     }
+
     public void setErrorHandler(Consumer<ParseError> errorHandler) {
         System.out.println("So this got called: " + this.errorHandler);
         this.errorHandler = errorHandler;
@@ -53,11 +55,13 @@ public final class Parser {
     public static boolean PRINTING_CHUNK_PARSING_INFO = false;
 
     /**
-     *
      * @param code The code from which the CodeChunk is parsed.
      * @return A parsed CodeChunk that is ready to be ran.
      */
-    public final CodeChunk parseChunk(String code, File file) { return parseChunk(code, null, file, 0); }
+    public final CodeChunk parseChunk(String code, File file) {
+        return parseChunk(code, null, file, 0);
+    }
+
     public final CodeChunk parseChunk(String code, CodeChunk parent, File file, int lineOffset) {
         CodeChunk chunk = new CodeChunk();
         chunk.setCode("Top");
@@ -73,7 +77,8 @@ public final class Parser {
                 line = pieces[i];
                 line = line.replaceFirst(" {2}", "\t");
             }
-            if (PRINTING_CHUNK_PARSING_INFO) System.out.println("On number: " + i + " text: " + line + " offset: " + lineOffset);
+            if (PRINTING_CHUNK_PARSING_INFO)
+                System.out.println("On number: " + i + " text: " + line + " offset: " + lineOffset);
             if (!line.replaceAll("\\s", "").startsWith("#") && !line.replaceAll("\\s", "").equals("")) {
                 CodePiece addPiece = null;
                 if (!line.startsWith("\t") && !line.endsWith(":")) {
@@ -106,7 +111,8 @@ public final class Parser {
                 if (line.endsWith(":") && !line.startsWith("\t")) {
                     lastEvent = parseEvent(line, file, i + 1 + lineOffset);
                     lastEventCode = line;
-                    if (PRINTING_CHUNK_PARSING_INFO) System.out.println("Got event for line: " + line + " (event: " + lastEvent + ")");
+                    if (PRINTING_CHUNK_PARSING_INFO)
+                        System.out.println("Got event for line: " + line + " (event: " + lastEvent + ")");
                     addPiece = new CodePiece(line, i + 1 + lineOffset);
                     assert lastEvent != null;
                     addPiece.setEvent(lastEvent);
@@ -141,27 +147,30 @@ public final class Parser {
     /**
      * <b>How it works:</b>
      * <p>
-     *     This method will loop through every inputted {@link SyntaxPieceFactory} and will then separate the text of said factories regex
-     *     into pieces where each piece is separated by a expression (as in "%anything-here%"). For every piece of text if the piece of
-     *     text is not an expression we will test if the literal regex matches the corresponding code. If it does not we will continue the loop.
-     *     Assuming it does we will then check if the last piece was an expression. If it was we will save the text in between so that it can be
-     *     parsed as an expression later. We continue this process until either the loop continues due to the code not matching what is required
-     *     by the loop SyntaxPieceFactory or we reach the end of the regex. Should the end of the regex be met we then start to attempt to parse
-     *     each separated {@link Expression} if any one of these expressions either doesn't match or isn't of the correct type we continue to the
-     *     next factory. Once we have all the expressions we return the {@link SyntaxPiece} that's gathered from the SyntaxPieceFactory.
-     *     If we continue to the end of the list of factories we return null;
+     * This method will loop through every inputted {@link SyntaxPieceFactory} and will then separate the text of said factories regex
+     * into pieces where each piece is separated by a expression (as in "%anything-here%"). For every piece of text if the piece of
+     * text is not an expression we will test if the literal regex matches the corresponding code. If it does not we will continue the loop.
+     * Assuming it does we will then check if the last piece was an expression. If it was we will save the text in between so that it can be
+     * parsed as an expression later. We continue this process until either the loop continues due to the code not matching what is required
+     * by the loop SyntaxPieceFactory or we reach the end of the regex. Should the end of the regex be met we then start to attempt to parse
+     * each separated {@link Expression} if any one of these expressions either doesn't match or isn't of the correct type we continue to the
+     * next factory. Once we have all the expressions we return the {@link SyntaxPiece} that's gathered from the SyntaxPieceFactory.
+     * If we continue to the end of the list of factories we return null;
      * </p>
      * <p>
-     *     *Any line starting with (if (CodeChunk.printing)) is temporary and should be removed before any official release.
+     * *Any line starting with (if (CodeChunk.printing)) is temporary and should be removed before any official release.
      * </p>
-     * @param code The code from which the code will be extracted from.
+     *
+     * @param code           The code from which the code will be extracted from.
      * @param possiblePieces The SyntaxPieceFactories that will be tested.
      * @return A parsed syntax piece. This could be a Event, Effect or Expression.
      */
     public <T extends SyntaxPieceFactory> T parseSyntaxPiece(String code, ArrayList<T> possiblePieces, File file, int line) {
         code = code.trim();
-        if (CodeChunk.printing) System.out.println("Parsing syntax piece: " + code + " with possible pieces: " + possiblePieces);
-        pieces: for (SyntaxPieceFactory syntaxPieceFactory : possiblePieces) {
+        if (CodeChunk.printing)
+            System.out.println("Parsing syntax piece: " + code + " with possible pieces: " + possiblePieces);
+        pieces:
+        for (SyntaxPieceFactory syntaxPieceFactory : possiblePieces) {
             if (CodeChunk.printing) System.out.println("On factory w/ regex: " + syntaxPieceFactory.getRegex());
             // Important variable creation
             String codeBuffer = code;
@@ -203,7 +212,8 @@ public final class Parser {
                 }
                 // Due to how the code is separated all expression pieces will begin and end with a percentage sign.
                 boolean isAnExpression = piece.startsWith("%");
-                if (CodeChunk.printing) System.out.println("On piece: " + piece + "(" + i + ") which " + (isAnExpression ? "is" : "isn't") + " an expression");
+                if (CodeChunk.printing)
+                    System.out.println("On piece: " + piece + "(" + i + ") which " + (isAnExpression ? "is" : "isn't") + " an expression");
                 // This adds the text for the last expression. We wait until after because the way we figure out when we got to the other side of the expression is by checking for the next piece of text.
                 // This is also why we loop one more time. See above for a bit more info on this.
                 if (lastWasExpression) {
@@ -212,7 +222,8 @@ public final class Parser {
                     Pattern pattern = Pattern.compile(piece);
                     while (!pattern.matcher(codeBuffer).lookingAt()) {
                         if (codeBuffer.equals("")) {
-                            if (CodeChunk.printing) System.out.println("Continuing to next factory due to codeBuffer not being valid");
+                            if (CodeChunk.printing)
+                                System.out.println("Continuing to next factory due to codeBuffer not being valid");
                             continue pieces;
                         }
                         expressionCode.append(codeBuffer.charAt(0));
@@ -224,7 +235,8 @@ public final class Parser {
                 // Refactoring the codeBuffer if the code doesn't match our expression factory's regex.
                 if (!isAnExpression) {
                     if (!Pattern.compile(piece).matcher(codeBuffer).lookingAt()) {
-                        if (CodeChunk.printing) System.out.println("Continuing to the next factory on factory with regex: " + syntaxPieceFactory.getRegex());
+                        if (CodeChunk.printing)
+                            System.out.println("Continuing to the next factory on factory with regex: " + syntaxPieceFactory.getRegex());
                         continue pieces;
                     }
                     codeBuffer = codeBuffer.replaceFirst(piece, "");
@@ -236,14 +248,16 @@ public final class Parser {
             String codeWithoutExpressions = code;
             int i = 0;
             for (String expression : nestedExpressionTexts) {
-                if (CodeChunk.printing) System.out.println("-Getting nested expression for text: (" + expression + ")-");
+                if (CodeChunk.printing)
+                    System.out.println("-Getting nested expression for text: (" + expression + ")-");
                 ExpressionFactory<?> nestedExpressionFactory = parseExpression(expression, file, line);
                 if (nestedExpressionFactory != null) {
                     if (!syntaxManager.SUPPORTED_TYPES.get(argTypes.get(i).replaceAll("%", "")).isAssignableFrom(nestedExpressionFactory.getGenericClass()) && !Variable.class.isAssignableFrom(nestedExpressionFactory.getGenericClass()) && nestedExpressionFactory.getGenericClass() != Object.class) {
                         continue pieces;
                     }
                     nestedExpressionFactory.setCode(expression);
-                    if (CodeChunk.printing) System.out.println("Got nested expression for text: (" + Pattern.quote(expression) + "). Now replacing string in codeWithoutExpressions(" + codeWithoutExpressions + ")");
+                    if (CodeChunk.printing)
+                        System.out.println("Got nested expression for text: (" + Pattern.quote(expression) + "). Now replacing string in codeWithoutExpressions(" + codeWithoutExpressions + ")");
                     codeWithoutExpressions = codeWithoutExpressions.replaceFirst(Pattern.quote(expression), "");
                 } else {
                     if (CodeChunk.printing) System.out.println("Continuing cause bad expression");
@@ -255,7 +269,8 @@ public final class Parser {
             String parsedRegex = syntaxPieceFactory.getRegex().replaceFirst("\\$", "");
             parsedRegex = parsedRegex.replaceAll("%(.*?)%", "");
             if (!codeWithoutExpressions.matches(parsedRegex)) {
-                if (CodeChunk.printing) System.out.println("Continuing due to code not matching. Code w/out Expressions: " + codeWithoutExpressions + " Parsed Regex: " + parsedRegex);
+                if (CodeChunk.printing)
+                    System.out.println("Continuing due to code not matching. Code w/out Expressions: " + codeWithoutExpressions + " Parsed Regex: " + parsedRegex);
                 continue;
             }
             if (CodeChunk.printing) System.out.println("Nested Expression factories: " + nestedExpressionFactories);
@@ -268,12 +283,12 @@ public final class Parser {
         }
         return null;
     }
+
     public <T extends SyntaxPieceFactory> T parseSyntaxPiece(String code, ArrayList<T> possiblePieces) {
         return parseSyntaxPiece(code, possiblePieces, null, 0);
     }
 
     /**
-     *
      * @param code The code which will be parsed and the effect will be extracted from.
      * @return The effect that is parsed from the given code.
      */
@@ -284,12 +299,12 @@ public final class Parser {
         }
         return parsedEffect;
     }
+
     public Effect parseLine(String code) {
         return parseLine(code, null, 0);
     }
 
     /**
-     *
      * @param code The code from which the Event is parsed. Should be only one line. For example: "when {button} is pressed:"
      * @return A parsed event that doesn't contain it's CodeChunk.
      */
@@ -354,25 +369,26 @@ public final class Parser {
             if (code.startsWith("$") || syntaxPiece.getRegex().startsWith("$")) {
                 syntaxPiece.setParent(new CodePiece("", lineNum));
                 syntaxPiece.runWhenArrivedTo();
-                syntaxPiece.setEventProcessedHandler((state, values, event, args) -> { });
+                syntaxPiece.setEventProcessedHandler((state, values, event, args) -> {
+                });
             }
             return syntaxPiece;
         }
         errorHandler.accept(new ParseError(lineNum, code, "Unrecognized Event", file));
         return null;
     }
+
     public Event parseEvent(String code) {
         return parseEvent(code, null, 0);
     }
 
     /**
-     *
      * @param code Inputted code, should already be trimmed and improved.
      * @return The parsed Expression. Will return null if it isn't a valid Expression.
      */
     public ExpressionFactory<?> parseExpression(String code, File file, int lineNum) {
         code = code.trim();
-        if (CodeChunk.printing) System.out.println("--Parsing Expression (code: " + code +")--");
+        if (CodeChunk.printing) System.out.println("--Parsing Expression (code: " + code + ")--");
         HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> fullMap = new HashMap<>();
         addHashMapToHashMap(fullMap, syntaxManager.HIGHEST);
         addHashMapToHashMap(fullMap, syntaxManager.HIGH);
@@ -383,15 +399,15 @@ public final class Parser {
         fullMap.values().forEach(allExpressions::addAll);
         return parseSyntaxPiece(code, allExpressions, file, lineNum);
     }
+
     public ExpressionFactory<?> parseExpression(String code) {
         return parseExpression(code, null, 0);
     }
 
     /**
-     * 
-     * @param addTo The HashMap which addFrom is added to.
+     * @param addTo   The HashMap which addFrom is added to.
      * @param addFrom The HashMap that is added to addTo
-     * @param <T> The type of object stored in the arraylist
+     * @param <T>     The type of object stored in the arraylist
      */
     private <T> void addHashMapToHashMap(HashMap<Class<?>, ArrayList<T>> addTo, HashMap<Class<?>, ArrayList<T>> addFrom) {
         for (Class<?> loopClass : addFrom.keySet()) {
@@ -402,6 +418,7 @@ public final class Parser {
 
     /**
      * This method is used to get a list of strings separated by percentage signs.
+     *
      * @param code The different expressions will be separated from this string
      * @return A {@code ArrayList} of strings where the expressions start and end with a %
      */

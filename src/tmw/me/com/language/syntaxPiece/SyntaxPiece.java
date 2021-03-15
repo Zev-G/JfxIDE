@@ -13,7 +13,10 @@ public abstract class SyntaxPiece<T extends SyntaxPiece<?>> {
     protected String text;
 
     public abstract T duplicate();
-    public ArrayList<ParseError> parsed(Parser parser) { return null; }
+
+    public ArrayList<ParseError> parsed(Parser parser) {
+        return null;
+    }
 
     public String getCode() {
         return code;

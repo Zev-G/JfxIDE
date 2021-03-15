@@ -5,8 +5,8 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.languages.SfsLanguage;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 
@@ -21,7 +21,9 @@ public class QueueableRunnable implements Runnable {
     public QueueableRunnable(Runnable defaultRunnable) {
         futureRunnables.add(defaultRunnable);
     }
-    public QueueableRunnable() {}
+
+    public QueueableRunnable() {
+    }
 
     @Override
     public void run() {

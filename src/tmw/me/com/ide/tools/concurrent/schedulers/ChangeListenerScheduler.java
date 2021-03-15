@@ -6,12 +6,13 @@ import javafx.beans.value.ObservableValue;
 /**
  * This implementation implements {@link ChangeListener} so that it has seamless integration when listening to a property.
  * <p>See {@link EventSchedulerBase} for more info.</p>
- * */
+ */
 public class ChangeListenerScheduler<T> extends EventSchedulerBase<ChangeListener<T>> implements ChangeListener<T> {
 
     public ChangeListenerScheduler(long after, ChangeListener<T> changeListener) {
         this(after, true, changeListener);
     }
+
     public ChangeListenerScheduler(long after, boolean fxThread, ChangeListener<T> changeListener) {
         waitTime = after;
         getsRan = changeListener;

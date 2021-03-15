@@ -9,6 +9,7 @@ public final class JSONHelper {
     public static <T> T fromFile(File file, Class<T> tClass) {
         return fromFile(LanguageAddon.GSON, file, tClass);
     }
+
     public static <T> T fromFile(Gson gson, File file, Class<T> tClass) {
         try {
             return gson.fromJson(new FileReader(file), tClass);
@@ -16,9 +17,11 @@ public final class JSONHelper {
             return null;
         }
     }
+
     public static void toFile(File file, Object toBeWritten) {
         toFile(LanguageAddon.GSON, file, toBeWritten);
     }
+
     public static void toFile(Gson gson, File file, Object toBeWritten) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(file, false))) {
             writer.print(gson.toJson(toBeWritten));

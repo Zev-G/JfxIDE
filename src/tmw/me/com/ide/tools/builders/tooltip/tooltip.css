@@ -2,12 +2,14 @@
 .root {
     -fx-background-color: rgba(10, 10, 40, 0.8);
 }
+
 .header {
     -fx-text-fill: -highlight-color !important;
     -fx-font-weight: bold !important;
     -fx-font-size: 16 !important;
     -fx-font-family: 'Montserrat' !important;
 }
+
 .main-text {
     -fx-text-fill: -default-text-color !important;
     -fx-font-size: 14 !important;

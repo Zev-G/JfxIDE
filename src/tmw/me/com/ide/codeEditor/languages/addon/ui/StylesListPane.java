@@ -9,16 +9,16 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.languages.CssLanguage;
 import tmw.me.com.ide.codeEditor.languages.addon.JSONHelper;
 import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
 import tmw.me.com.ide.codeEditor.languages.addon.StyleFactoryJSON;
-import tmw.me.com.ide.tools.customtabpane.FinalTabPane;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.tools.NodeUtils;
 import tmw.me.com.ide.tools.SVG;
-import tmw.me.com.ide.tools.customtabpane.Tab;
 import tmw.me.com.ide.tools.control.SVGHoverButton;
+import tmw.me.com.ide.tools.customtabpane.FinalTabPane;
+import tmw.me.com.ide.tools.customtabpane.Tab;
 
 import java.util.ArrayList;
 
@@ -106,6 +106,7 @@ public class StylesListPane extends AnchorPane {
         updatePane.setVisible(true);
         NodeUtils.transOpacity(updatePane, BUTTON_OPACITY, 300, null);
     }
+
     public void hideUpdatePane() {
         NodeUtils.transOpacity(updatePane, 0, 150, actionEvent -> {
             updatePane.setMouseTransparent(true);

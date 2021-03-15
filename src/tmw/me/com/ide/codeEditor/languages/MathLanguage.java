@@ -1,7 +1,7 @@
 package tmw.me.com.ide.codeEditor.languages;
 
 import tmw.me.com.ide.IdeSpecialParser;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -39,13 +39,12 @@ public class MathLanguage extends LanguageSupport {
             String notPutIn = String.valueOf(eval(line.trim().substring(0, line.trim().length() - 1)));
             possiblePiecePackages.add(new IdeSpecialParser.PossiblePiecePackage(
                     "", notPutIn
-            , notPutIn, true ).setReplaceLine(false));
+                    , notPutIn, true).setReplaceLine(false));
         }
         return possiblePiecePackages;
     }
 
     /**
-     *
      * @param str The math equation which will be evaluated.
      * @return The answer to the equation.
      * @author Boann from StackOverFlow. Question #3422673
@@ -70,7 +69,7 @@ public class MathLanguage extends LanguageSupport {
             double parse() {
                 nextChar();
                 double x = parseExpression();
-                if (pos < str.length()) throw new RuntimeException("Unexpected: " + (char)ch);
+                if (pos < str.length()) throw new RuntimeException("Unexpected: " + (char) ch);
                 return x;
             }
 
@@ -82,8 +81,8 @@ public class MathLanguage extends LanguageSupport {
 
             double parseExpression() {
                 double x = parseTerm();
-                for (;;) {
-                    if      (eat('+')) x += parseTerm(); // addition
+                for (; ; ) {
+                    if (eat('+')) x += parseTerm(); // addition
                     else if (eat('-')) x -= parseTerm(); // subtraction
                     else return x;
                 }
@@ -91,8 +90,8 @@ public class MathLanguage extends LanguageSupport {
 
             double parseTerm() {
                 double x = parseFactor();
-                for (;;) {
-                    if      (eat('*')) x *= parseFactor(); // multiplication
+                for (; ; ) {
+                    if (eat('*')) x *= parseFactor(); // multiplication
                     else if (eat('/')) x /= parseFactor(); // division
                     else return x;
                 }
@@ -122,7 +121,7 @@ public class MathLanguage extends LanguageSupport {
                         default -> throw new RuntimeException("Unknown function: " + func);
                     };
                 } else {
-                    throw new RuntimeException("Unexpected: " + (char)ch);
+                    throw new RuntimeException("Unexpected: " + (char) ch);
                 }
 
                 if (eat('^')) x = Math.pow(x, parseFactor()); // exponentiation

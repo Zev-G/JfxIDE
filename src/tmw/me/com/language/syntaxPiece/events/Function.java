@@ -18,7 +18,8 @@ public class Function<T> extends Event {
 
     public Function(String name) {
         this.name = name;
-        if (ALL_FUNCTIONS.containsKey(name)) System.err.println("Function with name: " + name + " already exists and thus cannot be created.");
+        if (ALL_FUNCTIONS.containsKey(name))
+            System.err.println("Function with name: " + name + " already exists and thus cannot be created.");
         ALL_FUNCTIONS.put(name, this);
     }
 
@@ -62,8 +63,14 @@ public class Function<T> extends Event {
         private Class<?> type;
         private String variableName;
 
-        public FunctionArgument(Class<?> type) { this(type, ""); }
-        public FunctionArgument(String variableName) { this(null, variableName); }
+        public FunctionArgument(Class<?> type) {
+            this(type, "");
+        }
+
+        public FunctionArgument(String variableName) {
+            this(null, variableName);
+        }
+
         public FunctionArgument(Class<?> type, String variableName) {
             this.type = type;
             this.variableName = variableName;

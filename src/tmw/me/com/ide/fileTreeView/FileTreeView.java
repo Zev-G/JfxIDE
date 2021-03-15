@@ -47,6 +47,7 @@ public class FileTreeView extends JFXTreeView<File> {
 
     private static final HashMap<String, Image> IMAGE_CACHE = new HashMap<>();
     private static final ArrayList<File> DELETE_ON_EXIT = new ArrayList<>();
+
     static {
         try {
             IMAGE_CACHE.put("default_file", imageFromSvg(FileTreeView.class.getResourceAsStream("icons/default_file.svg")));
@@ -86,9 +87,8 @@ public class FileTreeView extends JFXTreeView<File> {
     };
 
     /**
-     *
      * @param fileRoot The root file, should be a folder.
-     * @param ide The IDE that owns this File Tree View.
+     * @param ide      The IDE that owns this File Tree View.
      */
     public FileTreeView(File fileRoot, Ide ide) {
         customImages.add(file -> {
@@ -125,12 +125,15 @@ public class FileTreeView extends JFXTreeView<File> {
     public File getFileRoot() {
         return fileRoot;
     }
+
     public Ide getIde() {
         return ide;
     }
+
     public HashMap<File, CustomItem> getFileItemMap() {
         return fileItemMap;
     }
+
     public HashMap<File, CustomCell> getFileCellMap() {
         return fileCellMap;
     }
@@ -138,6 +141,7 @@ public class FileTreeView extends JFXTreeView<File> {
     public ArrayList<Function<File, ImageView>> getCustomImagesList() {
         return customImages;
     }
+
     public ArrayList<Function<File, Consumer<CustomItem>>> getCustomFunctions() {
         return customFunctions;
     }
@@ -398,13 +402,14 @@ public class FileTreeView extends JFXTreeView<File> {
             });
             return contextMenu;
         }
+
         private EventHandler<ContextMenuEvent> defaultContextMenuEvent() {
             return contextMenuEvent -> {
                 if (contextMenuEvent.getSource() instanceof CustomCell) {
                     CustomCell customCell = (CustomCell) contextMenuEvent.getSource();
                     if (customCell.getItem() == null) {
                         contextMenuEvent.consume();
-                    } else  {
+                    } else {
                         requireIsFolder.setDisable(!customCell.getItem().isDirectory());
                     }
                 } else {
@@ -451,6 +456,7 @@ public class FileTreeView extends JFXTreeView<File> {
         public CustomItem() {
             super();
         }
+
         public CustomItem(File file, FileTreeView treeView) {
             super(file);
             File[] listFiles = file.listFiles();
@@ -484,6 +490,7 @@ public class FileTreeView extends JFXTreeView<File> {
         public void setComponentTab(ComponentTab<?> componentTab) {
             this.componentTab = componentTab;
         }
+
         public ComponentTab<?> getComponentTab() {
             return componentTab;
         }
@@ -492,7 +499,6 @@ public class FileTreeView extends JFXTreeView<File> {
 
 
     /**
-     *
      * @param inputStream The SVG's input stream.
      * @return A javafx image from the svg.
      * @throws TranscoderException Throws from {@link BufferedImageTranscoder#transcode(TranscoderInput, TranscoderOutput)}

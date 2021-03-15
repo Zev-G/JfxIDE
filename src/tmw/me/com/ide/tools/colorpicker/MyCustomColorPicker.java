@@ -35,7 +35,8 @@ public class MyCustomColorPicker extends VBox {
     private final DoubleProperty bright = new SimpleDoubleProperty(-1);
 
     private final DoubleProperty alpha = new SimpleDoubleProperty(100) {
-        @Override protected void invalidated() {
+        @Override
+        protected void invalidated() {
             setCustomColor(new Color(getCustomColor().getRed(), getCustomColor().getGreen(),
                     getCustomColor().getBlue(), clamp(alpha.get() / 100)));
         }
@@ -44,6 +45,7 @@ public class MyCustomColorPicker extends VBox {
     public MyCustomColorPicker() {
         this(true);
     }
+
     public MyCustomColorPicker(boolean includeOpacity) {
 
         System.out.println(includeOpacity);
@@ -71,6 +73,7 @@ public class MyCustomColorPicker extends VBox {
             {
                 bind(hue);
             }
+
             @Override
             protected Background computeValue() {
                 return new Background(new BackgroundFill(
@@ -203,11 +206,11 @@ public class MyCustomColorPicker extends VBox {
 
     private void updateValues() {
         hue.set(getCurrentColor().getHue());
-        sat.set(getCurrentColor().getSaturation()*100);
-        bright.set(getCurrentColor().getBrightness()*100);
-        alpha.set(getCurrentColor().getOpacity()*100);
+        sat.set(getCurrentColor().getSaturation() * 100);
+        bright.set(getCurrentColor().getBrightness() * 100);
+        alpha.set(getCurrentColor().getOpacity() * 100);
         setCustomColor(Color.hsb(hue.get(), clamp(sat.get() / 100),
-                clamp(bright.get() / 100), clamp(alpha.get()/100)));
+                clamp(bright.get() / 100), clamp(alpha.get() / 100)));
     }
 
     private void colorChanged() {
@@ -237,7 +240,7 @@ public class MyCustomColorPicker extends VBox {
         Stop[] stops = new Stop[255];
         for (int x = 0; x < 255; x++) {
             offset = (1.0 / 255) * x;
-            int h = (int)((x / 255.0) * 360);
+            int h = (int) ((x / 255.0) * 360);
             stops[x] = new Stop(offset, Color.hsb(h, 1.0, 1.0));
         }
         return new LinearGradient(0f, 0f, 1f, 0f, true, CycleMethod.NO_CYCLE, stops);

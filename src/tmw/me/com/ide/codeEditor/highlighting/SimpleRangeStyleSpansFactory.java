@@ -1,7 +1,7 @@
 package tmw.me.com.ide.codeEditor.highlighting;
 
 import javafx.scene.control.IndexRange;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,7 +11,7 @@ public class SimpleRangeStyleSpansFactory extends StyleSpansFactory<Collection<S
     private final IndexRange[] ranges;
     private final Collection<String> style;
 
-    public SimpleRangeStyleSpansFactory(IntegratedTextEditor editor, Collection<String> style, IndexRange... ranges) {
+    public SimpleRangeStyleSpansFactory(HighlightableTextEditor editor, Collection<String> style, IndexRange... ranges) {
         super(editor);
         this.style = style;
         this.ranges = ranges;

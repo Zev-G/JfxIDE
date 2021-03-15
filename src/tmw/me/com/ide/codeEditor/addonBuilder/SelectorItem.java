@@ -63,7 +63,6 @@ public class SelectorItem<T> extends VBox {
     }
 
 
-
     public T getValue() {
         return value;
     }

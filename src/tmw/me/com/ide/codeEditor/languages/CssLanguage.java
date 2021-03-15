@@ -1,25 +1,27 @@
 package tmw.me.com.ide.codeEditor.languages;
 
 import javafx.scene.paint.Color;
-import org.fxmisc.richtext.model.Paragraph;
 import org.fxmisc.richtext.model.StyledSegment;
 import tmw.me.com.ide.IdeSpecialParser;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.highlighting.FactoriesCombiner;
+import tmw.me.com.ide.codeEditor.highlighting.SameStyleSameTextFactory;
 import tmw.me.com.ide.codeEditor.highlighting.SortableStyleSpan;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 import tmw.me.com.ide.tools.colorpicker.ColorMapper;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
- * The file support for CSS. This file is just highlighting, see {@link LanguageSupport} for information on the methods used.
+ * The file support for CSS. This contains: highlighting, autocomplete, selected-word highlighting, and tooltips. See {@link LanguageSupport} for information on the methods used.
  */
 public class CssLanguage extends LanguageSupport {
 
-    private static final String[] KEYWORDS = { "italic", "bold", "!important", "bolder", "light", "lighter", "normal", "px", "em" };
+    private static final String[] KEYWORDS = {"italic", "bold", "!important", "bolder", "light", "lighter", "normal", "px", "em"};
 
     private static final String KEYWORDS_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
     private static final String COMMENT_PATTERN = "/\\*.*?\\*/";
@@ -63,23 +65,23 @@ public class CssLanguage extends LanguageSupport {
     @Override
     public String styleClass(Matcher matcher) {
         return
-            matcher.group("COMMENT") != null ? "comment" :
-            matcher.group("STRING") != null ? "string" :
-            matcher.group("NUMBER") != null ? "number" :
-            matcher.group("KEYWORD") != null ? "keyword" :
-            matcher.group("CLASS") != null ? "class" :
-            matcher.group("PSEUDOCLASS") != null ? "pseudo-class" :
-            matcher.group("VALUE") != null ? "value" :
-            matcher.group("COLORCODE") != null ? "color-code" :
-            matcher.group("PAREN") != null ? "paren" :
-            matcher.group("SEMICOLON") != null ? "semicolon" :
-            matcher.group("BRACE") != null ? "brace" :
-            null;
+                matcher.group("COMMENT") != null ? "comment" :
+                        matcher.group("STRING") != null ? "string" :
+                                matcher.group("NUMBER") != null ? "number" :
+                                        matcher.group("KEYWORD") != null ? "keyword" :
+                                                matcher.group("CLASS") != null ? "class" :
+                                                        matcher.group("PSEUDOCLASS") != null ? "pseudo-class" :
+                                                                matcher.group("VALUE") != null ? "value" :
+                                                                        matcher.group("COLORCODE") != null ? "color-code" :
+                                                                                matcher.group("PAREN") != null ? "paren" :
+                                                                                        matcher.group("SEMICOLON") != null ? "semicolon" :
+                                                                                                matcher.group("BRACE") != null ? "brace" :
+                                                                                                        null;
     }
 
     @Override
     public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
-        customStyleSpansFactory = new StyleSpansFactory<>(integratedTextEditor) {
+        customStyleSpansFactory = new FactoriesCombiner(integratedTextEditor.getHighlighter(), new StyleSpansFactory<>(integratedTextEditor) {
             @Override
             public Collection<SortableStyleSpan<Collection<String>>> genSpans(String text) {
                 ArrayList<SortableStyleSpan<Collection<String>>> textColors = new ArrayList<>();
@@ -99,7 +101,7 @@ public class CssLanguage extends LanguageSupport {
                 }
                 return textColors;
             }
-        };
+        }, new SameStyleSameTextFactory(integratedTextEditor.getHighlighter(), Arrays.asList("class", "value"), "selected-word"));
         return null;
     }
 
@@ -110,20 +112,13 @@ public class CssLanguage extends LanguageSupport {
         String lastWord = words[words.length - 1];
         ArrayList<String> highlightWords = new ArrayList<>(Arrays.asList(KEYWORDS));
         if (lastWord.length() >= 2) {
-            for (Paragraph<Collection<String>, String, Collection<String>> par : editor.getParagraphs()) {
-                for (StyledSegment<String, Collection<String>> segment : par.getStyledSegments()) {
-                    if ((segment.getStyle().contains("class") || segment.getStyle().contains("value")) && !highlightWords.contains(segment.getSegment().trim())) {
-                        highlightWords.add(segment.getSegment().trim());
-                    }
-                }
-            }
-            HashMap<String, Color> colorMap = ColorMapper.getColorMap();
-            for (String key : colorMap.keySet()) {
-                key = key.toLowerCase();
-                if (key.startsWith(lastWord)) {
-                    highlightWords.add(key);
-                }
-            }
+            editor.getParagraphs().forEach(par -> par.getStyledSegments().stream()
+                    .filter(segment -> (segment.getStyle().contains("class") || segment.getStyle().contains("value")) && !highlightWords.contains(segment.getSegment().trim()))
+                    .forEachOrdered(segment -> highlightWords.add(segment.getSegment().trim())));
+
+            ColorMapper.getColorMap().keySet().stream()
+                    .filter(s -> s.toLowerCase().startsWith(lastWord))
+                    .sequential().collect(Collectors.toCollection(() -> highlightWords));
         }
         for (String keyWord : highlightWords) {
             if (keyWord.startsWith(lastWord)) {

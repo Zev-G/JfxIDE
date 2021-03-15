@@ -1,6 +1,6 @@
 package tmw.me.com.betterfx;
 
-import javafx.animation.*;
+import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
@@ -109,7 +109,11 @@ public class Console extends HBox {
         this.inputBox.setBorder(new Border(new BorderStroke(Color.valueOf("#292929"), BorderStrokeStyle.SOLID, new CornerRadii(0), new BorderWidths(5, 0, 0, 0), new Insets(-3))));
         inputBox.setPadding(new Insets(0, 2, 2, 3));
         consoleInput.setPadding(new Insets(0, 0, 13, 3));
-        inputBox.setBackground(mainBg); consoleTextScrollPane.setBackground(mainBg); consoleText.setBackground(mainBg); consoleInput.setBackground(mainBg); wrapConsoleText.setBackground(mainBg);
+        inputBox.setBackground(mainBg);
+        consoleTextScrollPane.setBackground(mainBg);
+        consoleText.setBackground(mainBg);
+        consoleInput.setBackground(mainBg);
+        wrapConsoleText.setBackground(mainBg);
         consoleInput.setFont(INPUT_FONT);
         consoleInput.setStyle("-fx-text-fill: " + textFill);
 
@@ -163,6 +167,7 @@ public class Console extends HBox {
     public void setArrowColor(Color color) {
         arrow.setFill(color);
     }
+
     public void setArrowEffect(Effect effect) {
         arrow.setEffect(effect);
     }
@@ -170,7 +175,11 @@ public class Console extends HBox {
     public ArrayList<ConsoleEvent> getOnUserInput() {
         return onUserInput;
     }
-    public void setOnUserInput() { onUserInput.clear(); }
+
+    public void setOnUserInput() {
+        onUserInput.clear();
+    }
+
     public void setOnUserInput(ConsoleEvent event) {
         onUserInput.clear();
         onUserInput.add(event);
@@ -179,6 +188,7 @@ public class Console extends HBox {
     public ArrayList<ConsoleEvent> getOnPrint() {
         return onPrint;
     }
+
     public void setOnPrint(ConsoleEvent event) {
         onPrint.clear();
         onPrint.add(event);
@@ -195,22 +205,38 @@ public class Console extends HBox {
             event.onInput(string, this);
         }
     }
+
     public void addText(Text text, boolean newLine) {
         if (newLine && !consoleText.getChildren().isEmpty()) text.setText("\n" + text.getText());
         consoleText.getChildren().add(text);
     }
 
-    public void addLines(Text... texts) { addTexts(true, texts); }
-    public void addTexts(Text... texts) { addTexts(false, texts); }
+    public void addLines(Text... texts) {
+        addTexts(true, texts);
+    }
+
+    public void addTexts(Text... texts) {
+        addTexts(false, texts);
+    }
+
     public void addTexts(boolean newLine, Text... texts) {
         for (Text text : texts) {
             addText(text, newLine);
         }
     }
 
-    public Text getDefaultText() { return getDefaultText("", defaultConsoleColor); }
-    public Text getDefaultText(String s) { return getDefaultText(s, defaultConsoleColor); }
-    public Text getDefaultText(Color color) { return getDefaultText("", color); }
+    public Text getDefaultText() {
+        return getDefaultText("", defaultConsoleColor);
+    }
+
+    public Text getDefaultText(String s) {
+        return getDefaultText(s, defaultConsoleColor);
+    }
+
+    public Text getDefaultText(Color color) {
+        return getDefaultText("", color);
+    }
+
     public Text getDefaultText(String s, Color color) {
         Text text = new Text(s);
         text.setFont(font);
@@ -218,9 +244,18 @@ public class Console extends HBox {
         return text;
     }
 
-    public void sendCurrentText() { sendCurrentText(defaultConsoleColor, true); }
-    public void sendCurrentText(boolean newLine) { sendCurrentText(defaultConsoleColor, newLine); }
-    public void sendCurrentText(Color color) { sendCurrentText(color, true); }
+    public void sendCurrentText() {
+        sendCurrentText(defaultConsoleColor, true);
+    }
+
+    public void sendCurrentText(boolean newLine) {
+        sendCurrentText(defaultConsoleColor, newLine);
+    }
+
+    public void sendCurrentText(Color color) {
+        sendCurrentText(color, true);
+    }
+
     public void sendCurrentText(Color color, boolean newLine) {
         Text text = getDefaultText(consoleInput.getText());
         text.setFill(color);
@@ -237,6 +272,7 @@ public class Console extends HBox {
     public TextField getConsoleInput() {
         return consoleInput;
     }
+
     public TextFlow getConsoleText() {
         return consoleText;
     }
@@ -244,11 +280,13 @@ public class Console extends HBox {
     public void disableInput() {
         this.topBox.getChildren().remove(inputBox);
     }
+
     public void enableInput() {
         if (this.topBox.getChildren().contains(inputBox)) {
             this.topBox.getChildren().add(inputBox);
         }
     }
+
     public void toggleInput(boolean input) {
         if (input) {
             enableInput();
@@ -288,6 +326,7 @@ public class Console extends HBox {
                 + "," + to255Int(c.getBlue())
                 + ")";
     }
+
     private int to255Int(double d) {
         return (int) (d * 255);
     }
@@ -324,6 +363,7 @@ public class Console extends HBox {
         this.printWriters.put(in, event);
         this.protectedOnUserInput.add(event);
     }
+
     public void removePrintWriter(PrintWriter writer) {
         if (printWriters.containsKey(writer)) {
             this.protectedOnUserInput.remove(this.printWriters.get(writer));
@@ -331,9 +371,18 @@ public class Console extends HBox {
         }
     }
 
-    public Text[] genTexts(String... s) { return genTexts(" ", '&', s); }
-    public Text[] genTexts(char split, String... s) { return genTexts(" ", split, s); }
-    public Text[] genTexts(String inBetween, String... s) { return genTexts(inBetween, '&', s); }
+    public Text[] genTexts(String... s) {
+        return genTexts(" ", '&', s);
+    }
+
+    public Text[] genTexts(char split, String... s) {
+        return genTexts(" ", split, s);
+    }
+
+    public Text[] genTexts(String inBetween, String... s) {
+        return genTexts(inBetween, '&', s);
+    }
+
     public Text[] genTexts(String inBetween, char split, String... s) {
         ArrayList<Text> texts = new ArrayList<>();
         for (String string : s) {
@@ -341,7 +390,11 @@ public class Console extends HBox {
         }
         return texts.toArray(new Text[0]);
     }
-    public Text[] genText(String s) { return genText(s, '&'); }
+
+    public Text[] genText(String s) {
+        return genText(s, '&');
+    }
+
     public Text[] genText(String s, char split) {
         if (!s.startsWith(String.valueOf(split))) s = split + "r" + s;
         String[] colors = s.split(String.valueOf(split));
@@ -371,7 +424,10 @@ public class Console extends HBox {
         return texts.toArray(new Text[0]);
     }
 
-    public Text genButton(String text) { return genButton(text, defaultConsoleColor); }
+    public Text genButton(String text) {
+        return genButton(text, defaultConsoleColor);
+    }
+
     public Text genButton(String text, Color textFill) {
         Text started = getDefaultText(text);
         started.setFill(textFill);
@@ -405,6 +461,7 @@ public class Console extends HBox {
     public void setFont(Font font) {
         this.font = font;
     }
+
     public Font getFont() {
         return font;
     }

@@ -11,6 +11,7 @@ public abstract class Effect extends SyntaxPiece<Effect> {
     public void setCode(String code) {
         this.code = code;
     }
+
     public String getCode() {
         return code;
     }
@@ -22,10 +23,10 @@ public abstract class Effect extends SyntaxPiece<Effect> {
     public void setParent(CodePiece parent) {
         this.parent = parent;
     }
+
     public CodePiece getParent() {
         return parent;
     }
-
 
 
 }

@@ -63,7 +63,10 @@ public class ExpressionVisual<T> extends SyntaxVisual<ExpressionFactory<?>> {
         return expressionFactories;
     }
 
-    public void setNodes(ExpressionFactory<?> expressionFactory) { setNodes(expressionFactory.getRegex()); }
+    public void setNodes(ExpressionFactory<?> expressionFactory) {
+        setNodes(expressionFactory.getRegex());
+    }
+
     public void setNodes(String regex) {
         ArrayList<String> typePieces = FXScript.PARSER.generateExpressionPiecesFromString(regex);
         for (String typePiece : typePieces) {

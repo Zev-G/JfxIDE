@@ -4,5 +4,5 @@ import javafx.scene.layout.AnchorPane;
 
 public class Documentation extends AnchorPane {
 
-    
+
 }

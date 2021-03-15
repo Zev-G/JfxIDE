@@ -19,17 +19,21 @@ public class ParseError {
         this.lineNumber = lineNumber;
         this.line = line;
     }
+
     public ParseError(int lineNumber, int errorNoticedAtScan) {
         this.lineNumber = lineNumber;
         this.errorNoticedAtScan = errorNoticedAtScan;
     }
+
     public ParseError(String line) {
         this.line = line;
     }
+
     public ParseError(String line, String errorMessage) {
         this.line = line;
         this.errorInfo = errorMessage;
     }
+
     public ParseError(int lineNumber, String line, String errorPrefix, File file) {
         this.lineNumber = lineNumber;
         this.line = line;
@@ -42,6 +46,7 @@ public class ParseError {
     public int getLineNumber() {
         return lineNumber;
     }
+
     public void setLineNumber(int lineNumber) {
         this.lineNumber = lineNumber;
     }
@@ -49,6 +54,7 @@ public class ParseError {
     public int getErrorNoticedAtScan() {
         return errorNoticedAtScan;
     }
+
     public void setErrorNoticedAtScan(int errorNoticedAtScan) {
         this.errorNoticedAtScan = errorNoticedAtScan;
     }
@@ -56,6 +62,7 @@ public class ParseError {
     public String getLine() {
         return line;
     }
+
     public void setLine(String line) {
         this.line = line;
     }
@@ -64,6 +71,7 @@ public class ParseError {
     public String getErrorInfo() {
         return errorInfo;
     }
+
     public void setErrorInfo(String errorInfo) {
         this.errorInfo = errorInfo;
     }
@@ -71,6 +79,7 @@ public class ParseError {
     public void setFile(File file) {
         this.file = file;
     }
+
     public File getFile() {
         return file;
     }
@@ -78,6 +87,7 @@ public class ParseError {
     public String getErrorPrefix() {
         return errorPrefix;
     }
+
     public void setErrorPrefix(String errorPrefix) {
         this.errorPrefix = errorPrefix;
     }
@@ -89,6 +99,7 @@ public class ParseError {
         String fileText = "\tIn File: " + (file != null ? file.getName() : "Undefined file.");
         return topText + "\n" + lineText + "\n" + fileText;
     }
+
     public String createShortErrorMessage() {
         String title = (errorPrefix != null ? errorInfo : "") + "Error: " + (errorInfo != null ? errorInfo : "nameless");
         String lineText = (file != null ? "(" + file.getName() + ") " : "") + line + "(" + lineNumber + ")";
@@ -98,6 +109,7 @@ public class ParseError {
     public void sendError() {
         System.err.println(createLongErrorMessage());
     }
+
     public void print() {
         System.err.println(createLongErrorMessage());
         System.out.println(Arrays.toString(Thread.currentThread().getStackTrace()));
@@ -106,6 +118,7 @@ public class ParseError {
     public void sendShortError() {
         System.err.println(createShortErrorMessage());
     }
+
     public void printShort() {
         System.err.println(createShortErrorMessage());
     }

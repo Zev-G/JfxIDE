@@ -9,6 +9,7 @@ public class ResizableTextField extends TextField {
     public ResizableTextField() {
         this("");
     }
+
     public ResizableTextField(String text) {
         textProperty().addListener((ov, prevText, currText) -> {
             // Do this in a Platform.runLater because of Textfield has no padding at first time and so on

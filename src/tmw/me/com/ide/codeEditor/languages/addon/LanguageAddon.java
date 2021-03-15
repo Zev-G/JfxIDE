@@ -14,7 +14,7 @@ import java.util.Objects;
 public class LanguageAddon implements LanguageSupplier<AddonLanguageSupport> {
 
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final String[] requiredFiles = new String[]{ "style.css", "highlighter.json", "addon.json" };
+    private static final String[] requiredFiles = new String[]{"style.css", "highlighter.json", "addon.json"};
 
     private final File dir;
     private File styleFile;
@@ -104,6 +104,7 @@ public class LanguageAddon implements LanguageSupplier<AddonLanguageSupport> {
     public AddonJSON getAddonJSON() {
         return addonJSON;
     }
+
     public HighlighterJSON getHighlighterJSON() {
         return highlighterJSON;
     }
@@ -125,9 +126,11 @@ public class LanguageAddon implements LanguageSupplier<AddonLanguageSupport> {
     public File getStyleFile() {
         return styleFile;
     }
+
     public File getHighlighterFile() {
         return highlighterFile;
     }
+
     public File getAddonFile() {
         return addonFile;
     }

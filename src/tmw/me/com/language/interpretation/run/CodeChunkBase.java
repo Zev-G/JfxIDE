@@ -30,16 +30,19 @@ public abstract class CodeChunkBase {
     public Object getVariable(String name) {
         return variables.get(name);
     }
+
     public void setVariableValue(String name, Object value) {
         if (!variables.containsKey(name)) addVariable(new Variable<>(name, global));
         variables.get(name).setValue(value);
     }
+
     public void addVariables(Variable<?>... variables) {
         for (Variable<?> variable : variables) {
             addVariable(variable);
         }
 
     }
+
     public void addVariable(Variable<?> variable) {
         variables.put(variable.getName(), variable);
         for (CodeChunkBase state : children) {
@@ -55,6 +58,7 @@ public abstract class CodeChunkBase {
             copyVariableValuesToChild(state);
         }
     }
+
     public void copyVariableValuesToChild(CodeChunkBase state) {
         for (Variable<?> variable : variables.values()) {
             state.addVariable(new Variable<>(variable.getValue(), variable.getName(), variable.isGlobal()));
@@ -66,6 +70,7 @@ public abstract class CodeChunkBase {
         parent.getChildren().add(this);
         variables.putAll(parent.getVariables());
     }
+
     public CodeChunkBase getParent() {
         return parent;
     }
@@ -121,11 +126,13 @@ public abstract class CodeChunkBase {
     }
 
     public abstract CodeChunkBase duplicateWithoutVariables();
+
     public abstract CodeChunkBase duplicateWithoutVariables(CodeChunkBase parent, Event holder);
 
     public void setHolder(Event holder) {
         this.holder = holder;
     }
+
     public Event getHolder() {
         return holder;
     }

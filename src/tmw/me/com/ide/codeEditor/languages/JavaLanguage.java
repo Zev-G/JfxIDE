@@ -3,7 +3,7 @@ package tmw.me.com.ide.codeEditor.languages;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
 import javax.tools.JavaCompiler;
 import javax.tools.SimpleJavaFileObject;
@@ -21,10 +21,10 @@ public class JavaLanguage extends LanguageSupport {
     private Text currentErrorText = null;
     private Text currentPrintText = null;
 
-    private static final String[] KEYWORDS = { "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "continue", "default", "do", "double", "else", "enum",
-                                               "extends", "final", "finally", "float", "for", "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package",
-                                               "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient",
-                                               "try", "void", "volatile", "while", "String", "Math"};
+    private static final String[] KEYWORDS = {"abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "continue", "default", "do", "double", "else", "enum",
+            "extends", "final", "finally", "float", "for", "if", "implements", "import", "instanceof", "int", "interface", "long", "native", "new", "package",
+            "private", "protected", "public", "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient",
+            "try", "void", "volatile", "while", "String", "Math"};
 
     private static final String KEYWORDS_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
     private static final String COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/";
@@ -61,17 +61,17 @@ public class JavaLanguage extends LanguageSupport {
     @Override
     public String styleClass(Matcher matcher) {
         return
-            matcher.group("COMMENT") != null ? "comment" :
-            matcher.group("STRING") != null ? "string" :
-            matcher.group("NUMBER") != null ? "number" :
-            matcher.group("KEYWORD") != null ? "keyword" :
-            matcher.group("CLASS") != null ? "class" :
-            matcher.group("VARCALL") != null ? "var-call" :
-            matcher.group("PAREN") != null ? "paren" :
-            matcher.group("BRACKET") != null ? "bracket" :
-            matcher.group("SEMICOLON") != null ? "semicolon" :
-            matcher.group("BRACE") != null ? "brace" :
-            null;
+                matcher.group("COMMENT") != null ? "comment" :
+                        matcher.group("STRING") != null ? "string" :
+                                matcher.group("NUMBER") != null ? "number" :
+                                        matcher.group("KEYWORD") != null ? "keyword" :
+                                                matcher.group("CLASS") != null ? "class" :
+                                                        matcher.group("VARCALL") != null ? "var-call" :
+                                                                matcher.group("PAREN") != null ? "paren" :
+                                                                        matcher.group("BRACKET") != null ? "bracket" :
+                                                                                matcher.group("SEMICOLON") != null ? "semicolon" :
+                                                                                        matcher.group("BRACE") != null ? "brace" :
+                                                                                                null;
     }
 
     @Override
@@ -137,7 +137,7 @@ public class JavaLanguage extends LanguageSupport {
         final String code;
 
         JavaSourceFromString(String name, String code) {
-            super(URI.create("string:///" + name.replace('.','/') + Kind.SOURCE.extension),Kind.SOURCE);
+            super(URI.create("string:///" + name.replace('.', '/') + Kind.SOURCE.extension), Kind.SOURCE);
             this.code = code;
         }
 

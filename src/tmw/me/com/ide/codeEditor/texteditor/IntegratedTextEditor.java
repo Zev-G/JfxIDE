@@ -1,10 +1,7 @@
-package tmw.me.com.ide.codeEditor;
+package tmw.me.com.ide.codeEditor.texteditor;
 
 import javafx.application.Platform;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -13,40 +10,30 @@ import javafx.geometry.NodeOrientation;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Window;
 import javafx.util.StringConverter;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
-import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.Paragraph;
-import org.fxmisc.richtext.model.PlainTextChange;
-import org.fxmisc.richtext.model.StyleSpans;
-import org.fxmisc.richtext.model.StyledSegment;
 import org.reactfx.collection.LiveList;
+import tmw.me.com.ide.codeEditor.MiniMap;
 import tmw.me.com.ide.codeEditor.highlighting.Highlighter;
-import tmw.me.com.ide.codeEditor.highlighting.LanguageSupportStyleSpansFactory;
-import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
-import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
-import tmw.me.com.ide.codeEditor.languages.LanguageSupplier;
-import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
-import tmw.me.com.ide.codeEditor.languages.PlainTextLanguage;
-import tmw.me.com.ide.codeEditor.languages.Behavior;
+import tmw.me.com.ide.codeEditor.languages.*;
 import tmw.me.com.ide.codeEditor.visualcomponents.AutocompletePopup;
-import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 import tmw.me.com.ide.codeEditor.visualcomponents.FindAndReplace;
+import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 import tmw.me.com.ide.settings.IdeSettings;
-import tmw.me.com.ide.tools.concurrent.schedulers.ConsumerEventScheduler;
 import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -71,22 +58,15 @@ import java.util.regex.Pattern;
  * <h3>Notes:</h3>
  * <p>*Controlled by LanguageSupport</p>
  */
-public class IntegratedTextEditor extends CodeArea implements ComponentTabContent<IntegratedTextEditor> {
+public class IntegratedTextEditor extends HighlightableTextEditor implements ComponentTabContent<IntegratedTextEditor> {
 
     // Settings
     private static final boolean USING_MINIMAP = false;
     private static final boolean USING_AUTOCOMPLETE = true;
 
-    public static final String INDENT = "  ";
-    public static final String STYLE_SHEET = IntegratedTextEditor.class.getResource("ite.css").toExternalForm();
-
     // Properties
     private final ObservableList<Integer> errorLines = FXCollections.observableArrayList();
     private final ObservableList<Behavior> behaviors = FXCollections.observableArrayList();
-    private final ObjectProperty<LanguageSupport> languageSupport = new SimpleObjectProperty<>();
-    private final IntegerProperty fontSize = new SimpleIntegerProperty();
-
-    private final ArrayList<IntegratedTextEditor> linkedTextEditors = new ArrayList<>();
 
     private final AutocompletePopup autoCompletePopup = new AutocompletePopup(this);
     private final MiniMap miniMap = USING_MINIMAP ? new MiniMap() : null;
@@ -100,8 +80,6 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
     private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, findAndReplace, bottomPane);
 
 
-    private Highlighter highlighter = new Highlighter(this, new LanguageSupportStyleSpansFactory(this), findAndReplace.getFactory());
-
     /**
      * Constructs a new IntegratedTextEditor with {@link PlainTextLanguage} as it's language support.
      */
@@ -109,8 +87,12 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         this(new PlainTextLanguage());
     }
 
+    @Override
+    protected boolean alternateIsFocused() {
+        return autoCompletePopup.isFocused() || isFocused();
+    }
+
     /**
-     *
      * @param languageSupport The specified {@link LanguageSupport} for the text editor.
      */
     public IntegratedTextEditor(LanguageSupport languageSupport) {
@@ -118,48 +100,6 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         if (USING_MINIMAP) {
             textAreaHolder.getChildren().add(1, miniMap);
         }
-
-        // Linking
-        fontSize.addListener((observableValue, number, t1) -> {
-            String newStyle = "-fx-font-size: " + t1.intValue() + ";";
-            setStyle(newStyle);
-            autoCompletePopup.getTopBox().setStyle(newStyle);
-            tooltip.getNode().setStyle(newStyle);
-        });
-        setFontSize(18);
-        addEventFilter(ScrollEvent.ANY, e -> {
-            if (e.isControlDown()) {
-                e.consume();
-                double amount = (fontSize.get() * 0.1) + 1;
-                if (e.getDeltaY() != 0) {
-                    if (e.getDeltaY() < 0) {
-                        amount *= -1;
-                    }
-                    if (fontSize.get() + amount >= 6)
-                        fontSize.set(fontSize.get() + (int) amount);
-                }
-            }
-        });
-
-        this.multiPlainChanges().subscribe(plainTextChanges -> {
-            if (this.isFocused() || this.autoCompletePopup.isFocused()) {
-                for (PlainTextChange plainTextChange : plainTextChanges) {
-                    for (IntegratedTextEditor link1 : linkedTextEditors) {
-                        if (link1.getScene() != null && link1 != this && !link1.getText().equals(this.getText())) {
-                            if (plainTextChange.getRemoved().length() > 0) {
-                                link1.deleteText(plainTextChange.getPosition(), plainTextChange.getRemovalEnd());
-                            }
-                            if (plainTextChange.getInserted().length() > 0) {
-                                link1.insertText(plainTextChange.getPosition(), plainTextChange.getInserted());
-                            }
-                            if (!link1.getText().equals(this.getText())) {
-                                link1.replaceText(this.getText());
-                            }
-                        }
-                    }
-                }
-            }
-        });
 
         // Some other listeners
         parentProperty().addListener((observableValue, parent, t1) -> {
@@ -199,34 +139,6 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
             }
         });
 
-        this.languageSupport.addListener((observableValue, languageSupport1, t1) -> {
-            if (languageSupport1 != null) {
-                this.getStylesheets().remove(languageSupport1.getStyleSheet());
-                if (t1 != null) {
-                    highlight();
-                    autoCompletePopup.getSelectionQueue().clear();
-                    autoCompletePopup.hide();
-                }
-                Behavior[] removedBehaviors = languageSupport1.removeBehaviour(this);
-                if (removedBehaviors != null) {
-                    behaviors.removeAll(removedBehaviors);
-                }
-            }
-            if (t1 != null) {
-                this.getStylesheets().add(t1.getStyleSheet());
-                Behavior[] addedBehaviors = t1.addBehaviour(this);
-                if (addedBehaviors != null) {
-                    Collections.addAll(behaviors, addedBehaviors);
-                }
-            }
-        });
-
-        // Language
-        this.languageSupport.set(languageSupport);
-
-        // Highlighting
-        this.plainTextChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(new ConsumerEventScheduler<>(150, false, plainTextChange -> highlight()));
-
         // Style classes
         currentLanguage.getStyleClass().add("language-choice-box");
         bottomPane.getStyleClass().add("transparent-background");
@@ -238,13 +150,15 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         this.setParagraphGraphicFactory(LineGraphicFactory.get(this));
 
         // Layout
-        AnchorPane.setTopAnchor(virtualizedScrollPane, 0D); AnchorPane.setBottomAnchor(virtualizedScrollPane, 25D);
+        AnchorPane.setTopAnchor(virtualizedScrollPane, 0D);
+        AnchorPane.setBottomAnchor(virtualizedScrollPane, 25D);
         AnchorPane.setLeftAnchor(virtualizedScrollPane, 0D);
 
         AnchorPane.setTopAnchor(findAndReplace, 0D);
         AnchorPane.setRightAnchor(findAndReplace, 25D);
 
-        AnchorPane.setLeftAnchor(bottomPane, 0D); AnchorPane.setRightAnchor(bottomPane, 0D);
+        AnchorPane.setLeftAnchor(bottomPane, 0D);
+        AnchorPane.setRightAnchor(bottomPane, 0D);
         AnchorPane.setBottomAnchor(bottomPane, 0D);
 
         double divideBy = 9.5;
@@ -298,7 +212,6 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
             }
             Platform.runLater(() -> {
                 autoCompletePopup.fillBox(this, this.getParagraph(this.getCurrentParagraph()).getSegments().get(0));
-
                 if (getCaretBounds().isPresent()) {
                     Bounds caretBounds = getCaretBounds().get();
                     autoCompletePopup.setX(caretBounds.getMinX() - fontSize.get());
@@ -319,8 +232,38 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
             });
             miniMap.setMaxWidth(getWidth() / divideBy);
             miniMap.setMinWidth(getWidth() / divideBy);
-            AnchorPane.setRightAnchor(miniMap, 0D); AnchorPane.setTopAnchor(miniMap, 0D);
+            AnchorPane.setRightAnchor(miniMap, 0D);
+            AnchorPane.setTopAnchor(miniMap, 0D);
             AnchorPane.setBottomAnchor(miniMap, 15D);
+        }
+    }
+
+    @Override
+    protected void fontSizeChanged(ObservableValue<? extends Number> observable, Number oldVal, Number newVal) {
+        super.fontSizeChanged(observable, oldVal, newVal);
+        String newStyle = "-fx-font-size: " + newVal.intValue() + ";";
+        autoCompletePopup.getTopBox().setStyle(newStyle);
+        tooltip.getNode().setStyle(newStyle);
+    }
+
+    @Override
+    protected void languageChanged(LanguageSupport oldLang, LanguageSupport newLang) {
+        if (oldLang != null) {
+            if (newLang != null) {
+                highlight();
+                autoCompletePopup.getSelectionQueue().clear();
+                autoCompletePopup.hide();
+            }
+            Behavior[] removedBehaviors = oldLang.removeBehaviour(this);
+            if (removedBehaviors != null) {
+                behaviors.removeAll(removedBehaviors);
+            }
+        }
+        if (newLang != null) {
+            Behavior[] addedBehaviors = newLang.addBehaviour(this);
+            if (addedBehaviors != null) {
+                Collections.addAll(behaviors, addedBehaviors);
+            }
         }
     }
 
@@ -354,7 +297,7 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
                 });
             }
         } else if (keyEvent.isShiftDown() && keyCode == KeyCode.OPEN_BRACKET && !textAfterCaret.startsWith("}") && !keyEvent.isConsumed()) {
-            Platform.runLater( () -> {
+            Platform.runLater(() -> {
                 this.insertText(this.getCaretPosition(), "}");
                 this.moveTo(this.getCaretPosition() - 1);
             });
@@ -366,17 +309,17 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }
         // Auto indent
         if (keyCode == KeyCode.ENTER) {
-            Pattern whiteSpace = Pattern.compile( "^\\s+" );
+            Pattern whiteSpace = Pattern.compile("^\\s+");
             Matcher m = whiteSpace.matcher(line);
             boolean found = m.find();
             if (found || line.endsWith(":")) {
                 String s = found ? m.group() : "";
-                Platform.runLater( () -> this.insertText(this.getCaretPosition(), s + (line.endsWith(":") ? IdeSettings.tabSize() : "")));
+                Platform.runLater(() -> this.insertText(this.getCaretPosition(), s + (line.endsWith(":") ? IdeSettings.tabSize() : "")));
             }
         } else if (keyEvent.isShiftDown()) {
             if (keyCode == KeyCode.TAB) {
                 if (this.getSelectedText().length() <= 1) {
-                    Pattern whiteSpace = Pattern.compile( "^\\s+" );
+                    Pattern whiteSpace = Pattern.compile("^\\s+");
                     Matcher matcher = whiteSpace.matcher(line);
                     if (matcher.find()) {
                         String whiteSpaceInLine = matcher.group();
@@ -438,64 +381,12 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         }
     }
 
-    public TextFlow copyLine(int line) {
-        TextFlow textFlow = new TextFlow();
-        Paragraph<Collection<String>, String, Collection<String>> par = getParagraph(line);
-        for (StyledSegment<String, Collection<String>> segment : par.getStyledSegments()) {
-            textFlow.getChildren().add(copySegment(segment));
-        }
-        textFlow.getStylesheets().addAll(STYLE_SHEET, getLanguage().getStyleSheet());
-        return textFlow;
-    }
-
-    public StyledSegment<String, Collection<String>> getSegmentAtPos(int pos) {
-        int loopPos = 0;
-        for (Paragraph<Collection<String>, String, Collection<String>> par : getParagraphs()) {
-            int newPos = loopPos + par.getText().length() + 1;
-            if (newPos >= pos) {
-                for (StyledSegment<String, Collection<String>> segment : par.getStyledSegments()) {
-                    newPos = loopPos + segment.getSegment().length();
-                    if (newPos >= pos) {
-                        return segment;
-                    } else {
-                        loopPos = newPos;
-                    }
-                }
-            } else {
-                loopPos = newPos;
-            }
-        }
-        return null;
-    }
-
-    public TextExt copySegment(StyledSegment<String, Collection<String>> segment) {
-        TextExt text = new TextExt(segment.getSegment());
-        text.getStyleClass().addAll(segment.getStyle());
-        text.getStyleClass().add("apply-font");
-        return text;
-    }
-
-    public String getTabbedText() {
-        String text = super.getText();
-        text = text.replaceAll(IdeSettings.tabSize(), "\t");
-        return text;
-    }
-
     public AnchorPane getTextAreaHolder() {
         return textAreaHolder;
     }
 
     public FindAndReplace getFindAndReplace() {
         return findAndReplace;
-    }
-
-    /**
-     * Computes and applies the highlighting on a separate thread.
-     */
-    public void highlight() {
-        HighlightingThread highlightingThread = new HighlightingThread(this);
-        highlightingThread.setText(this.getText());
-        highlightingThread.start();
     }
 
     /**
@@ -563,169 +454,6 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         return USING_AUTOCOMPLETE && languageSupport.get().isUsingAutoComplete();
     }
 
-    // Utility oriented methods
-    public String properlyIndentString(String text) {
-        String[] lines = text.split("\n");
-        String indentCharacter = INDENT;
-        for (String line : lines) {
-            if (line.startsWith("\t")) {
-                indentCharacter = "\t";
-                break;
-            } else if (line.startsWith(INDENT)) {
-                break;
-            }
-        }
-        int minimumIndent = 999;
-        for (String line : lines) {
-            int lineIndent = 0;
-            while (line.startsWith(indentCharacter)) {
-                lineIndent++;
-                line = line.substring(indentCharacter.length());
-            }
-            if (lineIndent < minimumIndent) {
-                minimumIndent = lineIndent;
-            }
-        }
-        StringBuilder newVersion = new StringBuilder();
-        for (String line : lines) {
-            newVersion.append(line.substring(minimumIndent)).append("\n");
-        }
-        String newString = newVersion.toString();
-        return newString.substring(0, newString.length() - 1);
-    }
-    public String indentBackwards(String text) {
-        if (text.length() <= 1) {
-            return text;
-        }
-        String[] lines = text.split("\n");
-        String indentCharacter = INDENT;
-        for (String line : lines) {
-            if (line.startsWith("\t")) {
-                indentCharacter = "\t";
-                break;
-            } else if (line.startsWith(INDENT)) {
-                break;
-            }
-        }
-        StringBuilder newString = new StringBuilder();
-        for (String line : lines) {
-            if (line.startsWith(indentCharacter)) {
-                line = line.substring(indentCharacter.length());
-            }
-            newString.append("\n").append(line);
-        }
-        return newString.substring(1);
-    }
-    public String indentForwards(String text) {
-        String[] lines = text.split("\n");
-        String indentCharacter = INDENT;
-        for (String line : lines) {
-            if (line.startsWith("\t")) {
-                indentCharacter = "\t";
-                break;
-            } else if (line.startsWith(INDENT)) {
-                break;
-            }
-        }
-        if (text.length() <= 1) {
-            return indentCharacter + text;
-        }
-        StringBuilder newString = new StringBuilder();
-        for (String line : lines) {
-            newString.append("\n").append(indentCharacter).append(line);
-        }
-        return newString.substring(1);
-    }
-    public int[] expandFromPoint(int caretPosition, Character... stopAt) {
-        int right = expandInDirection(caretPosition, 1, stopAt);
-        right = right < getText().length() ? right + 1 : right;
-        return new int[] { expandInDirection(caretPosition, -1, stopAt), right };
-    }
-    public int expandInDirection(int start, int dir, Character... stopAt) {
-        String text = this.getText();
-        List<Character> characters = Arrays.asList(stopAt);
-        while (start > 0 && start < text.length() && !characters.contains(text.charAt(start))) start += dir;
-        return start;
-    }
-    public ArrayList<IndexRange> allInstancesOfStringInString(String lookIn, String lookFor) {
-        ArrayList<IndexRange> areas = new ArrayList<>();
-        Matcher matcher = Pattern.compile("(?=" + Pattern.quote(lookFor) +")").matcher(lookIn);
-        while (matcher.find()) {
-            areas.add(new IndexRange(matcher.start(), matcher.start() + lookFor.length()));
-        }
-        return areas;
-    }
-    public int absolutePositionFromLine(int line) {
-        int lineStart = 0;
-        for (int i = line - 1; i >= 0; i--) {
-            lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
-        }
-        return lineStart;
-    }
-    public int lineFromAbsoluteLocation(int absoluteLocation) {
-        int at = 0;
-        for (int i = 0; i < getParagraphs().size(); i++) {
-            at += getParagraph(i).getText().length() + 1;
-            if (at >= absoluteLocation)
-                return i;
-        }
-        return -1;
-    }
-    public int absoluteStartOfSegment(StyledSegment<String, Collection<String>> segmentAtPos) {
-        int at = 0;
-        for (int i = 0; i < getParagraphs().size(); i++) {
-            Paragraph<Collection<String>, String, Collection<String>> par = getParagraph(i);
-            if (par.getStyledSegments().contains(segmentAtPos)) {
-                int startAt = at;
-                for (StyledSegment<String, Collection<String>> segment : par.getStyledSegments()) {
-                    if (segment != segmentAtPos) {
-                        at += segment.getSegment().length();
-                    } else {
-                        return at;
-                    }
-                }
-                at = startAt;
-            }
-            at += par.getText().length() + 1;
-        }
-        return -1;
-    }
-    private int stringOccurrences(String string, char checkFor) {
-        int occurrences = 0;
-        for (char c : string.toCharArray()) {
-            if (c == checkFor) occurrences++;
-        }
-        return occurrences;
-    }
-    public List<IndexRange> connectIndexesToNeighbors(List<IndexRange> indexRanges) {
-        if (indexRanges.isEmpty())
-            return indexRanges;
-        ArrayList<IndexRange> newIndexRanges = new ArrayList<>();
-        IndexRange lastIndexRange = indexRanges.get(0);
-        for (int i = 1; i < indexRanges.size(); i++) {
-            IndexRange currentIndexRange = indexRanges.get(i);
-            if (lastIndexRange.getEnd() == currentIndexRange.getStart())
-                lastIndexRange = new IndexRange(lastIndexRange.getStart(), currentIndexRange.getEnd());
-            else {
-                newIndexRanges.add(lastIndexRange);
-                lastIndexRange = currentIndexRange;
-            }
-        }
-        newIndexRanges.add(lastIndexRange);
-        return newIndexRanges;
-    }
-
-    // Getters and Setters
-    public LanguageSupport getLanguage() {
-        return languageSupport.get();
-    }
-    public ObjectProperty<LanguageSupport> languageSupportProperty() {
-        return languageSupport;
-    }
-    public void setLanguageSupport(LanguageSupport languageSupport) {
-        this.languageSupport.set(languageSupport);
-    }
-
     public ObservableList<Integer> getErrorLines() {
         return errorLines;
     }
@@ -763,119 +491,32 @@ public class IntegratedTextEditor extends CodeArea implements ComponentTabConten
         return newIntegratedTextEditor;
     }
 
-    public void setHighlighter(Highlighter highlighter) {
-        this.highlighter = highlighter;
-        highlight();
-    }
-
-    public ArrayList<StyleSpansFactory<Collection<String>>> getFactories() {
-        return highlighter.getFactories();
-    }
-
     public void lockLanguageUI() {
         textAreaHolder.getChildren().remove(bottomPane);
         AnchorPane.setBottomAnchor(virtualizedScrollPane, 0D);
-    }
-
-    public void setFontSize(int i) {
-        fontSize.set(i);
-    }
-
-    public int getFontSize() {
-        return fontSize.get();
-    }
-
-    public IntegerProperty fontSizeProperty() {
-        return fontSize;
     }
 
     public void selectLine(int finalI) {
         selectRange(finalI, 0, finalI, getParagraph(finalI).getText().length());
     }
 
-    public static class HighlightingThread extends Thread {
-
-        private String text;
-        private final IntegratedTextEditor editor;
-
-        public HighlightingThread(IntegratedTextEditor editor) {
-            super();
-            this.editor = editor;
-            this.setDaemon(true);
-        }
-
-        @Override
-        public void run() {
-            editor.getFindAndReplace().setFindSelectionIndex(-1);
-            computeHighlighting();
-        }
-
-
-        public String getText() {
-            return text;
-        }
-
-        public void setText(String text) {
-            this.text = text;
-        }
-
-        private void computeHighlighting() {
-            Pattern pattern = editor.languageSupport.get().generatePattern();
-            if (pattern != null) {
-                StyleSpans<Collection<String>> styleSpans = editor.getHighlighter().createStyleSpans();
-                Platform.runLater(() -> {
-                    try {
-                        editor.setStyleSpans(0, styleSpans);
-                    } catch (IndexOutOfBoundsException ignored) {
-                    }
-                });
-            }
-        }
-
-    }
-
-    private Highlighter getHighlighter() {
-        return highlighter;
-    }
-
     @Override
     public MenuItem[] addContext() {
         MenuItem run = new MenuItem("Run");
-        run.setOnAction(actionEvent -> languageSupport.get().runCalled(this,null ));
+        run.setOnAction(actionEvent -> languageSupport.get().runCalled(this, null));
         CheckMenuItem rapText = new CheckMenuItem("Wrap text");
         this.wrapTextProperty().unbind();
         this.wrapTextProperty().bind(rapText.selectedProperty());
-        return new MenuItem[]{ new SeparatorMenuItem(), run, rapText };
-    }
-
-    public static void linkITEs(IntegratedTextEditor... links) {
-
-        if (links.length > 1) {
-            List<IntegratedTextEditor> linksList = Arrays.asList(links);
-            for (IntegratedTextEditor link : links) {
-                ArrayList<IntegratedTextEditor> listWithoutSelf = new ArrayList<>(linksList);
-                listWithoutSelf.remove(link);
-                link.linkToITEs(listWithoutSelf.toArray(new IntegratedTextEditor[0]));
-            }
-        }
-    }
-
-    public void linkToITEs(IntegratedTextEditor... links) {
-        this.linkedTextEditors.addAll(Arrays.asList(links));
-        recursivelyChangeLinkedITEs();
-    }
-    private void recursivelyChangeLinkedITEs() {
-        for (IntegratedTextEditor link : linkedTextEditors) {
-            if (!link.getLinkedTextEditors().equals(linkedTextEditors)) {
-                link.getLinkedTextEditors().clear();
-                link.getLinkedTextEditors().addAll(linkedTextEditors);
-                link.recursivelyChangeLinkedITEs();
-            }
-        }
+        return new MenuItem[]{new SeparatorMenuItem(), run, rapText};
     }
 
     public VirtualizedScrollPane<IntegratedTextEditor> getVirtualizedScrollPane() {
         return virtualizedScrollPane;
+    }
+
+    @Override
+    public void onHighlight() {
+        getFindAndReplace().setFindSelectionIndex(-1);
     }
 
 }

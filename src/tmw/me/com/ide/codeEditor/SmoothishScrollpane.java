@@ -20,8 +20,7 @@ public class SmoothishScrollpane extends ScrollPane {
     private final static double BASE_MODIFIER = 1;
 
     /**
-     * @param content
-     *            Item to be wrapped in the scroll pane.
+     * @param content Item to be wrapped in the scroll pane.
      */
     public SmoothishScrollpane(Node content) {
         // ease-of-access for inner class
@@ -52,8 +51,7 @@ public class SmoothishScrollpane extends ScrollPane {
     }
 
     /**
-     * @param t
-     *            Transition to check.
+     * @param t Transition to check.
      * @return {@code true} if transition is playing.
      */
     private static boolean playing(Transition t) {
@@ -61,10 +59,8 @@ public class SmoothishScrollpane extends ScrollPane {
     }
 
     /**
-     * @param d1
-     *            Value 1
-     * @param d2
-     *            Value 2.
+     * @param d1 Value 1
+     * @param d2 Value 2.
      * @return {@code true} if values signs are matching.
      */
     private static boolean sameSign(double d1, double d2) {

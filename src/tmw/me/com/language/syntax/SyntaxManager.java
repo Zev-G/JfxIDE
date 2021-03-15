@@ -105,11 +105,14 @@ public class SyntaxManager {
         EXPRESSIONS.put(ExpressionPriority.HIGH, HIGH);
         EXPRESSIONS.put(ExpressionPriority.HIGHEST, HIGHEST);
 
-        effects: {
+        effects:
+        {
 
-            EFFECT_FACTORIES.add(new EffectFactory("do nothing", (state, values, args) -> {}));
+            EFFECT_FACTORIES.add(new EffectFactory("do nothing", (state, values, args) -> {
+            }));
 
-            addons: {
+            addons:
+            {
                 EFFECT_FACTORIES.add(new EffectFactory("run code in %file%", (state, values, args) -> {
                     File file = (File) values.get(0);
                     try {
@@ -118,7 +121,7 @@ public class SyntaxManager {
                         e.printStackTrace();
                     }
                 }));
-                EFFECT_FACTORIES.add(new EffectFactory("import %file%","$import %file%", (state, values, args) -> {
+                EFFECT_FACTORIES.add(new EffectFactory("import %file%", "$import %file%", (state, values, args) -> {
                     File file = (File) values.get(0);
                     System.out.println("Running file: " + file);
                     try {
@@ -129,14 +132,16 @@ public class SyntaxManager {
                 }));
             }
 
-            reflect: {
+            reflect:
+            {
                 EFFECT_FACTORIES.add(new EffectFactory("IGNORE", "%object%\\.(.*\\))", (state, values, args) -> {
                     String connectedArgs = appendAllArgs(new StringBuilder(), args).toString();
                     Object obj = values.get(0);
                     reflectMethod(state, connectedArgs, obj);
                 }));
             }
-            file: {
+            file:
+            {
                 EFFECT_FACTORIES.add(new EffectFactory("create new file %file%", (state, values, args) -> {
                     try {
                         ((File) values.get(0)).createNewFile();
@@ -198,10 +203,12 @@ public class SyntaxManager {
 
             EFFECT_FACTORIES.add(new EffectFactory("print %object%", (state, values, args) -> printHandler.accept(values.get(0) == null ? "null" : values.get(0).toString())));
         }
-        events: {
+        events:
+        {
 
-            special: {
-                EVENT_FACTORIES.add(new WhenEventFactory("expression %type% -> %text%:","$expression [^\\s]+? -> (.*?)", (state, values, event, args) -> {
+            special:
+            {
+                EVENT_FACTORIES.add(new WhenEventFactory("expression %type% -> %text%:", "$expression [^\\s]+? -> (.*?)", (state, values, event, args) -> {
                     StringBuilder builder = new StringBuilder();
                     appendAllArgs(builder, args);
                     String returnType = args[1];
@@ -222,7 +229,7 @@ public class SyntaxManager {
                         LOW.get(returnClass).add(expressionFactory);
                     }
                 }));
-                EVENT_FACTORIES.add(new WhenEventFactory("effect -> %text%:","$effect -> (.*?)", (state, values, event, args) -> {
+                EVENT_FACTORIES.add(new WhenEventFactory("effect -> %text%:", "$effect -> (.*?)", (state, values, event, args) -> {
                     StringBuilder builder = new StringBuilder();
                     appendAllArgs(builder, args);
                     EffectFactory effectFactory = new EffectFactory(builder.toString().replaceFirst("effect -> ", ""), (state1, values1, args1) -> {
@@ -268,9 +275,12 @@ public class SyntaxManager {
                 EVENT_FACTORIES.add(new WhenEventFactory("on start", (state, values, event, args) -> event.run()));
             }
         }
-        expressions: {
-            java: {
-                string: {
+        expressions:
+        {
+            java:
+            {
+                string:
+                {
                     HIGHEST.get(String.class).add(new ExpressionFactory<>("IGNORE", "\"([^\\\"]*?)\"", (state, values, args) -> {
                         StringBuilder builder = new StringBuilder();
                         appendAllArgs(builder, args);
@@ -315,7 +325,8 @@ public class SyntaxManager {
                         return "COULDN'T READ FILE";
                     }, String.class));
                 }
-                number: {
+                number:
+                {
                     HIGHEST.get(Number.class).add(new ExpressionFactory<>("IGNORE", "[0-9]+(|\\.([0-9]+))", (state, values, args) -> {
                         StringBuilder builder = new StringBuilder();
                         appendAllArgs(builder, args);
@@ -348,7 +359,8 @@ public class SyntaxManager {
                     LOW.get(Number.class).add(new ExpressionFactory<>("space taken up by %file%", (state, values, args) -> Long.valueOf(((File) values.get(0)).getTotalSpace()).doubleValue(), Number.class));
                     LOW.get(Number.class).add(new ExpressionFactory<>("size of %list%", ((state, values, args) -> ((List) values.get(0)).getValues().values().size()), Number.class));
                 }
-                bool: {
+                bool:
+                {
                     HIGHEST.get(Boolean.class).add(new ExpressionFactory<>("true", (state, values, args) -> true, Boolean.class));
                     HIGHEST.get(Boolean.class).add(new ExpressionFactory<>("false", (state, values, args) -> false, Boolean.class));
                     HIGHEST.get(Boolean.class).add(new ExpressionFactory<>("IGNORE", "%object% == %object%", (state, values, args) -> values.get(0).equals(values.get(1)), Boolean.class));
@@ -375,18 +387,22 @@ public class SyntaxManager {
                     LOW.get(Boolean.class).add(new ExpressionFactory<>("free space in %file%", (state, values, args) -> ((File) values.get(0)).exists(), Boolean.class));
                 }
             }
-            special: {
-                variable: {
+            special:
+            {
+                variable:
+                {
                     HIGHEST.get(Variable.class).add(new ExpressionFactory<>("IGNORE", "\\{([^\\s]*?)\\}", (state, values, args) -> {
                         StringBuilder builder = new StringBuilder();
                         appendAllArgs(builder, args);
                         String variableName = builder.toString().replaceAll("[{}]", "");
-                        if (CodeChunk.printing) System.out.println("Getting Variable: " + variableName + " State: " + state + " children: " + state.getChildren());
+                        if (CodeChunk.printing)
+                            System.out.println("Getting Variable: " + variableName + " State: " + state + " children: " + state.getChildren());
                         if (state.getVariableByName(variableName) == null) state.setVariableValue(variableName, null);
                         return state.getVariableByName(variableName);
                     }, Variable.class));
                 }
-                function: {
+                function:
+                {
                     HIGHEST.get(Object.class).add(new ExpressionFactory<>("IGNORE", "([A-z]+)\\((.*?)\\)", (state, values, args) -> {
                         String connectedArgs = appendAllArgs(new StringBuilder(), args).toString();
                         System.out.println("Args: " + connectedArgs);
@@ -404,14 +420,16 @@ public class SyntaxManager {
                         return function.invoke(objects.toArray());
                     }, Object.class));
                 }
-                reflect: {
+                reflect:
+                {
                     MEDIUM.get(Object.class).add(new ExpressionFactory<>("IGNORE", "%object%\\.(.*\\))", (state, values, args) -> {
                         String connectedArgs = appendAllArgs(new StringBuilder(), args).toString();
                         Object obj = values.get(0);
                         return reflectMethod(state, connectedArgs, obj);
                     }, Object.class));
                 }
-                loopOrEventValue: {
+                loopOrEventValue:
+                {
                     ExpressionFactory<?> loopOrEventValue = new ExpressionFactory<>("IGNORE", "(event|loop|expression|effect|arg|value)-(([^\\s]|-)*)", (state, values, args) -> {
                         String connectedArgs = appendAllArgs(new StringBuilder(), args).toString().split("-")[1];
                         for (ExpressionFactory<?> expression : state.getLocalExpressions()) {
@@ -427,8 +445,10 @@ public class SyntaxManager {
                     HIGHEST.get(Object.class).add(loopOrEventValue);
                 }
             }
-            lists: {
-                file: {
+            lists:
+            {
+                file:
+                {
                     MEDIUM.get(List.class).add(new ExpressionFactory<>("files in %file%", (state, values, args) -> List.fromList(Objects.requireNonNull(((File) values.get(0)).listFiles())), List.class));
                 }
             }
@@ -466,7 +486,8 @@ public class SyntaxManager {
             }
             currentPiece.append(c);
         }
-        if (currentPiece.toString().length() > 0 && !currentPiece.toString().equals(",")) methods.add(currentPiece.toString());
+        if (currentPiece.toString().length() > 0 && !currentPiece.toString().equals(","))
+            methods.add(currentPiece.toString());
         Object currentObj = obj;
         for (String methodText : methods) {
             Object nextObj = getMethodFromString(methodText, currentObj.getClass(), state, currentObj);
@@ -496,7 +517,8 @@ public class SyntaxManager {
             currentPiece.append(c);
         }
         java.util.List<Method> methods = Arrays.stream(objectClass.getMethods()).filter(method -> method.getName().equals(methodName) && method.getParameters().length == argumentStrings.size() + 1).collect(Collectors.toList());
-        if (currentPiece.toString().length() > 0 && !currentPiece.toString().equals(",")) argumentStrings.add(currentPiece.toString());
+        if (currentPiece.toString().length() > 0 && !currentPiece.toString().equals(","))
+            argumentStrings.add(currentPiece.toString());
         int i = 0;
         for (String argument : argumentStrings) {
             argument = argument.trim();
@@ -553,7 +575,6 @@ public class SyntaxManager {
     }
 
     /**
-     *
      * @param code The code from which the code piece will be generated.
      * @return A CodePiece interpreted and parsed from the inputted code. Note that this piece is not yet attached to a code chunk.
      */
@@ -574,6 +595,7 @@ public class SyntaxManager {
         }
         return getCodeChunkFromCode(builder.toString(), file);
     }
+
     public CodeChunk getCodeChunkFromCode(String code, File file) {
         return FXScript.PARSER.parseChunk(code, file);
     }
@@ -592,11 +614,13 @@ public class SyntaxManager {
         EXPRESSIONS.values().forEach(classArrayListHashMap -> classArrayListHashMap.values().forEach(arrayList::addAll));
         return arrayList;
     }
+
     public ArrayList<ExpressionFactory<?>> getAllExpressionFactories(Class<?> ofClass) {
         ArrayList<ExpressionFactory<?>> arrayList = new ArrayList<>();
         EXPRESSIONS.values().forEach(classArrayListHashMap -> arrayList.addAll(classArrayListHashMap.get(ofClass)));
         return arrayList;
     }
+
     public ArrayList<ExpressionFactory<?>> getAllExpressionFactoriesFromClass(Class<?> ofClass) {
         ArrayList<ExpressionFactory<?>> arrayList = new ArrayList<>();
         for (HashMap<Class<?>, ArrayList<ExpressionFactory<?>>> map : EXPRESSIONS.values()) {

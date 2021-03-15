@@ -8,6 +8,7 @@ import javafx.scene.layout.VBox;
 import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.Paragraph;
 import org.fxmisc.richtext.model.StyleSpan;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
 import java.util.Collection;
 
@@ -31,10 +32,12 @@ public class MiniMap extends AnchorPane {
     public MiniMap() {
         getChildren().addAll(box, viewPort);
         box.maxWidthProperty().bind(maxWidthProperty());
-        AnchorPane.setLeftAnchor(box, 0D); AnchorPane.setRightAnchor(box, 0D);
+        AnchorPane.setLeftAnchor(box, 0D);
+        AnchorPane.setRightAnchor(box, 0D);
         AnchorPane.setTopAnchor(box, 0D);
 
-        AnchorPane.setLeftAnchor(viewPort, 0D); AnchorPane.setRightAnchor(viewPort, 0D);
+        AnchorPane.setLeftAnchor(viewPort, 0D);
+        AnchorPane.setRightAnchor(viewPort, 0D);
 
         viewPort.getStyleClass().add("mm-viewport");
         viewPort.setOpacity(VP_INITIAL_OPACITY);
@@ -103,11 +106,11 @@ public class MiniMap extends AnchorPane {
             viewPort.setMinHeight(relativeBoxHeight);
         });
         ite.heightProperty().addListener((observableValue, number, t1) ->
-            Platform.runLater(() -> {
-                double relativeBoxHeight = (ite.getVirtualizedScrollPane().getHeight() / ite.getTotalHeightEstimate()) * box.getHeight();
-                viewPort.setMinHeight(relativeBoxHeight);
-            }
-        ));
+                Platform.runLater(() -> {
+                            double relativeBoxHeight = (ite.getVirtualizedScrollPane().getHeight() / ite.getTotalHeightEstimate()) * box.getHeight();
+                            viewPort.setMinHeight(relativeBoxHeight);
+                        }
+                ));
     }
 
     private void updateToITE(IntegratedTextEditor ite) {
@@ -134,7 +137,6 @@ public class MiniMap extends AnchorPane {
             box.getChildren().add(paragraph);
         }
     }
-
 
 
 }

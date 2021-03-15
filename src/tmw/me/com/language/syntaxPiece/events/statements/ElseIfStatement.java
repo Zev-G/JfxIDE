@@ -29,6 +29,7 @@ public class ElseIfStatement extends Event {
     public Expression<Boolean> getCondition() {
         return condition;
     }
+
     public void setCondition(Expression<Boolean> condition) {
         this.condition = condition;
     }

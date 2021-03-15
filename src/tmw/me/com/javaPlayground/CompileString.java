@@ -1,14 +1,13 @@
 package tmw.me.com.javaPlayground;
 
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.ToolProvider;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class CompileString {
 
@@ -23,7 +22,7 @@ public class CompileString {
 
         Class<?> clazz = Class.forName("test." + className);
         Method m = clazz.getMethod("main", String[].class);
-        Object[] _args = new Object[] { new String[0] };
+        Object[] _args = new Object[]{new String[0]};
         m.invoke(null, _args);
     }
 

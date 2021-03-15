@@ -20,19 +20,24 @@ public class PowerfulStyler {
         for (String s : names)
             addStyle(s);
     }
+
     public void addStyle(String name) {
         styleAndValueMap.putIfAbsent(name, null);
     }
+
     public void removeStyle(String name) {
         styleAndValueMap.remove(name);
     }
+
     public void removeStyleAndUpdate(String name) {
         removeStyle(name);
         update();
     }
+
     public void setStyleValue(String key, String value) {
         styleAndValueMap.put(key, value);
     }
+
     public void setStyleAndUpdate(String name, String value) {
         setStyleValue(name, value);
         update();

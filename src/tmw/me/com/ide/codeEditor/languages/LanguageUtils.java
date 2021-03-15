@@ -16,7 +16,7 @@ import org.fxmisc.richtext.model.Paragraph;
 import org.fxmisc.richtext.model.StyledSegment;
 import org.reactfx.collection.LiveList;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 import tmw.me.com.ide.tools.NodeUtils;
 import tmw.me.com.ide.tools.colorpicker.ColorMapper;

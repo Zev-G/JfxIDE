@@ -19,9 +19,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.highlighting.SortableStyleSpan;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.tools.builders.SVGPathBuilder;
 
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ public class FindAndReplace extends Pane implements VisualComponent<FindAndRepla
 
     private final BooleanProperty showingFindAndReplace = new SimpleBooleanProperty(this, "showing-find-and-replace", false);
 
-    private final Label findLabel    = new Label("Find Next  ");
+    private final Label findLabel = new Label("Find Next  ");
     private final Label replaceLabel = new Label("Replace All");
     private final TextField findTextField = new TextField();
     private final TextField replaceTextField = new TextField();
@@ -96,7 +96,8 @@ public class FindAndReplace extends Pane implements VisualComponent<FindAndRepla
         getChildren().add(findAndReplaceVBox);
 
         // Transitions
-        transition: {
+        transition:
+        {
             FadeTransition fadeOutTransition = new FadeTransition(new Duration(200));
             fadeOutTransition.setToValue(0);
             ScaleTransition scaleOutTransition = new ScaleTransition(new Duration(200));

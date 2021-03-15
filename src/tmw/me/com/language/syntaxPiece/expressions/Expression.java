@@ -24,6 +24,7 @@ public abstract class Expression<T> extends SyntaxPiece<Expression<?>> {
     public void setCode(String code) {
         this.code = code;
     }
+
     public String getCode() {
         return code;
     }
@@ -31,6 +32,7 @@ public abstract class Expression<T> extends SyntaxPiece<Expression<?>> {
     public void setParent(SyntaxPiece<?> parent) {
         this.parent = parent;
     }
+
     public SyntaxPiece<?> getParent() {
         return parent;
     }
@@ -38,6 +40,7 @@ public abstract class Expression<T> extends SyntaxPiece<Expression<?>> {
     public void setGenerateClass(Class<?> generateClass) {
         this.generateClass = generateClass;
     }
+
     public Class<?> getGenerateClass() {
         return generateClass;
     }

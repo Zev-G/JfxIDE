@@ -19,8 +19,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.Popup;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
 import java.util.ArrayList;
 
@@ -29,7 +29,11 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
     public static final Color SHADOW_COLOR = Color.web("#121324");
 
     private final VBox itemsBox = new VBox();
-    private final ScrollPane itemsScroller = new ScrollPane(itemsBox) { @Override public void requestFocus() { } };
+    private final ScrollPane itemsScroller = new ScrollPane(itemsBox) {
+        @Override
+        public void requestFocus() {
+        }
+    };
     private final Label resultsCount = new Label("Results: 0");
     private final Label selectedLabel = new Label("Selected: 1/1");
     private final BorderPane bottomPane = new BorderPane();
@@ -163,11 +167,10 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
     }
 
     /**
-     *
      * @param line The line which the text is sampled from; should be switched to an int, this is largely controlled by {@link LanguageSupport}
      */
     public void fillBox(IntegratedTextEditor editor, String line) {
-        if (editor.isCurrentlyUsingAutoComplete() &&  (line.trim().length() > 0 && (editor.isFocused() || this.isFocused()))) {
+        if (editor.isCurrentlyUsingAutoComplete() && (line.trim().length() > 0 && (editor.isFocused() || this.isFocused()))) {
             factoryOrder.clear();
             ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = editor.getLanguage().getPossiblePieces(line, editor);
             if (possiblePiecePackages != null && !possiblePiecePackages.isEmpty()) {

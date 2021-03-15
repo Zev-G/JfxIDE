@@ -22,9 +22,11 @@ public class List extends Variable<List> {
     public void add(Object obj, String name) {
         this.values.put(name, obj);
     }
+
     public void remove(String name) {
         this.values.remove(name);
     }
+
     public void removeObject(Object obj) {
         this.values.remove(obj.toString());
     }
@@ -33,6 +35,7 @@ public class List extends Variable<List> {
     public static <T> List fromList(T... values) {
         return fromList(Arrays.asList(values));
     }
+
     public static <T> List fromList(java.util.List<T> list) {
         int i = 0;
         List ourList = new List("temp", false);

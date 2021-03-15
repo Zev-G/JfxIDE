@@ -3,9 +3,10 @@
     -main-color: #1c2532;
 }
 
-.context-menu{
-    -fx-background-color: derive(-main-color,26.4%);
+.context-menu {
+    -fx-background-color: derive(-main-color, 26.4%);
 }
+
 .menu-item:focused {
     -fx-background-color: transparent;
 }
@@ -13,7 +14,7 @@
 /* CUSTOM COLOR */
 
 .my-custom-color {
-    -fx-background-color: derive(-main-color,26.4%);
+    -fx-background-color: derive(-main-color, 26.4%);
     -fx-background-radius: 15;
     -fx-effect: dropshadow(three-pass-box, -main-color, 10, 0.1, 0, 3);
     -fx-padding: 1.25em;

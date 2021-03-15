@@ -1,8 +1,8 @@
 package tmw.me.com.language;
 
-import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.interpretation.parse.Parser;
 import tmw.me.com.language.interpretation.run.CodeChunk;
+import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.syntaxPiece.events.Function;
 
 public final class FXScript {
@@ -13,6 +13,7 @@ public final class FXScript {
     public static void restart() {
         restart(SyntaxManager.SYNTAX_MANAGER);
     }
+
     public static void restart(SyntaxManager syntaxManager) {
         Function.ALL_FUNCTIONS.clear();
         syntaxManager.EFFECT_FACTORIES.clear();

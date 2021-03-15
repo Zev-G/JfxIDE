@@ -36,6 +36,7 @@ public class LinkedList<T> extends tmw.me.com.language.variable.List {
             linkedList.remove((T) realObj);
         }
     }
+
     @Override
     public void removeObject(Object obj) {
         super.removeObject(obj);
@@ -48,6 +49,7 @@ public class LinkedList<T> extends tmw.me.com.language.variable.List {
     public List<T> getLinkedList() {
         return linkedList;
     }
+
     public Class<T> getGenericClass() {
         return genericClass;
     }

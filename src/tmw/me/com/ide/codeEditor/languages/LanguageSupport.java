@@ -2,8 +2,9 @@ package tmw.me.com.ide.codeEditor.languages;
 
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 
 import java.io.File;
@@ -46,14 +47,14 @@ public abstract class LanguageSupport {
     private LanguageSupplier<LanguageSupport> thisSupplier;
 
     /**
-     *
-     * @param styleSheet The language's style sheet, see {@link LanguageSupport#styleSheet}
+     * @param styleSheet   The language's style sheet, see {@link LanguageSupport#styleSheet}
      * @param languageName The language's name, see {@link LanguageSupport#languageName}
      */
     public LanguageSupport(String styleSheet, String languageName) {
         this.styleSheet = styleSheet;
         this.languageName = languageName;
     }
+
     public LanguageSupport(String languageName) {
         this(LanguageSupport.class.getResource("styles/plain.css").toExternalForm(), languageName);
     }
@@ -61,11 +62,10 @@ public abstract class LanguageSupport {
     /**
      * @return A pattern which is used for sectioning the highlighting, if you don't want your language to have highlighting you can always
      * make this return null.
-     * */
+     */
     public abstract Pattern generatePattern();
 
     /**
-     *
      * @return {@link LanguageSupport#styleSheet}
      */
     public String getStyleSheet() {
@@ -73,7 +73,6 @@ public abstract class LanguageSupport {
     }
 
     /**
-     *
      * @return {@link LanguageSupport#languageName}
      */
     public String getLanguageName() {
@@ -81,16 +80,14 @@ public abstract class LanguageSupport {
     }
 
     /**
-     *
      * @param matcher The matcher which the style class should be determined from, calling {@link Matcher#find()} will break highlighting.
      * @return A String which will be used for the pattern, currently this only supports a single String so you cannot return multiple style classes.
-     *         The returned style class should have a matching style in this Language's css file (defined in the constructor).
+     * The returned style class should have a matching style in this Language's css file (defined in the constructor).
      */
     public abstract String styleClass(Matcher matcher);
 
     /**
-     *
-     * @param line The line which the user is typing on.
+     * @param line   The line which the user is typing on.
      * @param editor The relevant ITE
      * @return Return a list of {@link tmw.me.com.ide.IdeSpecialParser.PossiblePiecePackage}, these will be put into the autocomplete popup.
      */
@@ -100,9 +97,12 @@ public abstract class LanguageSupport {
 
     /**
      * This method should be used for adding any additional functionality this language needs onto the IntegratedTextEditor, for example the highlighting of variables in the {@link SfsLanguage} is added here.
+     *
      * @param integratedTextEditor A reference to the {@link IntegratedTextEditor} which all functionality should be added onto.
      */
-    public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) { return null; }
+    public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
+        return null;
+    }
 
     public Behavior[] removeBehaviour(IntegratedTextEditor integratedTextEditor) {
         integratedTextEditor.getErrorLines().clear();
@@ -119,8 +119,9 @@ public abstract class LanguageSupport {
 
     /**
      * This method should only be overridden if {@link LanguageSupport#runnable} is true.
+     *
      * @param textEditor A reference to the text editor this language is attached to.
-     * @param ide A reference to the Ide that is running the code.
+     * @param ide        A reference to the Ide that is running the code.
      */
     public void run(IntegratedTextEditor textEditor, Ide ide) {
         if (ide != null) {
@@ -152,7 +153,7 @@ public abstract class LanguageSupport {
         return usingAutoComplete;
     }
 
-    public StyleSpansFactory<Collection<String>> getCustomStyleSpansFactory(IntegratedTextEditor editor) {
+    public StyleSpansFactory<Collection<String>> getCustomStyleSpansFactory(HighlightableTextEditor editor) {
         return customStyleSpansFactory;
     }
 

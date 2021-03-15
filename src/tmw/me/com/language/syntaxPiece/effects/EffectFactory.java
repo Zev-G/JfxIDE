@@ -28,6 +28,7 @@ public class EffectFactory extends Effect implements SyntaxPieceFactory {
         this.regex = regex;
         this.effectCreationHandler = effectCreationHandler;
     }
+
     public EffectFactory(String regex, EffectCreationHandler effectCreationHandler) {
         this.usage = regex;
         this.regex = regex;
@@ -37,9 +38,11 @@ public class EffectFactory extends Effect implements SyntaxPieceFactory {
     public void activate() {
         ArrayList<Object> arguments = new ArrayList<>();
         int loops = 0;
-        if (CodeChunk.printing) System.out.println("Activating effect w/ regex: " + regex + "\n  With expressionArgs: " + expressionArgs + "\n  From code: " + code);
+        if (CodeChunk.printing)
+            System.out.println("Activating effect w/ regex: " + regex + "\n  With expressionArgs: " + expressionArgs + "\n  From code: " + code);
         for (Class<?> argClass : classes) {
-            if (CodeChunk.printing) System.out.println("On loop class: " + argClass + " On expression factory: " + expressionArgs.get(loops));
+            if (CodeChunk.printing)
+                System.out.println("On loop class: " + argClass + " On expression factory: " + expressionArgs.get(loops));
             if (expressionArgs.size() > loops &&
                     (argClass
                             .isAssignableFrom(
@@ -118,6 +121,7 @@ public class EffectFactory extends Effect implements SyntaxPieceFactory {
         assert effectCreationHandler != null;
         this.effectCreationHandler = effectCreationHandler;
     }
+
     public EffectCreationHandler getEffectCreationHandler() {
         return effectCreationHandler;
     }

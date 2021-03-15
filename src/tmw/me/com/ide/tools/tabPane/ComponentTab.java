@@ -72,7 +72,10 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
         label.setContextMenu(makeContextMenu());
         ToolTipBuilder toolTipBuilder = new ToolTipBuilder();
         toolTipBuilder.headerProperty().bind(label.textProperty());
-        fileProperty.addListener((observableValue, file, t1) -> { if (t1 != null) toolTipBuilder.setMainText(t1.getAbsolutePath()); else toolTipBuilder.setMainText(""); });
+        fileProperty.addListener((observableValue, file, t1) -> {
+            if (t1 != null) toolTipBuilder.setMainText(t1.getAbsolutePath());
+            else toolTipBuilder.setMainText("");
+        });
         label.setTooltip(toolTipBuilder.build());
         init();
         horizontal.getStyleClass().add("dark-split-pane");
@@ -262,11 +265,14 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
     public void setMainNode(Node mainNode) {
         this.mainNode = mainNode;
     }
+
     public Node getMainNode() {
         return mainNode;
     }
 
-    private ComponentTabPane getTabPaneCTP() { return (ComponentTabPane) getTabPane(); }
+    private ComponentTabPane getTabPaneCTP() {
+        return (ComponentTabPane) getTabPane();
+    }
 
     private static ComponentTabPane getTopTabPane(MouseEvent mouseEvent) {
         ComponentTabPane pane = null;
@@ -310,6 +316,7 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
     public Label getLabel() {
         return label;
     }
+
     public void setTitle(String text) {
         this.label.setText(text);
     }
@@ -331,9 +338,11 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
     public File getFile() {
         return fileProperty.get();
     }
+
     public void setFile(File file) {
         fileProperty.set(file);
     }
+
     public ObjectProperty<File> fileProperty() {
         return fileProperty;
     }

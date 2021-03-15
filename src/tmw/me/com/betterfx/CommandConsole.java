@@ -24,6 +24,7 @@ public class CommandConsole extends Console {
         this.cmdPrefix = cmdPrefix;
         init();
     }
+
     public CommandConsole() {
         init();
     }
@@ -97,47 +98,72 @@ public class CommandConsole extends Console {
     }
 
 
-
-
     public void setCommandPrefix(String prefix) {
         this.cmdPrefix = prefix;
     }
+
     public String getCommandPrefix() {
         return this.cmdPrefix;
     }
 
-    public ArrayList<Text> getErrorMessage() { return this.errorMessage; }
-    public void setErrorMessage(Text... texts) { errorMessage.clear(); errorMessage.addAll(Arrays.asList(texts)); }
-    public void addTextsToErrorMessage(Text... texts) { errorMessage.addAll(Arrays.asList(texts)); }
+    public ArrayList<Text> getErrorMessage() {
+        return this.errorMessage;
+    }
+
+    public void setErrorMessage(Text... texts) {
+        errorMessage.clear();
+        errorMessage.addAll(Arrays.asList(texts));
+    }
+
+    public void addTextsToErrorMessage(Text... texts) {
+        errorMessage.addAll(Arrays.asList(texts));
+    }
+
     public ArrayList<ConsoleEvent> getOnErrorMessage() {
         return errorEvent;
     }
+
     public void setOnErrorMessage(ConsoleEvent event) {
         errorEvent.clear();
         errorEvent.add(event);
     }
+
     public void fireErrorSent(String text) {
         for (ConsoleEvent error : errorEvent) {
             error.onInput(text, this);
         }
     }
+
     public Text getStaringErrorWithMessage() {
         return startWithMessageInError;
     }
+
     public void setStartWithMessageInError(Text startWithMessageInError) {
         this.startWithMessageInError = startWithMessageInError;
     }
 
-    public ArrayList<Text> getHelpMessage() { return helpMessage; }
-    public void setHelpMessage(Text... texts) { helpMessage.clear(); helpMessage.addAll(Arrays.asList(texts)); }
-    public void addTextsToHelpMessage(Text... texts) { helpMessage.addAll(Arrays.asList(texts)); }
+    public ArrayList<Text> getHelpMessage() {
+        return helpMessage;
+    }
+
+    public void setHelpMessage(Text... texts) {
+        helpMessage.clear();
+        helpMessage.addAll(Arrays.asList(texts));
+    }
+
+    public void addTextsToHelpMessage(Text... texts) {
+        helpMessage.addAll(Arrays.asList(texts));
+    }
+
     public ArrayList<ConsoleEvent> getOnHelpMessage() {
         return helpEvent;
     }
+
     public void setOnErrorMessageSent(ConsoleEvent event) {
         helpEvent.clear();
         helpEvent.add(event);
     }
+
     public void fireHelpSent(String text) {
         for (ConsoleEvent error : helpEvent) {
             error.onInput(text, this);
@@ -147,6 +173,7 @@ public class CommandConsole extends Console {
     public boolean isNonPrefixExcluded() {
         return excludeNonPrefix;
     }
+
     public void setExcludeNonPrefix(boolean input) {
         this.excludeNonPrefix = input;
     }
@@ -154,10 +181,14 @@ public class CommandConsole extends Console {
     public void addCommand(String command, ConsoleEvent run) {
         commandMap.put(command, run);
     }
+
     public void removeCommand(String command) {
-        if (command.equals("help")) { return; }
+        if (command.equals("help")) {
+            return;
+        }
         commandMap.remove(command);
     }
+
     public HashMap<String, ConsoleEvent> getCommandMap() {
         return commandMap;
     }
@@ -181,6 +212,7 @@ public class CommandConsole extends Console {
         }
         error(command);
     }
+
     public void error(String command) {
         fireErrorSent(command);
         if (startWithMessageInError != null) {
@@ -193,6 +225,7 @@ public class CommandConsole extends Console {
         this.errorMessage.forEach(text -> errorMessage.add(duplicateText(text)));
         addTexts(false, errorMessage.toArray(new Text[0]));
     }
+
     public void help(String command) {
         fireHelpSent(command);
         addText("", true);

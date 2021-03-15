@@ -1,16 +1,14 @@
 package tmw.me.com.ide.codeEditor.languages;
 
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * NOT FINISHED
- * */
+ */
 public class XmlLanguage extends LanguageSupport {
-
-
 
     public XmlLanguage() {
         super("Xml/Fxml");
@@ -30,4 +28,5 @@ public class XmlLanguage extends LanguageSupport {
     public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
         return null;
     }
+
 }

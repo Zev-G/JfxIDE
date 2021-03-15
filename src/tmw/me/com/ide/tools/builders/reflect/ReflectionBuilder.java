@@ -79,6 +79,7 @@ public class ReflectionBuilder<T> extends Builder<T> {
             this.objects = objects;
             this.name = name;
         }
+
         public MethodGrouping(String name) {
             this.name = name;
         }

@@ -18,27 +18,30 @@ public class WhenEventFactory extends Event implements SyntaxPieceFactory {
     private final String regex;
     private EventProcessedHandler eventProcessedHandler;
     private Consumer<Parser> finishedParsing = null;
-    
+
     private final ArrayList<ExpressionFactory<?>> expressionArgs = new ArrayList<>();
     private final ArrayList<Class<?>> classes = new ArrayList<>();
-    
+
     public WhenEventFactory(String usage, String regex, EventProcessedHandler eventProcessedHandler) {
         this.regex = regex;
         this.usage = usage + (usage.endsWith(":") ? "" : ":");
         this.eventProcessedHandler = eventProcessedHandler;
     }
+
     public WhenEventFactory(String regex, EventProcessedHandler eventProcessedHandler) {
         this.regex = regex;
         this.usage = regex + ":";
         this.eventProcessedHandler = eventProcessedHandler;
     }
-    
+
     public void reached() {
         ArrayList<Object> arguments = new ArrayList<>();
         int loops = 0;
-        if (CodeChunk.printing) System.out.println("Activating effect w/ regex: " + regex + "\n  With expressionArgs: " + expressionArgs);
+        if (CodeChunk.printing)
+            System.out.println("Activating effect w/ regex: " + regex + "\n  With expressionArgs: " + expressionArgs);
         for (Class<?> argClass : classes) {
-            if (CodeChunk.printing) System.out.println("On loop class: " + argClass + " On expression factory: " + expressionArgs.get(loops));
+            if (CodeChunk.printing)
+                System.out.println("On loop class: " + argClass + " On expression factory: " + expressionArgs.get(loops));
             if (expressionArgs.size() > loops &&
                     (argClass.isAssignableFrom(expressionArgs.get(loops).getGenericClass())
                             || expressionArgs.get(loops).getGenericClass().isAssignableFrom(argClass))

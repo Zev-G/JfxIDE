@@ -7,10 +7,10 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.languages.addon.AddonLanguageSupport;
 import tmw.me.com.ide.codeEditor.languages.addon.JSONHelper;
 import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.tools.ResizableTextField;
 import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
 import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
@@ -89,8 +89,10 @@ public class AddonEditor extends AnchorPane implements ComponentTabContent<Addon
         VBox.setVgrow(stylesScroller, Priority.ALWAYS);
 
         getChildren().add(horizontalSplitter);
-        AnchorPane.setTopAnchor(horizontalSplitter, TOP_PADDING); AnchorPane.setBottomAnchor(horizontalSplitter, BOTTOM_PADDING);
-        AnchorPane.setRightAnchor(horizontalSplitter, HORIZONTAL_PADDING); AnchorPane.setLeftAnchor(horizontalSplitter, HORIZONTAL_PADDING);
+        AnchorPane.setTopAnchor(horizontalSplitter, TOP_PADDING);
+        AnchorPane.setBottomAnchor(horizontalSplitter, BOTTOM_PADDING);
+        AnchorPane.setRightAnchor(horizontalSplitter, HORIZONTAL_PADDING);
+        AnchorPane.setLeftAnchor(horizontalSplitter, HORIZONTAL_PADDING);
 
         Platform.runLater(() -> leftTopHBox.setMinHeight(stylesField.getHeight()));
     }

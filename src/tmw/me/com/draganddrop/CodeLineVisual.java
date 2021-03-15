@@ -16,7 +16,7 @@ import tmw.me.com.language.syntaxPiece.effects.EffectFactory;
 
 public class CodeLineVisual extends HBox {
 
-    private EffectFactory effect;
+    private final EffectFactory effect;
 
     private double startX;
     private double startY;
@@ -43,8 +43,14 @@ public class CodeLineVisual extends HBox {
         setNodesForEffect();
     }
 
-    public void setNodesForEffect() { setNodesForEffect(effect); }
-    public void setNodesForEffect(EffectFactory effect) { setNodesForEffect(effect.getRegex()); }
+    public void setNodesForEffect() {
+        setNodesForEffect(effect);
+    }
+
+    public void setNodesForEffect(EffectFactory effect) {
+        setNodesForEffect(effect.getRegex());
+    }
+
     public void setNodesForEffect(String code) {
         for (String typePiece : FXScript.PARSER.generateExpressionPiecesFromString(code)) {
             boolean isExpression = typePiece.startsWith("%");
@@ -61,7 +67,6 @@ public class CodeLineVisual extends HBox {
         returnText.setFont(new Font(18));
         return returnText;
     }
-
 
 
 }

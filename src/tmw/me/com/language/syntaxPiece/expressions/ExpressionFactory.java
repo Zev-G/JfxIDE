@@ -30,6 +30,7 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
         this.regex = regex;
         this.expressionCreationHandler = expressionCreationHandler;
     }
+
     public ExpressionFactory(String regex, ExpressionCreationHandler<T> expressionCreationHandler, Class<T> thisClass) {
         super(thisClass);
         this.usage = regex;
@@ -66,7 +67,8 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
         int loops = 0;
         for (Class<?> argClass : classes) {
             if (argClass != null) {
-                if (CodeChunk.printing) System.out.println("On loop class: " + argClass + " On expression factory: " + expressionArgs.get(loops));
+                if (CodeChunk.printing)
+                    System.out.println("On loop class: " + argClass + " On expression factory: " + expressionArgs.get(loops));
                 if (expressionArgs.size() > loops && expressionArgs.size() > 0 &&
                         (argClass.isAssignableFrom(expressionArgs.get(loops).getGenericClass())
                                 || expressionArgs.get(loops).getGenericClass().isAssignableFrom(argClass))
@@ -82,7 +84,8 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
                 System.out.println("Arg class equals null, expression arg in slot: " + expressionArgs.get(loops));
             }
         }
-        if (CodeChunk.printing) System.out.println("Arguments are finished for expression factory: " + this + " (args: " + args + ")");
+        if (CodeChunk.printing)
+            System.out.println("Arguments are finished for expression factory: " + this + " (args: " + args + ")");
         return activateForValue(code, args.toArray());
     }
 
@@ -155,6 +158,7 @@ public class ExpressionFactory<T> extends Expression<T> implements SyntaxPieceFa
         assert expressionCreationHandler != null;
         this.expressionCreationHandler = expressionCreationHandler;
     }
+
     public ExpressionCreationHandler<T> getExpressionCreationHandler() {
         return expressionCreationHandler;
     }

@@ -7,10 +7,10 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import tmw.me.com.language.FXScript;
-import tmw.me.com.language.interpretation.run.CodeChunkBase;
-import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.interpretation.run.CodeChunk;
+import tmw.me.com.language.interpretation.run.CodeChunkBase;
 import tmw.me.com.language.interpretation.run.CodePiece;
+import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.syntaxPiece.effects.EffectFactory;
 import tmw.me.com.language.syntaxPiece.events.WhenEventFactory;
 import tmw.me.com.language.syntaxPiece.expressions.ExpressionFactory;
@@ -29,8 +29,10 @@ public class RunPanel extends AnchorPane {
 
     public RunPanel(CodeChunkBase topChunk) {
         this.getChildren().add(splitPane);
-        AnchorPane.setTopAnchor(splitPane, 0D); AnchorPane.setBottomAnchor(splitPane, 0D);
-        AnchorPane.setRightAnchor(splitPane, 0D); AnchorPane.setLeftAnchor(splitPane, 0D);
+        AnchorPane.setTopAnchor(splitPane, 0D);
+        AnchorPane.setBottomAnchor(splitPane, 0D);
+        AnchorPane.setRightAnchor(splitPane, 0D);
+        AnchorPane.setLeftAnchor(splitPane, 0D);
         this.topChunk = topChunk;
         treeView.setEditable(true);
         TreeItem<CodeChunkBase> topCodeChunk = new TreeItem<>(topChunk);
@@ -50,6 +52,7 @@ public class RunPanel extends AnchorPane {
     public TreeView<CodeChunkBase> getTreeView() {
         return treeView;
     }
+
     public CodeChunkBase getTopChunk() {
         return topChunk;
     }
@@ -68,7 +71,9 @@ public class RunPanel extends AnchorPane {
     }
 
     private Tab getTabForCodeState(CodeChunkBase state) {
-        if (tabFromState.get(state) != null) { return tabFromState.get(state); }
+        if (tabFromState.get(state) != null) {
+            return tabFromState.get(state);
+        }
         VBox topBox = new VBox();
         topBox.setSpacing(15);
         VBox variablesBox = new VBox();

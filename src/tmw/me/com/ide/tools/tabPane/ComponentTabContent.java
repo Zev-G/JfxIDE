@@ -9,13 +9,17 @@ import java.io.File;
 public interface ComponentTabContent<T extends Node & ComponentTabContent<T>> {
 
     T getImportantNode();
+
     Region getMainNode();
+
     void save(File file);
+
     T createNewCopy();
 
     default MenuItem[] addContext() {
         return new MenuItem[0];
     }
+
     default boolean canSplitHorizontally() {
         return true;
     }

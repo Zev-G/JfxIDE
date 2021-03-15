@@ -1,7 +1,7 @@
 package tmw.me.com.ide.codeEditor.highlighting;
 
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,11 +17,12 @@ public class RegexStyleSpansFactory extends StyleSpansFactory<Collection<String>
         this(highlighter.getEditor(), regex);
     }
 
-    public RegexStyleSpansFactory(IntegratedTextEditor editor, Pattern regex) {
+    public RegexStyleSpansFactory(HighlightableTextEditor editor, Pattern regex) {
         super(editor);
         this.regex = regex;
     }
-    public RegexStyleSpansFactory(IntegratedTextEditor editor) {
+
+    public RegexStyleSpansFactory(HighlightableTextEditor editor) {
         super(editor);
     }
 

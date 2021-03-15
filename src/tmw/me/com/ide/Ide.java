@@ -25,9 +25,9 @@ import javafx.stage.Window;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 import tmw.me.com.betterfx.Console;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.fileTreeView.FileTreeView;
 import tmw.me.com.ide.images.Images;
 import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
@@ -168,25 +168,39 @@ public class Ide extends AnchorPane {
         this.getChildren().addAll(verticalSplitPane, bottomBox, sideBox, menuBar, notificationPane, popupPane);
 
         // Layout
-        AnchorPane.setTopAnchor(notificationPane, 13D); AnchorPane.setRightAnchor(notificationPane, 13D);
+        AnchorPane.setTopAnchor(notificationPane, 13D);
+        AnchorPane.setRightAnchor(notificationPane, 13D);
 
-        AnchorPane.setTopAnchor(tabPanesHorizontal, 0D); AnchorPane.setBottomAnchor(tabPanesHorizontal, 0D);
-        AnchorPane.setRightAnchor(tabPanesHorizontal, 0D); AnchorPane.setLeftAnchor(tabPanesHorizontal, 0D);
+        AnchorPane.setTopAnchor(tabPanesHorizontal, 0D);
+        AnchorPane.setBottomAnchor(tabPanesHorizontal, 0D);
+        AnchorPane.setRightAnchor(tabPanesHorizontal, 0D);
+        AnchorPane.setLeftAnchor(tabPanesHorizontal, 0D);
 
-        AnchorPane.setTopAnchor(verticalSplitPane, 26D); AnchorPane.setBottomAnchor(verticalSplitPane, 35D);
-        AnchorPane.setRightAnchor(verticalSplitPane, 8D); AnchorPane.setLeftAnchor(verticalSplitPane, 14D);
-        AnchorPane.setTopAnchor(horizontalSplitPane, 0D); AnchorPane.setBottomAnchor(horizontalSplitPane, 0D);
-        AnchorPane.setRightAnchor(horizontalSplitPane, 0D); AnchorPane.setLeftAnchor(horizontalSplitPane, 0D);
+        AnchorPane.setTopAnchor(verticalSplitPane, 26D);
+        AnchorPane.setBottomAnchor(verticalSplitPane, 35D);
+        AnchorPane.setRightAnchor(verticalSplitPane, 8D);
+        AnchorPane.setLeftAnchor(verticalSplitPane, 14D);
+        AnchorPane.setTopAnchor(horizontalSplitPane, 0D);
+        AnchorPane.setBottomAnchor(horizontalSplitPane, 0D);
+        AnchorPane.setRightAnchor(horizontalSplitPane, 0D);
+        AnchorPane.setLeftAnchor(horizontalSplitPane, 0D);
 
-        AnchorPane.setTopAnchor(topBox, 2D); AnchorPane.setRightAnchor(topBox, 2D);
-        AnchorPane.setBottomAnchor(bottomBox, 11D); AnchorPane.setLeftAnchor(bottomBox, 14D);
+        AnchorPane.setTopAnchor(topBox, 2D);
+        AnchorPane.setRightAnchor(topBox, 2D);
+        AnchorPane.setBottomAnchor(bottomBox, 11D);
+        AnchorPane.setLeftAnchor(bottomBox, 14D);
 
-        AnchorPane.setTopAnchor(sideBox, 26D); AnchorPane.setLeftAnchor(sideBox, 2D);
+        AnchorPane.setTopAnchor(sideBox, 26D);
+        AnchorPane.setLeftAnchor(sideBox, 2D);
 
-        AnchorPane.setTopAnchor(popupPane, 0D); AnchorPane.setRightAnchor(popupPane, 0D);
-        AnchorPane.setBottomAnchor(popupPane, 0D); AnchorPane.setLeftAnchor(popupPane, 0D);
+        AnchorPane.setTopAnchor(popupPane, 0D);
+        AnchorPane.setRightAnchor(popupPane, 0D);
+        AnchorPane.setBottomAnchor(popupPane, 0D);
+        AnchorPane.setLeftAnchor(popupPane, 0D);
 
-        AnchorPane.setTopAnchor(menuBar, 0D); AnchorPane.setLeftAnchor(menuBar, 0D); AnchorPane.setRightAnchor(menuBar, 0D);
+        AnchorPane.setTopAnchor(menuBar, 0D);
+        AnchorPane.setLeftAnchor(menuBar, 0D);
+        AnchorPane.setRightAnchor(menuBar, 0D);
 
         // Listeners
         heightProperty().addListener((observableValue, number, t1) -> emptyPopupPane.setMinHeight(t1.doubleValue() / 5));
@@ -446,6 +460,7 @@ public class Ide extends AnchorPane {
 
 
     }
+
     public Ide(File file) {
         this();
         if (getScene() != null) {
@@ -514,6 +529,7 @@ public class Ide extends AnchorPane {
     public void println(Object print) {
         print(print + "\n");
     }
+
     public void print(Object print) {
         runConsole.addText("" + print, false);
     }
@@ -531,8 +547,10 @@ public class Ide extends AnchorPane {
                 button.setAccessibleText("ACTIVATED");
                 tab.getChildren().clear();
                 tab.getChildren().add(putInTab);
-                AnchorPane.setTopAnchor(putInTab, 0D); AnchorPane.setBottomAnchor(putInTab, 0D);
-                AnchorPane.setRightAnchor(putInTab, 0D); AnchorPane.setLeftAnchor(putInTab, 0D);
+                AnchorPane.setTopAnchor(putInTab, 0D);
+                AnchorPane.setBottomAnchor(putInTab, 0D);
+                AnchorPane.setRightAnchor(putInTab, 0D);
+                AnchorPane.setLeftAnchor(putInTab, 0D);
                 divider.setDividerPositions(newDividerSpot);
                 button.getStyleClass().add("active-button");
             }
@@ -554,9 +572,11 @@ public class Ide extends AnchorPane {
         showPopup();
         this.inputBox.requestFocus();
     }
+
     public void showConfirmation(String confirmText, Consumer<Boolean> gotten) {
         showConfirmation(confirmText, "Confirm", gotten);
     }
+
     public void showConfirmation(String confirmText, String prompt, Consumer<Boolean> gotten) {
         this.confirmText.setText(confirmText);
         this.confirm.setText(prompt);
@@ -580,6 +600,7 @@ public class Ide extends AnchorPane {
         fadeIn.play();
         popupPane.setOnMousePressed(mouseEvent -> hidePopup());
     }
+
     public void hidePopup() {
         FadeTransition fadeOut = new FadeTransition(new Duration(100), popupPane);
         fadeOut.setToValue(0);
@@ -732,6 +753,7 @@ public class Ide extends AnchorPane {
     public void addEditorTab() {
         addEditorTab(null);
     }
+
     public void addEditorTab(File file) {
         tabPane.getTabs().add(getNewEditorTab(file));
     }

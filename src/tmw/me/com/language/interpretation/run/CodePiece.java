@@ -61,6 +61,7 @@ public class CodePiece {
     public Event getEvent() {
         return event;
     }
+
     public int getLine() {
         return line;
     }
@@ -72,8 +73,7 @@ public class CodePiece {
             if (effectParseErrors != null && !effectParseErrors.isEmpty()) {
                 parseErrors.addAll(effectParseErrors);
             }
-        }
-        else if (event != null) {
+        } else if (event != null) {
             Collection<ParseError> eventParseErrors = event.parsed(parser);
             if (eventParseErrors != null && !eventParseErrors.isEmpty()) {
                 parseErrors.addAll(eventParseErrors);

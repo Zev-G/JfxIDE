@@ -5,21 +5,11 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.languages.JavaLanguage;
-import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
-import javax.tools.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
+import javax.tools.SimpleJavaFileObject;
 import java.net.URI;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * This class should be it's own project but isn't right now since it will use tons of utilities from the IDE project.
@@ -61,9 +51,9 @@ public class JavaPlayground extends AnchorPane {
     public static class JavaSourceFromString extends SimpleJavaFileObject {
         final String code;
 
-        public JavaSourceFromString( String name, String code) {
-            super( URI.create("string:///" + name.replace('.','/')
-                    + Kind.SOURCE.extension),Kind.SOURCE);
+        public JavaSourceFromString(String name, String code) {
+            super(URI.create("string:///" + name.replace('.', '/')
+                    + Kind.SOURCE.extension), Kind.SOURCE);
             this.code = code;
         }
 

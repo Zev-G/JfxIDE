@@ -70,6 +70,7 @@ public class ComponentTabPane extends TabPane {
     public SplitPane getHorizontal() {
         return horizontal;
     }
+
     public SplitPane getVertical() {
         return vertical;
     }
@@ -77,6 +78,7 @@ public class ComponentTabPane extends TabPane {
     public void setHorizontal(SplitPane horizontal) {
         this.horizontal = horizontal;
     }
+
     public void setVertical(SplitPane vertical) {
         this.vertical = vertical;
     }

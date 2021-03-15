@@ -3,17 +3,17 @@ package tmw.me.com.ide.codeEditor.highlighting;
 import org.fxmisc.richtext.model.StyleSpan;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
 
 import java.util.*;
 
 public class Highlighter {
 
-    private final IntegratedTextEditor editor;
+    private final HighlightableTextEditor editor;
     private final ArrayList<StyleSpansFactory<Collection<String>>> factories = new ArrayList<>();
 
     @SafeVarargs
-    public Highlighter(IntegratedTextEditor editor, StyleSpansFactory<Collection<String>>... factories) {
+    public Highlighter(HighlightableTextEditor editor, StyleSpansFactory<Collection<String>>... factories) {
         this.editor = editor;
         this.factories.addAll(Arrays.asList(factories));
     }
@@ -87,7 +87,7 @@ public class Highlighter {
         return styles;
     }
 
-    public IntegratedTextEditor getEditor() {
+    public HighlightableTextEditor getEditor() {
         return editor;
     }
 

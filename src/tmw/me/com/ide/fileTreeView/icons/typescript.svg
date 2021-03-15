@@ -2,18 +2,27 @@
 <!-- Generator: Adobe Illustrator 16.0.3, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1"
-	 id="Ebene_1" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" sodipodi:docname="typescript-angular.svg" inkscape:version="0.91 r13725"
-	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="82.375px"
-	 height="81.827px" viewBox="4.087 23.779 82.375 81.827" enable-background="new 4.087 23.779 82.375 81.827" xml:space="preserve"
-	>
-<sodipodi:namedview  id="namedview3574" borderopacity="1" pagecolor="#ffffff" bordercolor="#666666" objecttolerance="10" gridtolerance="10" guidetolerance="10" showgrid="false" inkscape:zoom="1.668772" inkscape:cx="21.651261" inkscape:cy="137.36754" inkscape:current-layer="Ebene_1" inkscape:window-maximized="1" inkscape:window-y="24" inkscape:window-x="55" inkscape:window-height="1056" inkscape:pageshadow="2" inkscape:pageopacity="0" inkscape:window-width="1865">
+     id="Ebene_1" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+     sodipodi:docname="typescript-angular.svg"
+     inkscape:version="0.91 r13725"
+     xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="82.375px"
+     height="81.827px" viewBox="4.087 23.779 82.375 81.827" enable-background="new 4.087 23.779 82.375 81.827"
+     xml:space="preserve"
+>
+<sodipodi:namedview id="namedview3574" borderopacity="1" pagecolor="#ffffff" bordercolor="#666666" objecttolerance="10"
+                    gridtolerance="10" guidetolerance="10" showgrid="false" inkscape:zoom="1.668772"
+                    inkscape:cx="21.651261" inkscape:cy="137.36754" inkscape:current-layer="Ebene_1"
+                    inkscape:window-maximized="1" inkscape:window-y="24" inkscape:window-x="55"
+                    inkscape:window-height="1056" inkscape:pageshadow="2" inkscape:pageopacity="0"
+                    inkscape:window-width="1865">
 	</sodipodi:namedview>
-<g id="Angular2_TypeScript" transform="translate(0.84745763,-31.016949)">
+    <g id="Angular2_TypeScript" transform="translate(0.84745763,-31.016949)">
 	<g id="g3566">
 		<rect id="rect3568" x="3.24" y="54.796" fill="#2279BE" width="82.375" height="81.827"/>
-		<polygon id="polygon3570" fill="#FFFFFF" points="28.563,74.782 13.494,74.782 13.494,69.229 49.8,69.229 49.8,74.782 
+        <polygon id="polygon3570" fill="#FFFFFF" points="28.563,74.782 13.494,74.782 13.494,69.229 49.8,69.229 49.8,74.782
 			34.697,74.782 34.697,121.562 28.563,121.562 		"/>
-		<path id="path3572" inkscape:connector-curvature="0" fill="#FFFFFF" d="M42.828,125.66v-6.562
+        <path id="path3572" inkscape:connector-curvature="0" fill="#FFFFFF" d="M42.828,125.66v-6.562
 			c0.688,0.66,1.508,1.265,2.469,1.791c0.962,0.528,1.971,0.981,3.035,1.339c1.066,0.357,2.131,0.65,3.196,0.85
 			c1.075,0.197,2.064,0.301,2.969,0.301c3.129,0,5.476-0.631,7.023-1.904c1.544-1.271,2.318-3.102,2.318-5.484
 			c0-1.283-0.253-2.396-0.773-3.346c-0.518-0.953-1.225-1.82-2.139-2.604c-0.914-0.781-1.989-1.537-3.233-2.252

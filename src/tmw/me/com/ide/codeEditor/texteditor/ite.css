@@ -10,10 +10,12 @@
 .apply-font {
     -fx-font-family: "JetBrains Mono" !important;
 }
+
 .code-area {
     -fx-background-color: -editor-background-color;
 }
-.code-area .paragraph-box .paragraph-text,.paragraph-text .text{
+
+.code-area .paragraph-box .paragraph-text, .paragraph-text .text {
     -fx-font-family: "JetBrains Mono" !important;
     -fx-font-weight: normal;
     -fx-padding: 0 0 0 3;
@@ -33,6 +35,7 @@
     -fx-background-radius: 0;
     -fx-box-border: none;
 }
+
 .code-area .error-lineno {
     -fx-text-fill: #273245;
     -fx-font-weight: bold;
@@ -53,6 +56,7 @@
     -fx-fill: -editor-selection !important;
     -fx-border-width: 0;
 }
+
 .caret {
     -fx-stroke: white;
 }
@@ -68,6 +72,7 @@
 .mm-viewport {
     -fx-background-color: rgb(255, 255, 255);
 }
+
 .mm-viewport-drag {
     -fx-background-color: rgb(180, 255, 234) !important;
 }

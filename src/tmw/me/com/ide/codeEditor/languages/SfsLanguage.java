@@ -6,9 +6,11 @@ import javafx.scene.text.Text;
 import tmw.me.com.betterfx.TextModifier;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.highlighting.SimpleRangeStyleSpansFactory;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.texteditor.LineGraphicFactory;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
 import tmw.me.com.language.FXScript;
@@ -28,7 +30,7 @@ public class SfsLanguage extends LanguageSupport {
 
     private static final boolean ERROR_HIGHLIGHTING = false;
 
-    private static final String[] KEYWORDS = { "function", "if", "else" };
+    private static final String[] KEYWORDS = {"function", "if", "else"};
     private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
     private static final String COMMENT_PATTERN = "#[^\\n]*";
     private static final String VARIABLE_PATTERN = "\\{([^\"\\\\]|\\\\.)*?}|[^\\s]+(: | = )";
@@ -69,6 +71,7 @@ public class SfsLanguage extends LanguageSupport {
      * This hashmap represents the relationship between a snippet's activation code and it's insert code.
      */
     private static final HashMap<String, String> SNIPPETS = new HashMap<>();
+
     static {
         SNIPPETS.put("@def", "set {stage} to new stage\nset {vbox} to new vbox\nset {button} to new button\nwhen {button} is pressed:\n  set text of {button} to \"Pressed\"\nadd {button} to children of {vbox}\nput {vbox} into {stage}\nset text of {button} to \"Some simple text\"\nshow {stage}");
         SNIPPETS.put("function", "function %type% %name%():");
@@ -82,11 +85,12 @@ public class SfsLanguage extends LanguageSupport {
 
     /**
      * This adds some important functionality to the text editor. The first feature is that all instances of a variable are highlighted.
-     * The second feature is that any lines with an error on them are highlighted on the {@link tmw.me.com.ide.codeEditor.LineGraphicFactory}, this is done by updating {@link IntegratedTextEditor#getErrorLines()}
+     * The second feature is that any lines with an error on them are highlighted on the {@link LineGraphicFactory}, this is done by updating {@link IntegratedTextEditor#getErrorLines()}
      * <p>
-     *     This method makes use of the {@link ChangeListenerScheduler} to stop lag when the cursor is moved around a lot or tons of text is typed repeatedly, if any expensive calculations need to be done
-     *     frequently it is recommended that this class is used.
+     * This method makes use of the {@link ChangeListenerScheduler} to stop lag when the cursor is moved around a lot or tons of text is typed repeatedly, if any expensive calculations need to be done
+     * frequently it is recommended that this class is used.
      * </p>
+     *
      * @param integratedTextEditor A reference to the {@link IntegratedTextEditor} which all functionality should be added onto.
      */
     public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
@@ -135,12 +139,11 @@ public class SfsLanguage extends LanguageSupport {
     }
 
     @Override
-    public StyleSpansFactory<Collection<String>> getCustomStyleSpansFactory(IntegratedTextEditor editor) {
+    public StyleSpansFactory<Collection<String>> getCustomStyleSpansFactory(HighlightableTextEditor editor) {
         return new SimpleRangeStyleSpansFactory(editor, Collections.singleton("selected-word"), highlightedVariables.toArray(new IndexRange[0]));
     }
 
     /**
-     *
      * @return {@link SfsLanguage#PATTERN}
      */
     @Override
@@ -149,26 +152,25 @@ public class SfsLanguage extends LanguageSupport {
     }
 
     /**
-     *
      * @param matcher The matcher which the style class should be determined from, calling {@link Matcher#find()} will break highlighting.
      * @return Connects the matcher group to the style class.
      */
     @Override
     public String styleClass(Matcher matcher) {
         return
-            matcher.group("COMMENT") != null ? "comment" :
-            matcher.group("STRING") != null ? "string" :
-            matcher.group("VARIABLE") != null ? "variable" :
-            matcher.group("INPUT") != null ? "input" :
-            matcher.group("SYNTAX1") != null ? "syntax-start" :
-            matcher.group("SYNTAX2") != null ? "syntax-finish" :
-            matcher.group("NUMBER") != null ? "number" :
-            matcher.group("SPECIAL") != null ? "special" :
-            matcher.group("EXPRESSION") != null ? "expression" :
-            matcher.group("EFFECT") != null ? "effect" :
-            matcher.group("EVENT") != null ? "event" :
-            matcher.group("KEYWORD") != null ? "keyword" :
-            null;
+                matcher.group("COMMENT") != null ? "comment" :
+                        matcher.group("STRING") != null ? "string" :
+                                matcher.group("VARIABLE") != null ? "variable" :
+                                        matcher.group("INPUT") != null ? "input" :
+                                                matcher.group("SYNTAX1") != null ? "syntax-start" :
+                                                        matcher.group("SYNTAX2") != null ? "syntax-finish" :
+                                                                matcher.group("NUMBER") != null ? "number" :
+                                                                        matcher.group("SPECIAL") != null ? "special" :
+                                                                                matcher.group("EXPRESSION") != null ? "expression" :
+                                                                                        matcher.group("EFFECT") != null ? "effect" :
+                                                                                                matcher.group("EVENT") != null ? "event" :
+                                                                                                        matcher.group("KEYWORD") != null ? "keyword" :
+                                                                                                                null;
     }
 
     /**
@@ -198,8 +200,7 @@ public class SfsLanguage extends LanguageSupport {
     }
 
     /**
-     *
-     * @param line The line which the user is typing on.
+     * @param line   The line which the user is typing on.
      * @param editor
      * @return A list of {@link tmw.me.com.ide.IdeSpecialParser.PossiblePiecePackage} which is curated from the possible effect and events grabbed from what the user has punched in and from the valid snippets.
      */
@@ -220,8 +221,9 @@ public class SfsLanguage extends LanguageSupport {
 
     /**
      * This runs the code in the specified textEditor, it also prints the errors to the IDE's console allowing them to be pressed as to highlight their relevant lines.
+     *
      * @param textEditor A reference to the text editor this language is attached to.
-     * @param ide A reference to the Ide that is running the code.
+     * @param ide        A reference to the Ide that is running the code.
      */
     @Override
     public void run(IntegratedTextEditor textEditor, Ide ide) {

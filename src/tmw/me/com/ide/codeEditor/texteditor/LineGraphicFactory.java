@@ -1,4 +1,4 @@
-package tmw.me.com.ide.codeEditor;
+package tmw.me.com.ide.codeEditor.texteditor;
 
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import org.reactfx.collection.LiveList;
 import org.reactfx.value.Val;
@@ -55,6 +56,7 @@ public class LineGraphicFactory implements IntFunction<Node> {
         }
 
         HBox graphicBox = new HBox(lineNo);
+        HBox.setHgrow(graphicBox, Priority.ALWAYS);
 
         integratedTextEditor.getErrorLines().addListener((ListChangeListener<Integer>) change -> {
             if (change.getList().contains(idx + 1)) {
@@ -83,7 +85,7 @@ public class LineGraphicFactory implements IntFunction<Node> {
     }
 
     private String format(int x, int max) {
-        int digits = (int)Math.floor(Math.log10(max)) + 1;
+        int digits = (int) Math.floor(Math.log10(max)) + 1;
         return String.format(this.format.apply(digits), x);
     }
 

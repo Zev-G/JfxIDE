@@ -11,7 +11,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Popup;
 import org.fxmisc.richtext.event.MouseOverTextEvent;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.AutocompletePopup;
 import tmw.me.com.ide.codeEditor.visualcomponents.VisualComponent;
 import tmw.me.com.ide.tools.NodeUtils;

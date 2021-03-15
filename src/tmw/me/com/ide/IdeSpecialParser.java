@@ -1,5 +1,6 @@
 package tmw.me.com.ide;
 
+import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.syntaxPiece.SyntaxPieceFactory;
@@ -17,16 +18,18 @@ public final class IdeSpecialParser {
 
     /**
      * This heavily changed version of {@link tmw.me.com.language.interpretation.parse.Parser#parseSyntaxPiece(String, ArrayList, File, int)} is used to populate the AutoComplete used in {@link tmw.me.com.ide.codeEditor.languages.SfsLanguage}
-     * @param code The code from which the possible pieces are created.
+     *
+     * @param code     The code from which the possible pieces are created.
      * @param pickFrom The list of possible pieces.
-     * @param <T> The type of possible pieces used.
+     * @param <T>      The type of possible pieces used.
      * @return A list of {@link PossiblePiecePackage}
      */
     public static <T extends SyntaxPieceFactory> ArrayList<PossiblePiecePackage> possibleSyntaxPieces(String code, ArrayList<T> pickFrom) {
         code = code.replaceFirst("^\\s+", "");
 //        System.out.println("CODE: " + code);
         ArrayList<PossiblePiecePackage> possiblePiecePackages = new ArrayList<>();
-        pieces: for (T syntaxPieceFactory : pickFrom) {
+        pieces:
+        for (T syntaxPieceFactory : pickFrom) {
             if (syntaxPieceFactory.getUsage().contains("IGNORE")) {
                 continue;
             }
@@ -144,7 +147,7 @@ public final class IdeSpecialParser {
     }
 
     /**
-     * This class contains information that is used in {@link tmw.me.com.ide.codeEditor.IntegratedTextEditor}'s autocomplete system.
+     * This class contains information that is used in {@link IntegratedTextEditor}'s autocomplete system.
      */
     public static class PossiblePiecePackage {
 
@@ -175,11 +178,13 @@ public final class IdeSpecialParser {
             this.notFilledIn = notFilledIn;
             this.putIn = filledIn + notFilledIn;
         }
+
         public PossiblePiecePackage(String filledIn, String notFilledIn, String putIn) {
             this.filledIn = filledIn;
             this.notFilledIn = notFilledIn;
             this.putIn = putIn;
         }
+
         public PossiblePiecePackage(String filledIn, String notFilledIn, String putIn, boolean putInIfFilledIn) {
             this.filledIn = filledIn;
             this.notFilledIn = notFilledIn;
@@ -188,33 +193,33 @@ public final class IdeSpecialParser {
         }
 
         /**
-         *
          * @return The value of {@link PossiblePiecePackage#filledIn}
          */
         public String getFilledIn() {
             return filledIn;
         }
+
         /**
-         *
          * @return The value of {@link PossiblePiecePackage#notFilledIn}
          */
         public String getNotFilledIn() {
             return notFilledIn;
         }
+
         /**
-         *
          * @return The value of {@link PossiblePiecePackage#putIn}
          */
         public String getPutIn() {
             return (notFilledIn.length() > 0 || putInIfNotFilledInIsEmpty) ? putIn : "";
         }
+
         /**
-         *
          * @return The value of {@link PossiblePiecePackage#putInIfNotFilledInIsEmpty}
          */
         public boolean putInIfFilledIn() {
             return putInIfNotFilledInIsEmpty;
         }
+
         /**
          * Sets the value of {@link PossiblePiecePackage#putInIfNotFilledInIsEmpty}
          */
@@ -222,6 +227,7 @@ public final class IdeSpecialParser {
             putInIfNotFilledInIsEmpty = putInIfFilledIn;
             return this;
         }
+
         /**
          * Sets the value of {@link PossiblePiecePackage#replaceLine}
          */
@@ -229,8 +235,8 @@ public final class IdeSpecialParser {
             this.replaceLine = replaceLine;
             return this;
         }
+
         /**
-         *
          * @return The value of {@link PossiblePiecePackage#replaceLine}
          */
         public boolean isReplaceLine() {

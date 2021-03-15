@@ -113,23 +113,23 @@ public class JavaFXAddon extends AddonBase {
             scaleTransition.setToY((double) (Number) values.get(1));
             scaleTransition.play();
         }));
-        effectFactories.add(new EffectFactory("transition x position of %node% to %number% over %number% seconds","transition x position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
+        effectFactories.add(new EffectFactory("transition x position of %node% to %number% over %number% seconds", "transition x position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
             TranslateTransition scaleTransition = new TranslateTransition(Duration.seconds((double) (Number) values.get(2)), (Node) values.get(0));
             scaleTransition.setToX((double) (Number) values.get(1));
             scaleTransition.play();
         }));
-        effectFactories.add(new EffectFactory("transition y position of %node% to %number% over %number% seconds","transition y position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
+        effectFactories.add(new EffectFactory("transition y position of %node% to %number% over %number% seconds", "transition y position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
             TranslateTransition scaleTransition = new TranslateTransition(Duration.seconds((double) (Number) values.get(2)), (Node) values.get(0));
             scaleTransition.setToY((double) (Number) values.get(1));
             scaleTransition.play();
         }));
-        effectFactories.add(new EffectFactory("transition position of %node% to %number% over %number% seconds","transition position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
+        effectFactories.add(new EffectFactory("transition position of %node% to %number% over %number% seconds", "transition position of %node% to %number% over %number% second(s|)", (state, values, args) -> {
             TranslateTransition scaleTransition = new TranslateTransition(Duration.seconds((double) (Number) values.get(2)), (Node) values.get(0));
             scaleTransition.setToX((double) (Number) values.get(1));
             scaleTransition.setToY(((Number) values.get(1)).doubleValue());
             scaleTransition.play();
         }));
-        effectFactories.add(new EffectFactory("transition opacity of %node% to %number% over %number% seconds","transition opacity of %node% to %number% over %number% second(s|)", (state, values, args) -> {
+        effectFactories.add(new EffectFactory("transition opacity of %node% to %number% over %number% seconds", "transition opacity of %node% to %number% over %number% second(s|)", (state, values, args) -> {
             FadeTransition scaleTransition = new FadeTransition(Duration.seconds((double) (Number) values.get(2)), (Node) values.get(0));
             scaleTransition.setToValue((double) (Number) values.get(1));
             scaleTransition.play();
@@ -149,46 +149,98 @@ public class JavaFXAddon extends AddonBase {
 
         effectFactories.add(new EffectFactory("set spacing of vbox %vbox% to %number%", (state, values, args) -> ((VBox) values.get(0)).setSpacing(((Number) values.get(1)).doubleValue())));
         effectFactories.add(new EffectFactory("set spacing of hbox %hbox% to %number%", (state, values, args) -> ((HBox) values.get(0)).setSpacing(((Number) values.get(1)).doubleValue())));
-        
+
         return effectFactories;
     }
 
     @Override
     public ArrayList<WhenEventFactory> addEvents() {
-        
+
         ArrayList<WhenEventFactory> eventFactories = new ArrayList<>();
 
         eventFactories.add(new WhenEventFactory("javafx:", "(|run on )javafx( thread|)", (state, values, event, args) -> Platform.runLater(event::run)));
-        
-        // Mouse Events
-        eventFactories.add(new WhenEventFactory("when %node% is pressed:", "(when|on) %node% is pressed", (state, values, event, args) -> ((Node) values.get(0)).setOnMousePressed(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when %node% is clicked:","(when|on) %node% is clicked", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseClicked(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when mouse drag enters %node%:","(when|on) mouse drag enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseDragEntered(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when mouse drag exits %node%:","(when|on) mouse drag exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseDragExited(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when mouse moves over %node%:","(when|on) mouse moves over %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseMoved(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when %node% is released:","(when|on) %node% is released", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseReleased(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when drag is detected for %node%:","(when|on) drag is detected for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDetected(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when mouse enters %node%:","(when|on) mouse enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseEntered(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when mouse exits %node%:", "(when|on) mouse exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseExited(mouseEvent -> { addMouseEventExpressions(mouseEvent, event.getRunChunk()); event.run(); })));
-        // Drag Events
-        eventFactories.add(new WhenEventFactory("when drag is done for %node%:","(when|on) drag is done for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDone(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when drag is dropped on %node%:","(when|on) drag is dropped on %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDropped(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when drag enters %node%:","(when|on) drag enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragEntered(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when drag exits %node%:","(when|on) drag exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragExited(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when drag is over %node%:","(when|on) drag is over %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragOver(dragEvent -> { addDragEventExpressions(dragEvent, event.getRunChunk()); event.run(); })));
-        // Key Events
-        eventFactories.add(new WhenEventFactory("when key is pressed for %node%:","(when|on) key is pressed for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyPressed(keyEvent -> { addKeyEventExpressions(keyEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when key is released for %node%:","(when|on) key is released for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyReleased(keyEvent -> { addKeyEventExpressions(keyEvent, event.getRunChunk()); event.run(); })));
-        eventFactories.add(new WhenEventFactory("when key is typed for %node%:","(when|on) key is typed for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyTyped(keyEvent -> { addKeyEventExpressions(keyEvent, event.getRunChunk()); event.run(); })));
 
-        eventFactories.add(new WhenEventFactory("when %string-property% changes:","(when|on) %string-property% changes", (state, values, event, args) -> ((StringProperty) values.get(0)).addListener((observableValue, s, t1) -> event.run())));
+        // Mouse Events
+        eventFactories.add(new WhenEventFactory("when %node% is pressed:", "(when|on) %node% is pressed", (state, values, event, args) -> ((Node) values.get(0)).setOnMousePressed(mouseEvent -> {
+            addMouseEventExpressions(mouseEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when %node% is clicked:", "(when|on) %node% is clicked", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseClicked(mouseEvent -> {
+            addMouseEventExpressions(mouseEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when mouse drag enters %node%:", "(when|on) mouse drag enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseDragEntered(mouseEvent -> {
+            addMouseEventExpressions(mouseEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when mouse drag exits %node%:", "(when|on) mouse drag exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseDragExited(mouseEvent -> {
+            addMouseEventExpressions(mouseEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when mouse moves over %node%:", "(when|on) mouse moves over %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseMoved(mouseEvent -> {
+            addMouseEventExpressions(mouseEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when %node% is released:", "(when|on) %node% is released", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseReleased(mouseEvent -> {
+            addMouseEventExpressions(mouseEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when drag is detected for %node%:", "(when|on) drag is detected for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDetected(mouseEvent -> {
+            addMouseEventExpressions(mouseEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when mouse enters %node%:", "(when|on) mouse enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseEntered(mouseEvent -> {
+            addMouseEventExpressions(mouseEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when mouse exits %node%:", "(when|on) mouse exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnMouseExited(mouseEvent -> {
+            addMouseEventExpressions(mouseEvent, event.getRunChunk());
+            event.run();
+        })));
+        // Drag Events
+        eventFactories.add(new WhenEventFactory("when drag is done for %node%:", "(when|on) drag is done for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDone(dragEvent -> {
+            addDragEventExpressions(dragEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when drag is dropped on %node%:", "(when|on) drag is dropped on %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragDropped(dragEvent -> {
+            addDragEventExpressions(dragEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when drag enters %node%:", "(when|on) drag enters %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragEntered(dragEvent -> {
+            addDragEventExpressions(dragEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when drag exits %node%:", "(when|on) drag exits %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragExited(dragEvent -> {
+            addDragEventExpressions(dragEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when drag is over %node%:", "(when|on) drag is over %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnDragOver(dragEvent -> {
+            addDragEventExpressions(dragEvent, event.getRunChunk());
+            event.run();
+        })));
+        // Key Events
+        eventFactories.add(new WhenEventFactory("when key is pressed for %node%:", "(when|on) key is pressed for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyPressed(keyEvent -> {
+            addKeyEventExpressions(keyEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when key is released for %node%:", "(when|on) key is released for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyReleased(keyEvent -> {
+            addKeyEventExpressions(keyEvent, event.getRunChunk());
+            event.run();
+        })));
+        eventFactories.add(new WhenEventFactory("when key is typed for %node%:", "(when|on) key is typed for %node%", (state, values, event, args) -> ((Node) values.get(0)).setOnKeyTyped(keyEvent -> {
+            addKeyEventExpressions(keyEvent, event.getRunChunk());
+            event.run();
+        })));
+
+        eventFactories.add(new WhenEventFactory("when %string-property% changes:", "(when|on) %string-property% changes", (state, values, event, args) -> ((StringProperty) values.get(0)).addListener((observableValue, s, t1) -> event.run())));
         eventFactories.add(new WhenEventFactory("in %number% seconds:", "in %number% second(s|)", (state, values, event, args) -> new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Platform.runLater(event::run); }
-            }, ((Double) (((Double) values.get(0)) * 1000)).longValue()
+                                                                                                                                                           @Override
+                                                                                                                                                           public void run() {
+                                                                                                                                                               Platform.runLater(event::run);
+                                                                                                                                                           }
+                                                                                                                                                       }, ((Double) (((Double) values.get(0)) * 1000)).longValue()
         )));
-        eventFactories.add(new WhenEventFactory("every %number% seconds:","every %number% second(s|)", (state, values, event, args) -> {
+        eventFactories.add(new WhenEventFactory("every %number% seconds:", "every %number% second(s|)", (state, values, event, args) -> {
             ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
             executorService.scheduleAtFixedRate(() -> Platform.runLater(event::run), (long) 0.1, ((Double) (((Double) values.get(0)) * 1000)).longValue(), TimeUnit.MILLISECONDS);
         }));
@@ -201,7 +253,7 @@ public class JavaFXAddon extends AddonBase {
             addEventExpressions(windowEvent, event.getRunChunk());
             event.run();
         })));
-        
+
         return eventFactories;
     }
 
@@ -226,25 +278,31 @@ public class JavaFXAddon extends AddonBase {
             high.put(loopClass, new ArrayList<>());
             highest.put(loopClass, new ArrayList<>());
         }
-        
-        
-        string: {
+
+
+        string:
+        {
             high.get(String.class).add(new ExpressionFactory<>("value of %string-property%", (state, values, args) -> ((StringProperty) values.get(0)).get(), String.class));
             low.get(String.class).add(new ExpressionFactory<>("text of %button%", (state, values, args) -> ((Button) values.get(0)).getText(), String.class));
         }
-        lists: {
-            pane: {
+        lists:
+        {
+            pane:
+            {
                 medium.get(LinkedList.class).add(new ExpressionFactory<>("children of %pane%", (state, values, args) ->
                         new LinkedList<>("children of " + values.get(0).toString(), false, ((Pane) values.get(0)).getChildren(), Node.class), LinkedList.class));
             }
         }
-        stage: {
+        stage:
+        {
             medium.get(Stage.class).add(new ExpressionFactory<>("new stage", "(|new )stage", (state, values, args) -> new Stage(), Stage.class));
         }
-        file: {
+        file:
+        {
             high.get(File.class).add(new ExpressionFactory<>("load file from %string%", "(load file|file loaded) from %string%", (state, values, args) -> new File(values.get(0).toString()), File.class));
         }
-        color: {
+        color:
+        {
             low.get(Color.class).add(new ExpressionFactory<>("web color %string%", "web colo(u|)r %string%", (state, values, args) -> Color.valueOf(values.get(0).toString()), Color.class));
 
             low.get(Color.class).add(new ExpressionFactory<>("blue", ((state, values, args) -> Color.BLUE), Color.class));
@@ -281,26 +339,33 @@ public class JavaFXAddon extends AddonBase {
             low.get(Color.class).add(new ExpressionFactory<>("teal", ((state, values, args) -> Color.TEAL), Color.class));
             low.get(Color.class).add(new ExpressionFactory<>("violet", ((state, values, args) -> Color.VIOLET), Color.class));
         }
-        button: {
+        button:
+        {
             medium.get(Button.class).add(new ExpressionFactory<>("new button", "(|new )button", (state, values, args) -> new Button(), Button.class));
         }
-        label: {
+        label:
+        {
             medium.get(Label.class).add(new ExpressionFactory<>("new label", "(|new )label", (state, values, args) -> new Label(), Label.class));
         }
-        pane: {
+        pane:
+        {
             medium.get(Pane.class).add(new ExpressionFactory<>("new pane", "(|new )pane", (state, values, args) -> new Pane(), Pane.class));
         }
-        vbox: {
+        vbox:
+        {
             medium.get(VBox.class).add(new ExpressionFactory<>("new vbox", "(|new )vbox", (state, values, args) -> new VBox(), VBox.class));
         }
-        hbox: {
+        hbox:
+        {
             medium.get(HBox.class).add(new ExpressionFactory<>("new hbox", "(|new )hbox", (state, values, args) -> new HBox(), HBox.class));
         }
-        stringProperty: {
+        stringProperty:
+        {
             medium.get(StringProperty.class).add(new ExpressionFactory<>("title property of %stage%", (state, values, args) -> ((Stage) values.get(0)).titleProperty(), StringProperty.class));
             medium.get(StringProperty.class).add(new ExpressionFactory<>("text property of %button%", (state, values, args) -> ((Button) values.get(0)).textProperty(), StringProperty.class));
         }
-        background: {
+        background:
+        {
             medium.get(Background.class).add(new ExpressionFactory<>("new background colored %color% with corner radius %number%", "(|new )background colo(u|)red %color% with corner radius %number%", (state, values, args) -> new Background(new BackgroundFill((Color) values.get(0), new CornerRadii((Double) values.get(1)), Insets.EMPTY)), Background.class));
         }
 

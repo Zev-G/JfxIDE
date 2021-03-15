@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="javafx-16-javadoc">
+    <CLASSES />
+    <JAVADOC>
+      <root url="file://$PROJECT_DIR$/../../JavaStuff/openjfx-16/javafx-16-javadoc" />
+    </JAVADOC>
+    <SOURCES />
+  </library>
+</component>

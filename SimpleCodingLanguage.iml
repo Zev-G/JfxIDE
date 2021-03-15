@@ -7,10 +7,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="javafx" level="project" />
     <orderEntry type="library" name="richtextfx-fat-0.10.5" level="project" />
     <orderEntry type="library" name="jfoenix-9.0.10" level="project" />
     <orderEntry type="library" name="jar_files" level="project" />
     <orderEntry type="library" name="gson-2.8.6" level="project" />
+    <orderEntry type="library" name="lib" level="project" />
+    <orderEntry type="library" name="javafx-16-javadoc" level="project" />
   </component>
 </module>

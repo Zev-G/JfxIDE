@@ -21,6 +21,7 @@ public class CodeChunk extends CodeChunkBase {
     public CodeChunk(CodePiece... pieces) {
         this(Arrays.asList(pieces));
     }
+
     public CodeChunk(Collection<CodePiece> pieces) {
         this.pieces.addAll(pieces);
         ALL_CHUNKS.add(this);
@@ -64,6 +65,7 @@ public class CodeChunk extends CodeChunkBase {
     public void setFinished(boolean finished) {
         this.finished = finished;
     }
+
     public boolean isFinished() {
         return finished;
     }
@@ -78,6 +80,7 @@ public class CodeChunk extends CodeChunkBase {
             if (codeState instanceof CodeChunk) ((CodeChunk) codeState).setRanPiece(ranPiece);
         });
     }
+
     public Consumer<CodePiece> getRanPiece() {
         return ranPiece;
     }
@@ -86,6 +89,7 @@ public class CodeChunk extends CodeChunkBase {
     public CodeChunk duplicateWithoutVariables() {
         return duplicateWithoutVariables(parent, holder);
     }
+
     @Override
     public CodeChunk duplicateWithoutVariables(CodeChunkBase parent, Event holder) {
         CodeChunk newState = new CodeChunk(pieces);
@@ -113,10 +117,9 @@ public class CodeChunk extends CodeChunkBase {
     }
 
 
-
     @Override
     public String toString() {
-        return "CodeChunk" + "@" + hashCode() +"{" +
+        return "CodeChunk" + "@" + hashCode() + "{" +
                 "holder=" + holder +
                 ", code='" + code + '\'' +
                 ", children=" + children +

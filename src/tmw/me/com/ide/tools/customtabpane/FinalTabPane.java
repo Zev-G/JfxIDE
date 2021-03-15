@@ -28,11 +28,14 @@ public class FinalTabPane extends AnchorPane {
         tabsHBox.getStyleClass().add("tabs-holder");
 
         getChildren().addAll(contentPane, tabsHBox);
-        AnchorPane.setTopAnchor(tabsHBox, 0D); AnchorPane.setRightAnchor(tabsHBox, 0D);
+        AnchorPane.setTopAnchor(tabsHBox, 0D);
+        AnchorPane.setRightAnchor(tabsHBox, 0D);
         AnchorPane.setLeftAnchor(tabsHBox, 0D);
 
-        AnchorPane.setTopAnchor(contentPane, MIN_TABS_HEIGHT); AnchorPane.setBottomAnchor(contentPane, 0D);
-        AnchorPane.setRightAnchor(contentPane, 0D); AnchorPane.setLeftAnchor(contentPane, 0D);
+        AnchorPane.setTopAnchor(contentPane, MIN_TABS_HEIGHT);
+        AnchorPane.setBottomAnchor(contentPane, 0D);
+        AnchorPane.setRightAnchor(contentPane, 0D);
+        AnchorPane.setLeftAnchor(contentPane, 0D);
 
         if (tabs.length > 0) {
             select(tabs[0]);

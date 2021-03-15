@@ -4,8 +4,9 @@ import javafx.beans.value.ChangeListener;
 
 /**
  * <p>
- *     This class is used for storing and retrieving values for a variable. This variable has a name and can have a listener attached to it.
+ * This class is used for storing and retrieving values for a variable. This variable has a name and can have a listener attached to it.
  * </p>
+ *
  * @param <T> The type of the value stored inside.
  */
 public class Variable<T> {
@@ -22,6 +23,7 @@ public class Variable<T> {
         this.name = name;
         this.global = global;
     }
+
     public Variable(String name, boolean global) {
         this.name = name;
         this.global = global;
@@ -30,6 +32,7 @@ public class Variable<T> {
     public T getValue() {
         return value;
     }
+
     public void setValue(Object value) {
         if (changeListener != null) {
             changeListener.changed(null, this.value, (T) value);
@@ -40,6 +43,7 @@ public class Variable<T> {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }

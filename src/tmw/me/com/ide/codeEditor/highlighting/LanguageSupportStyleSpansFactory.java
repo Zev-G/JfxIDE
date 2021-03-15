@@ -1,12 +1,12 @@
 package tmw.me.com.ide.codeEditor.highlighting;
 
-import tmw.me.com.ide.codeEditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
 
 import java.util.Collection;
 
 public class LanguageSupportStyleSpansFactory extends RegexStyleSpansFactory {
 
-    public LanguageSupportStyleSpansFactory(IntegratedTextEditor editor) {
+    public LanguageSupportStyleSpansFactory(HighlightableTextEditor editor) {
         super(editor);
     }
 

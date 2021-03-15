@@ -28,14 +28,17 @@ public class ToolTipBuilder extends Builder<Tooltip> {
         this.header.set(s);
         return this;
     }
+
     public ToolTipBuilder setMainText(String s) {
         this.mainText.set(s);
         return this;
     }
+
     public ToolTipBuilder setHeaderIcon(String s) {
         this.headerIcon.set(s);
         return this;
     }
+
     public ToolTipBuilder setMainTextIcon(String s) {
         this.mainTextIcon.set(s);
         return this;
@@ -45,14 +48,17 @@ public class ToolTipBuilder extends Builder<Tooltip> {
         this.header = stringProperty;
         return this;
     }
+
     public ToolTipBuilder setMainTextProperty(StringProperty stringProperty) {
         this.mainText = stringProperty;
         return this;
     }
+
     public ToolTipBuilder setHeaderIconProperty(StringProperty stringProperty) {
         this.headerIcon = stringProperty;
         return this;
     }
+
     public ToolTipBuilder setMainTextIconProperty(StringProperty stringProperty) {
         this.mainTextIcon = stringProperty;
         return this;
@@ -135,7 +141,6 @@ public class ToolTipBuilder extends Builder<Tooltip> {
         }
         return tooltip;
     }
-
 
 
 }

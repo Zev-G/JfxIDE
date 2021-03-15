@@ -14,6 +14,7 @@ public abstract class Event extends SyntaxPiece<Event> {
     public void setRunChunk(CodeChunk chunk) {
         this.runChunk = chunk;
     }
+
     public CodeChunk getRunChunk() {
         return runChunk;
     }
@@ -31,6 +32,7 @@ public abstract class Event extends SyntaxPiece<Event> {
     public CodePiece getParent() {
         return parent;
     }
+
     public void setParent(CodePiece parent) {
         this.parent = parent;
     }
@@ -42,9 +44,6 @@ public abstract class Event extends SyntaxPiece<Event> {
     public boolean isTopLevel() {
         return isTopLevel;
     }
-
-
-
 
 
 }
