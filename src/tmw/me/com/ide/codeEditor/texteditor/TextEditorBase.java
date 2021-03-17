@@ -25,7 +25,7 @@ public abstract class TextEditorBase extends CodeArea {
     public static final String STYLE_SHEET = IntegratedTextEditor.class.getResource("ite.css").toExternalForm();
 
     protected final IntegerProperty fontSize = new SimpleIntegerProperty();
-    protected final ArrayList<IntegratedTextEditor> linkedTextEditors = new ArrayList<>();
+    protected final ArrayList<TextEditorBase> linkedTextEditors = new ArrayList<>();
 
     public TextEditorBase() {
         fontSize.addListener(this::fontSizeChanged);
@@ -46,7 +46,7 @@ public abstract class TextEditorBase extends CodeArea {
         this.multiPlainChanges().subscribe(plainTextChanges -> {
             if (alternateIsFocused()) {
                 for (PlainTextChange plainTextChange : plainTextChanges) {
-                    for (IntegratedTextEditor link1 : linkedTextEditors) {
+                    for (TextEditorBase link1 : linkedTextEditors) {
                         if (link1.getScene() != null && link1 != this && !link1.getText().equals(this.getText())) {
                             if (plainTextChange.getRemoved().length() > 0) {
                                 link1.deleteText(plainTextChange.getPosition(), plainTextChange.getRemovalEnd());
@@ -113,25 +113,29 @@ public abstract class TextEditorBase extends CodeArea {
         return text;
     }
 
-    public static void linkITEs(IntegratedTextEditor... links) {
+    public static void linkITEs(TextEditorBase... links) {
 
         if (links.length > 1) {
-            List<IntegratedTextEditor> linksList = Arrays.asList(links);
-            for (IntegratedTextEditor link : links) {
-                ArrayList<IntegratedTextEditor> listWithoutSelf = new ArrayList<>(linksList);
+            List<TextEditorBase> linksList = Arrays.asList(links);
+            for (TextEditorBase link : links) {
+                ArrayList<TextEditorBase> listWithoutSelf = new ArrayList<>(linksList);
                 listWithoutSelf.remove(link);
-                link.linkToITEs(listWithoutSelf.toArray(new IntegratedTextEditor[0]));
+                link.linkToITEs(listWithoutSelf.toArray(new TextEditorBase[0]));
             }
         }
     }
 
-    public void linkToITEs(IntegratedTextEditor... links) {
+    public ArrayList<TextEditorBase> getLinkedTextEditors() {
+        return linkedTextEditors;
+    }
+
+    public void linkToITEs(TextEditorBase... links) {
         this.linkedTextEditors.addAll(Arrays.asList(links));
         recursivelyChangeLinkedITEs();
     }
 
     protected void recursivelyChangeLinkedITEs() {
-        for (IntegratedTextEditor link : linkedTextEditors) {
+        for (TextEditorBase link : linkedTextEditors) {
             if (!link.getLinkedTextEditors().equals(linkedTextEditors)) {
                 link.getLinkedTextEditors().clear();
                 link.getLinkedTextEditors().addAll(linkedTextEditors);

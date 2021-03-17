@@ -1,16 +1,15 @@
 package tmw.me.com.ide.codeEditor;
 
 import javafx.application.Platform;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import org.fxmisc.richtext.TextExt;
-import org.fxmisc.richtext.model.Paragraph;
-import org.fxmisc.richtext.model.StyleSpan;
+import org.fxmisc.flowless.VirtualizedScrollPane;
+import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
-
-import java.util.Collection;
+import tmw.me.com.ide.codeEditor.texteditor.TextEditorBase;
 
 /**
  * Not Done
@@ -18,7 +17,29 @@ import java.util.Collection;
  */
 public class MiniMap extends AnchorPane {
 
-    private final VBox box = new VBox();
+    private final HighlightableTextEditor linkedEditor = new HighlightableTextEditor() {
+
+        @Override
+        public void onHighlight() {
+
+        }
+
+        @Override
+        protected void languageChanged(LanguageSupport oldLang, LanguageSupport newLang) {
+            highlight();
+        }
+
+        @Override
+        protected boolean alternateIsFocused() {
+            return false;
+        }
+
+        @Override
+        protected void fontSizeChanged(ObservableValue<? extends Number> observable, Number oldVal, Number newVal) {
+            syncViewportHeight(linkedTo);
+        }
+
+    };
     private final Pane viewPort = new Pane();
 
     private boolean linked = false;
@@ -29,12 +50,25 @@ public class MiniMap extends AnchorPane {
     private final static double VP_INITIAL_OPACITY = 0.045;
     private final static double VP_HOVER_OPACITY = 0.075;
 
+    private IntegratedTextEditor linkedTo;
+
+    private final VirtualizedScrollPane<HighlightableTextEditor> minimapContainer = new VirtualizedScrollPane<>(linkedEditor, ScrollPane.ScrollBarPolicy.NEVER, ScrollPane.ScrollBarPolicy.NEVER);
+
     public MiniMap() {
-        getChildren().addAll(box, viewPort);
-        box.maxWidthProperty().bind(maxWidthProperty());
-        AnchorPane.setLeftAnchor(box, 0D);
-        AnchorPane.setRightAnchor(box, 0D);
-        AnchorPane.setTopAnchor(box, 0D);
+        getChildren().addAll(minimapContainer, viewPort);
+        linkedEditor.maxWidthProperty().bind(minimapContainer.maxWidthProperty());
+//        heightProperty().addListener((observableValue, number, t1) -> minimapContainer.setPrefHeight(t1.doubleValue()));
+//        widthProperty().addListener((observableValue, number, t1) -> minimapContainer.setPrefWidth(t1.doubleValue()));
+//        heightProperty().addListener((observableValue, number, t1) -> linkedEditor.setPrefHeight(t1.doubleValue()));
+//        widthProperty().addListener((observableValue, number, t1) -> linkedEditor.setPrefWidth(t1.doubleValue()));
+
+        AnchorPane.setLeftAnchor(minimapContainer, 0D);
+        AnchorPane.setRightAnchor(minimapContainer, 0D);
+        AnchorPane.setTopAnchor(minimapContainer, 0D);
+        AnchorPane.setBottomAnchor(minimapContainer, 0D);
+
+//        AnchorPane.setTopAnchor(linkedEditor, 0D);
+//        AnchorPane.setBottomAnchor(linkedEditor, 0D);
 
         AnchorPane.setLeftAnchor(viewPort, 0D);
         AnchorPane.setRightAnchor(viewPort, 0D);
@@ -51,12 +85,22 @@ public class MiniMap extends AnchorPane {
             return;
         }
         linked = true;
-        // Keep Minimap text and style synced to ITE
-        updateToITE(ite);
-        ite.richChanges().subscribe(collectionStringCollectionRichTextChange -> Platform.runLater(() -> updateToITE(ite)));
-        // Stylesheet initialization and synchronization
-        this.getStylesheets().addAll(ite.getLanguage().getStyleSheet(), IntegratedTextEditor.STYLE_SHEET);
-        ite.languageSupportProperty().addListener((observableValue, languageSupport, t1) -> this.getStylesheets().setAll(t1.getStyleSheet(), IntegratedTextEditor.STYLE_SHEET));
+        linkedTo = ite;
+
+        linkedEditor.setStyle("-fx-font-size: 4 !important;");
+        linkedEditor.setMouseTransparent(true);
+        linkedEditor.setEditable(false);
+        linkedEditor.getStylesheets().add(MiniMap.class.getResource("minimap.css").toExternalForm());
+        minimapContainer.setMouseTransparent(true);
+        ite.caretPositionProperty().addListener((observableValue, integer, t1) -> Platform.runLater(() -> {
+            if (t1 == ite.getCaretPosition() && linkedEditor.getText().length() >= t1)
+                linkedEditor.displaceCaret(t1);
+        }));
+        ite.languageSupportProperty().addListener((observableValue, support, t1) -> linkedEditor.setLanguageSupport(t1.toSupplier().get()));
+        ite.selectionProperty().addListener((observableValue, indexRange, t1) -> linkedEditor.selectRange(t1.getStart(), t1.getEnd()));
+        TextEditorBase.linkITEs(ite, linkedEditor);
+
+
         // Scroll functionality, both visual and technical
         viewPort.setOnMousePressed(mouseEvent -> {
             viewPortDragStartLayoutY = viewPort.getLayoutY();
@@ -74,69 +118,56 @@ public class MiniMap extends AnchorPane {
         });
         viewPort.setOnMouseDragged(mouseEvent -> {
             double newLayoutY = viewPortDragStartLayoutY + (mouseEvent.getSceneY() - viewPortDragStartSceneY);
-            if (newLayoutY > (box.getHeight() - viewPort.getHeight())) {
-                newLayoutY = box.getHeight() - viewPort.getHeight();
+            if (newLayoutY > (linkedEditor.getTotalHeightEstimate() - viewPort.getHeight())) {
+                newLayoutY = linkedEditor.getTotalHeightEstimate() - viewPort.getHeight();
             }
             if (newLayoutY < 0) {
                 newLayoutY = 0;
             }
             viewPort.setLayoutY(newLayoutY);
-            double relativeITELocation = (newLayoutY / box.getHeight()) * ite.getTotalHeightEstimate();
+            double relativeITELocation = (newLayoutY / linkedEditor.getTotalHeightEstimate()) * ite.getTotalHeightEstimate();
             ite.scrollYToPixel(relativeITELocation);
-        });
-        // Sync the selected paragraph of the ITE with that of the Minimap
-        ite.currentParagraphProperty().addListener((observableValue, integer, t1) -> {
-            if (t1 >= 0 && t1 < box.getChildren().size()) {
-                box.getChildren().get(t1).getStyleClass().add("has-caret");
-            }
-            if (integer >= 0 && integer < box.getChildren().size()) {
-                box.getChildren().get(integer).getStyleClass().remove("has-caret");
-            }
         });
 
         // Link the y-position of the viewPort to the y-position of the ITE
         viewPort.setLayoutY(ite.getEstimatedScrollY());
         ite.estimatedScrollYProperty().addListener((observable, number, t1) -> {
-            double relativeBoxHeight = (t1 / ite.getTotalHeightEstimate()) * box.getHeight();
-            viewPort.setLayoutY(relativeBoxHeight);
+            Platform.runLater(() -> {
+                try {
+                    double relativeBoxHeight = (t1 / ite.getTotalHeightEstimate()) * linkedEditor.getTotalHeightEstimate();
+                    viewPort.setLayoutY(relativeBoxHeight);
+                    syncViewportScroll(ite);
+                } catch (NullPointerException ignored) {
+                    // Sadly idk why this is happening D:, doesn't seem to be causing any issues at least.
+                }
+            });
         });
         // Link the height of the viewPort to the shown height of the ITE
-        Platform.runLater(() -> {
-            double relativeBoxHeight = (ite.getViewportHeight() / ite.getTotalHeightEstimate()) * box.getHeight();
-            viewPort.setMinHeight(relativeBoxHeight);
-        });
+        Platform.runLater(() -> syncViewportHeight(ite));
         ite.heightProperty().addListener((observableValue, number, t1) ->
-                Platform.runLater(() -> {
-                            double relativeBoxHeight = (ite.getVirtualizedScrollPane().getHeight() / ite.getTotalHeightEstimate()) * box.getHeight();
-                            viewPort.setMinHeight(relativeBoxHeight);
-                        }
+                Platform.runLater(() -> syncViewportHeight(ite)
                 ));
     }
 
-    private void updateToITE(IntegratedTextEditor ite) {
-        box.getChildren().clear();
-        for (int i = 0; i < ite.getParagraphs().size(); i++) {
-            HBox paragraph = new HBox();
+    public VirtualizedScrollPane<HighlightableTextEditor> getMinimapContainer() {
+        return minimapContainer;
+    }
 
-            Paragraph<Collection<String>, String, Collection<String>> paragraphObj = ite.getParagraph(i);
-
-            int location = 0;
-            for (StyleSpan<Collection<String>> styleSpan : ite.getStyleSpans(i)) {
-                String textForSpan = paragraphObj.getText().substring(location, location + styleSpan.getLength());
-                TextExt textExt = new TextExt(textForSpan);
-//                textExt.setFont(Font.font("Montserrat", FontWeight.findByName(textExt.getFont().getStyle()), scale));
-                textExt.setMouseTransparent(true);
-                textExt.getStyleClass().addAll(styleSpan.getStyle());
-                textExt.getStyleClass().add("minimap-text");
-                paragraph.getChildren().add(textExt);
-                location += styleSpan.getLength();
-            }
-            if (i == ite.getCurrentParagraph()) {
-                paragraph.getStyleClass().add("has-caret");
-            }
-            box.getChildren().add(paragraph);
+    private void syncViewportScroll(IntegratedTextEditor ite) {
+        double dif = linkedEditor.getTotalHeightEstimate() - minimapContainer.getHeight();
+        if (dif > 0) {
+            double viewPortPercentage = viewPort.getLayoutY() / minimapContainer.getHeight();
+            double scrollTo = dif - (dif * viewPortPercentage);
+            scrollTo = getHeight() - scrollTo;
+            minimapContainer.scrollYToPixel(scrollTo);
         }
     }
+
+    private void syncViewportHeight(IntegratedTextEditor ite) {
+        double relativeBoxHeight = (ite.getVirtualizedScrollPane().getHeight() / ite.getTotalHeightEstimate()) * linkedEditor.getTotalHeightEstimate();
+        viewPort.setMinHeight(relativeBoxHeight);
+    }
+
 
 
 }

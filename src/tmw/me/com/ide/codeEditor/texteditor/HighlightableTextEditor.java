@@ -126,5 +126,17 @@ public abstract class HighlightableTextEditor extends LanguageControlledTextEdit
 
     }
 
+    public static HighlightableTextEditor controlFrom(HighlightableTextEditor from, HighlightableTextEditor to) {
+        linkITEs(from, to);
+        to.setEditable(false);
+        from.caretPositionProperty().addListener((observableValue, integer, t1) -> Platform.runLater(() -> {
+            if (t1 == from.getCaretPosition() && to.getText().length() >= t1)
+                to.displaceCaret(t1);
+        }));
+        from.languageSupportProperty().addListener((observableValue, support, t1) -> to.setLanguageSupport(t1.toSupplier().get()));
+        from.selectionProperty().addListener((observableValue, indexRange, t1) -> to.selectRange(t1.getStart(), t1.getEnd()));
+        return to;
+    }
+
 
 }

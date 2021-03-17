@@ -31,7 +31,6 @@ import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -101,6 +100,14 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
             textAreaHolder.getChildren().add(1, miniMap);
         }
 
+//        Minimap minimap = new Minimap();
+//        minimap.link(this);
+//        Stage stage = new Stage();
+//        stage.setScene(new Scene(minimap));
+//        stage.show();
+
+        setContextMenu(generateContextMenu());
+
         // Some other listeners
         parentProperty().addListener((observableValue, parent, t1) -> {
             if (t1 != virtualizedScrollPane && t1 != null)
@@ -122,10 +129,10 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
             if (loopSupport != null && !loopSupport.getName().equals(languageSupport.getLanguageName())) {
                 currentLanguage.getItems().add(loopSupport);
             } else {
-                currentLanguage.getItems().add(languageSupport.toSupplier());
+                currentLanguage.getItems().add(languageSupport.toSimpleSupplier());
             }
         }
-        currentLanguage.getSelectionModel().select(languageSupport.toSupplier());
+        currentLanguage.getSelectionModel().select(languageSupport.toSimpleSupplier());
         currentLanguage.getSelectionModel().selectedItemProperty().addListener((observableValue, languageSupport1, t1) -> languageSupportProperty().set(t1.get()));
 
         behaviors.addListener((ListChangeListener<Behavior>) change -> {
@@ -230,12 +237,24 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
                 miniMap.setMinWidth(t1.doubleValue() / divideBy);
                 AnchorPane.setRightAnchor(virtualizedScrollPane, getWidth() / divideBy);
             });
+            virtualizedScrollPane.heightProperty().addListener((observableValue, number, t1) -> miniMap.getMinimapContainer().setMaxHeight(t1.doubleValue()));
             miniMap.setMaxWidth(getWidth() / divideBy);
             miniMap.setMinWidth(getWidth() / divideBy);
+            miniMap.getMinimapContainer().setMaxHeight(virtualizedScrollPane.getHeight());
             AnchorPane.setRightAnchor(miniMap, 0D);
             AnchorPane.setTopAnchor(miniMap, 0D);
             AnchorPane.setBottomAnchor(miniMap, 15D);
         }
+    }
+
+    private ContextMenu generateContextMenu() {
+        ContextMenu menu = new ContextMenu();
+        MenuItem copy = new MenuItem("Copy");
+        copy.setOnAction(actionEvent -> super.copy());
+        MenuItem paste = new MenuItem("Paste");
+        paste.setOnAction(actionEvent -> super.paste());
+        menu.getItems().addAll(copy, paste);
+        return menu;
     }
 
     @Override
@@ -458,9 +477,6 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
         return errorLines;
     }
 
-    public ArrayList<IntegratedTextEditor> getLinkedTextEditors() {
-        return linkedTextEditors;
-    }
 
     @Override
     public IntegratedTextEditor getImportantNode() {

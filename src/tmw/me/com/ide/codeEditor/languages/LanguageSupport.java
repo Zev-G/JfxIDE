@@ -157,7 +157,7 @@ public abstract class LanguageSupport {
         return customStyleSpansFactory;
     }
 
-    public LanguageSupplier<LanguageSupport> toSupplier() {
+    public LanguageSupplier<LanguageSupport> toSimpleSupplier() {
         if (thisSupplier == null) {
             thisSupplier = new LanguageSupplier<>() {
                 @Override
@@ -170,6 +170,13 @@ public abstract class LanguageSupport {
                     return getLanguageName();
                 }
             };
+        }
+        return thisSupplier;
+    }
+
+    public LanguageSupplier<LanguageSupport> toSupplier() {
+        if (thisSupplier == null) {
+            thisSupplier = LanguageSupplier.fromLanguage(this);
         }
         return thisSupplier;
     }

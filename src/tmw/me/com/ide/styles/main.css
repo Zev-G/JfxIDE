@@ -441,6 +441,13 @@
 
 .context-menu {
     -fx-background-color: -darkest-background-color;
+    -fx-background-radius: 5;
+    -fx-effect: dropshadow(gaussian, -darkest-background-color, 15, 0.2, 0.0, 0);
+}
+.context-menu > * > .separator > .line {
+    -fx-border-color: -fx-background;
+    -fx-background-color: -fx-background;
+    -fx-fill: -fx-background;
 }
 
 .tab-pane > .tab-header-area > .headers-region > .tab:selected {
@@ -468,7 +475,7 @@
 }
 
 .selected-syntax {
-    -fx-background-color: -lighter-background-color;;
+    -fx-background-color: -lighter-background-color;
     -fx-alignment: center-left;
 }
 
@@ -483,7 +490,7 @@
 .syntax-box {
     -fx-padding: 0 5 0 5;
     -fx-border-color: -darkest-background-color;
-    -fx-border-width: 0 0 0.15em 0
+    -fx-border-width: 0 0 0.15em 0;
 }
 
 .auto-complete-parent {
@@ -594,15 +601,4 @@
 
 .language-choice-box {
     -fx-background-color: -darker-background-color;
-}
-
-.context-menu > * > .separator > .line {
-    -fx-border-color: -fx-background;
-    -fx-background-color: -fx-background;
-    -fx-fill: -fx-background;
-}
-
-.context-menu {
-    -fx-background-radius: 5;
-    -fx-effect: dropshadow(gaussian, -darkest-background-color, 15, 0.2, 0.0, 0);
 }
