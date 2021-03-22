@@ -64,7 +64,7 @@ public abstract class TextEditorBase extends CodeArea {
             }
         });
 
-        Platform.runLater(() -> setFontSize(18));
+        Platform.runLater(() -> setFontSize(IdeSettings.getEditorJSON().fontSize));
     }
 
     protected void fontSizeChanged(ObservableValue<? extends Number> observable, Number oldVal, Number newVal) {

@@ -16,7 +16,12 @@ public final class Resources {
 
     public static InputStream getAsStream(String path) {
         ClassLoader loader = Resources.class.getClassLoader();
-        return Objects.requireNonNull(loader.getResourceAsStream(path));
+        return loader.getResourceAsStream(path);
+    }
+
+    public static Object get(String path) {
+        ClassLoader loader = Resources.class.getClassLoader();
+        return loader.getResource(path);
     }
 
 }

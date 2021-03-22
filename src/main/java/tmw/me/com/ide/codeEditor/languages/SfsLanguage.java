@@ -253,7 +253,6 @@ public class SfsLanguage extends LanguageSupport {
             System.out.println("Finished Parsing. Running");
             chunk.run();
         }
-//        Parser parser = new Parser(SyntaxManager.SYNTAX_MANAGER, parseError -> {});
 
     }
 

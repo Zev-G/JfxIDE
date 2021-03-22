@@ -80,6 +80,12 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
         init();
         horizontal.getStyleClass().add("dark-split-pane");
         vertical.getStyleClass().add("dark-split-pane");
+
+        selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                node.onSelected();
+            }
+        });
     }
 
     private void init() {
@@ -353,4 +359,9 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
         }
         return ide;
     }
+
+    public boolean isDuplicable() {
+        return value.canSplitHorizontally();
+    }
+
 }

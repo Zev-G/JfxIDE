@@ -31,6 +31,11 @@ public class EditorTooltip extends Popup implements VisualComponent<EditorToolti
 
     private Collection<String> hoverStyle;
 
+    private double startScreenX;
+    private double startScreenY;
+    private double startPopupX;
+    private double startPopupY;
+
     public EditorTooltip(IntegratedTextEditor editor) {
         getContent().add(content);
         this.editor = editor;
@@ -54,6 +59,19 @@ public class EditorTooltip extends Popup implements VisualComponent<EditorToolti
             }
         });
         editor.addEventFilter(MouseEvent.MOUSE_MOVED, new TooltipMovedScheduler(this));
+
+        content.addEventFilter(MouseEvent.MOUSE_PRESSED, event ->  {
+            startScreenX = event.getScreenX();
+            startScreenY = event.getScreenY();
+            startPopupX = this.getX();
+            startPopupY = this.getY();
+        });
+        content.addEventFilter(MouseEvent.MOUSE_DRAGGED, dragEvent -> {
+            double difX = startPopupX + (dragEvent.getScreenX() - startScreenX);
+            double difY = startPopupY + (dragEvent.getScreenY() - startScreenY);
+            setX(difX);
+            setY(difY);
+        });
 //        content.addEventFilter(MouseEvent.MOUSE_EXITED, event -> hide());
     }
 

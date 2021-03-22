@@ -1,12 +1,17 @@
 package tmw.me.com.ide.tools;
 
 import javafx.animation.FadeTransition;
+import javafx.beans.value.WritableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+
+import java.util.function.Consumer;
 
 public final class NodeUtils {
 
@@ -45,6 +50,45 @@ public final class NodeUtils {
 
     public static Color copyWithoutOpacity(Color color) {
         return Color.web(colorToWeb(color));
+    }
+
+    public static Node divider(double height, double horizontalPadding, double verticalPadding) {
+        Pane visualLine = new Pane();
+        visualLine.setMinHeight(height);
+        visualLine.getStyleClass().add("black-background");
+        HBox container = new HBox(visualLine);
+        HBox.setHgrow(visualLine, Priority.ALWAYS);
+        container.setPadding(new Insets(verticalPadding, horizontalPadding, verticalPadding, horizontalPadding));
+        return container;
+    }
+
+    public static <T> WritableValue<T> writableFromConsumer(Consumer<T> consumer) {
+        return new WritableValue<>() {
+            @Override
+            public T getValue() {
+                return null;
+            }
+
+            @Override
+            public void setValue(T value) {
+                consumer.accept(value);
+            }
+        };
+    }
+
+    public static ScrollPane getNotCachedScrollPane() {
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.skinProperty().addListener((observable, oldValue, newValue) -> {
+            StackPane stackPane = (StackPane) scrollPane.lookup("ScrollPane .viewport");
+            stackPane.setCache(false);
+        });
+        return scrollPane;
+    }
+
+    public static AnchorPane wrapNode(Node node) {
+        AnchorPane anchorPane = new AnchorPane(node);
+        NodeUtils.anchor(node);
+        return anchorPane;
     }
 
 }

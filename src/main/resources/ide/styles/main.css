@@ -16,8 +16,64 @@
     -highlight-color: #b94646;
 }
 
+.json-node {
+    -fx-text-fill: -default-text-color;
+    -fx-fill: -default-text-color;
+}
+
+.editable-json-node {
+    -fx-padding: 0.15em !important;
+    -fx-background-color: -main-background-color !important;
+}
+
+.json-titled-pane > .title {
+    -fx-background-color: transparent;
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+}
+
+.json-titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: white;
+}
+.json-titled-pane > .title > .arrow-button > .arrow:selected {
+    -fx-background-color: white;
+    -fx-effect: none;
+}
+.json-titled-pane > .title > .arrow-button:selected {
+    -fx-background-color: white;
+    -fx-effect: none;
+}
+
+.json-titled-pane > .content {
+    -fx-border-color: transparent;
+    -fx-padding: 0 0 0 18;
+}
+.json-list-vbox {
+    -fx-border-color: -darkest-background-color;
+    -fx-border-width: 0 0 0 3;
+}
+.json-value-title {
+
+}
+
 .white-text {
     -fx-text-fill: white !important;
+    -fx-fill: white;
+}
+
+.black-background {
+    -fx-background-color: -fx-near-black;
+}
+
+.check-box .box {
+    -fx-background-color: -lighter-background-color;
+    -fx-border-color: -fx-near-black;
+    -fx-border-width: 1;
+}
+.check-box:selected > .box > .mark,
+.check-box:indeterminate  > .box > .mark {
+    /* modify mark color */
+    -fx-background-color: white;
 }
 
 .selector-item {
@@ -210,7 +266,7 @@
 }
 
 .fr-error {
-    -fx-background-color: #c34c3c;
+    -fx-background-color: #c34c3c !important;
 }
 
 .choice-box {

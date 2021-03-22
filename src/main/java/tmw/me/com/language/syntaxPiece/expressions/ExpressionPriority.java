@@ -48,7 +48,11 @@ public enum ExpressionPriority {
     /**
      * Highest priority: Use only for type declaration.
      */
-    HIGHEST
+    HIGHEST;
+
+    public int i = 0;
+
+    int y = -3;
 
 
 }

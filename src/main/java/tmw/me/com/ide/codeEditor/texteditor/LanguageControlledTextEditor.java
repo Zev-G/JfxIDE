@@ -1,5 +1,6 @@
 package tmw.me.com.ide.codeEditor.texteditor;
 
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
@@ -25,7 +26,10 @@ public abstract class LanguageControlledTextEditor extends TextEditorBase {
         });
 
         // Language
-        this.languageSupport.set(languageSupport);
+        Platform.runLater(() -> {
+            this.languageSupport.set(languageSupport);
+            highlight();
+        });
     }
 
     protected abstract void languageChanged(LanguageSupport oldLang, LanguageSupport newLang);

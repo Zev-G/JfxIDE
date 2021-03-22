@@ -10,8 +10,6 @@ import tmw.me.com.ide.codeEditor.highlighting.Highlighter;
 import tmw.me.com.ide.codeEditor.highlighting.LanguageSupportStyleSpansFactory;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
-import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
-import tmw.me.com.ide.tools.concurrent.schedulers.ConsumerEventScheduler;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +19,8 @@ public abstract class HighlightableTextEditor extends LanguageControlledTextEdit
 
     private Highlighter highlighter = new Highlighter(this, new LanguageSupportStyleSpansFactory(this));
     private boolean highlightOnCaretMove = false;
+
+    private HighlightingThread stylingThread;
 
     public HighlightableTextEditor() {
         super();
@@ -33,13 +33,9 @@ public abstract class HighlightableTextEditor extends LanguageControlledTextEdit
     }
 
     private void init() {
-        this.plainTextChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(new ConsumerEventScheduler<>(150, false, plainTextChange -> highlight()));
+        this.plainTextChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(plainTextChange -> highlight());
 
-        caretPositionProperty().addListener(new ChangeListenerScheduler<>(150, (observableValue, integer, t1) -> {
-            if (highlightOnCaretMove) {
-                highlight();
-            }
-        }));
+        caretPositionProperty().addListener(((observable, oldValue, newValue) -> highlight()));
     }
 
     public TextExt copySegment(StyledSegment<String, Collection<String>> segment) {
@@ -76,9 +72,13 @@ public abstract class HighlightableTextEditor extends LanguageControlledTextEdit
      * Computes and applies the highlighting on a separate thread.
      */
     public void highlight() {
-        HighlightingThread highlightingThread = new HighlightingThread(this);
-        highlightingThread.setText(this.getText());
-        highlightingThread.start();
+        if (stylingThread != null && stylingThread.isAlive()) {
+            stylingThread.interrupt();
+        }
+        stylingThread = new HighlightingThread(this);
+
+        stylingThread.setText(this.getText());
+        stylingThread.start();
     }
 
     public abstract void onHighlight();
@@ -112,21 +112,27 @@ public abstract class HighlightableTextEditor extends LanguageControlledTextEdit
         }
 
         private void computeHighlighting() {
-            Pattern pattern = editor.languageSupport.get().generatePattern();
-            if (pattern != null) {
-                StyleSpans<Collection<String>> styleSpans = editor.getHighlighter().createStyleSpans();
-                Platform.runLater(() -> {
-                    try {
-                        editor.setStyleSpans(0, styleSpans);
-                    } catch (IndexOutOfBoundsException ignored) {
+            if (editor.languageSupport.get() != null) {
+                Pattern pattern = editor.languageSupport.get().generatePattern();
+                if (pattern != null) {
+                    StyleSpans<Collection<String>> styleSpans = editor.getHighlighter().createStyleSpans();
+                    if (!isInterrupted()) {
+                        Platform.runLater(() -> {
+                            if (!isInterrupted()) {
+                                try {
+                                    editor.setStyleSpans(0, styleSpans);
+                                } catch (IndexOutOfBoundsException ignored) {
+                                }
+                            }
+                        });
                     }
-                });
+                }
             }
         }
 
     }
 
-    public static HighlightableTextEditor controlFrom(HighlightableTextEditor from, HighlightableTextEditor to) {
+    public static void controlFrom(HighlightableTextEditor from, HighlightableTextEditor to) {
         linkITEs(from, to);
         to.setEditable(false);
         from.caretPositionProperty().addListener((observableValue, integer, t1) -> Platform.runLater(() -> {
@@ -135,7 +141,6 @@ public abstract class HighlightableTextEditor extends LanguageControlledTextEdit
         }));
         from.languageSupportProperty().addListener((observableValue, support, t1) -> to.setLanguageSupport(t1.toSupplier().get()));
         from.selectionProperty().addListener((observableValue, indexRange, t1) -> to.selectRange(t1.getStart(), t1.getEnd()));
-        return to;
     }
 
 

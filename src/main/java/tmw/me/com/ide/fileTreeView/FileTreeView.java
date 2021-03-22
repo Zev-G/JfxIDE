@@ -47,7 +47,7 @@ public class FileTreeView extends JFXTreeView<File> {
 
     private static final Image ADDON_IMAGE = new Image(Images.get("addon.png"));
 
-    private static final HashMap<String, Image> IMAGE_CACHE = new HashMap<>();
+    public static final HashMap<String, Image> IMAGE_CACHE = new HashMap<>();
     private static final ArrayList<File> DELETE_ON_EXIT = new ArrayList<>();
 
     static {
@@ -58,6 +58,19 @@ public class FileTreeView extends JFXTreeView<File> {
         } catch (TranscoderException e) {
             e.printStackTrace();
         }
+    }
+
+    public static Image getFolderImage() {
+        return getFolderImage(false);
+    }
+    public static Image getFolderImage(boolean opened) {
+        return IMAGE_CACHE.get(opened ? "default_folder_opened" : "default_folder");
+    }
+    public static Image getFileImage() {
+        return IMAGE_CACHE.get("default_file");
+    }
+    public static Optional<Image> getImage(String name) {
+        return Optional.ofNullable(IMAGE_CACHE.get(name));
     }
 
     private final File fileRoot;
@@ -107,7 +120,7 @@ public class FileTreeView extends JFXTreeView<File> {
                         ide.getTabPane().getTabs().add(tab);
                         ide.getTabPane().getSelectionModel().select(tab);
                         item.setComponentTab(tab);
-                        if (!IdeSettings.ADDON_PATHS.contains(file.getAbsolutePath())) {
+                        if (!IdeSettings.getAddonJSON().addonPaths.contains(file.getAbsolutePath())) {
                             ide.showConfirmation("Would you like to add this addon to the Ide?", aBoolean -> {
                                 IdeSettings.ADDON_PATHS.add(file.getAbsolutePath());
                             });

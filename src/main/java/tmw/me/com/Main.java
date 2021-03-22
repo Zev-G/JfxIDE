@@ -8,6 +8,7 @@ import tmw.me.com.betterfx.CommandConsole;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.codeEditor.fonts.Fonts;
 import tmw.me.com.ide.settings.IdeSettings;
+import tmw.me.com.ide.tools.NodeUtils;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntax.SyntaxManager;
@@ -26,6 +27,17 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         // Script Lab
+        startProgram();
+
+        Ide ide = new Ide(new File("D:\\Users\\Windows\\Desktop\\JavaMisc\\IDE Plugin Idea"));
+        primaryStage.setScene(new Scene(NodeUtils.wrapNode(ide)));
+        primaryStage.show();
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(600);
+
+    }
+
+    public static void startProgram() throws IOException {
         IdeSettings.start();
         Font.loadFont(Fonts.ttf("JetBrainsMono-Bold.ttf"), 10);
         Font.loadFont(Fonts.ttf("JetBrainsMono-BoldItalic.ttf"), 10);
@@ -42,36 +54,7 @@ public class Main extends Application {
         Font.loadFont(Fonts.ttf("JetBrainsMono-Thin.ttf"), 10);
         Font.loadFont(Fonts.ttf("JetBrainsMono-ThinItalic.ttf"), 10);
         Font.loadFont(Fonts.ttf("Montserrat-Regular.ttf"), 10);
-
-//        IntegratedTextEditor tempEditor = new IntegratedTextEditor(new MathLanguage());
-//        tempEditor.replaceText("there are 108 chickens on planet 21321, the 3rd in the 4th galaxy");
-//        Highlighter highlighter = new Highlighter(tempEditor, new RegexStyleSpansFactory(tempEditor, tempEditor.getLanguage().generatePattern()),
-//                new SimpleRangeStyleSpansFactory(tempEditor, new IndexRange(1, 5), new IndexRange(8, 17)));
-//        tempEditor.setHighlighter(highlighter);
-//        long start = System.currentTimeMillis();
-//        StyleSpans<Collection<String>> spans = highlighter.createStyleSpans();
-//        long end = System.currentTimeMillis();
-//        System.out.println("Took: " + (end - start) + "ms");
-//        tempEditor.setStyleSpans(0, spans);
-//        System.out.println("\n--Final Spans--\n" + spans + "\n----------------");
-
-        Ide ide = new Ide(new File("D:\\Users\\Windows\\Desktop\\JavaMisc\\IDE Plugin Idea"));
-
-
-//        primaryStage.setScene(new Scene(
-//                new ComponentTabPane(true, new ComponentTab<>("Untitled", new IntegratedTextEditor()))
-//        ));
-//        primaryStage.getScene().getStylesheets().add(Ide.STYLE_SHEET);
-        primaryStage.setScene(new Scene(ide));
-//        primaryStage.setScene(new Scene(tempEditor.getTextAreaHolder()));
-//        primaryStage.setScene(new Scene(new JavaPlayground()));
-        primaryStage.show();
-        primaryStage.setWidth(800);
-        primaryStage.setHeight(600);
-
-
     }
-
 
     public static void main(String[] args) {
         launch(args);

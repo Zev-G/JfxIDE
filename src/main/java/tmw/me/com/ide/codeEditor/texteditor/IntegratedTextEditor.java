@@ -95,6 +95,7 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
      * @param languageSupport The specified {@link LanguageSupport} for the text editor.
      */
     public IntegratedTextEditor(LanguageSupport languageSupport) {
+        super(languageSupport);
 
         if (USING_MINIMAP) {
             textAreaHolder.getChildren().add(1, miniMap);
@@ -231,6 +232,7 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
         // Other event handlers
 
         if (USING_MINIMAP) {
+            assert miniMap != null;
             miniMap.loadFromITE(this);
             widthProperty().addListener((observableValue, number, t1) -> {
                 miniMap.setMaxWidth(t1.doubleValue() / divideBy);

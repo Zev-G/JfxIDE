@@ -24,6 +24,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
+import tmw.me.com.Main;
 import tmw.me.com.Resources;
 import tmw.me.com.betterfx.Console;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
@@ -31,8 +32,11 @@ import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.fileTreeView.FileTreeView;
 import tmw.me.com.ide.images.Images;
+import tmw.me.com.ide.settings.SettingsView;
+import tmw.me.com.ide.tools.NodeUtils;
 import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
 import tmw.me.com.ide.tools.tabPane.ComponentTab;
+import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
 import tmw.me.com.ide.tools.tabPane.ComponentTabPane;
 
 import java.io.File;
@@ -318,9 +322,11 @@ public class Ide extends AnchorPane {
         MenuItem openFolder = new MenuItem("Open Folder");
         MenuItem openProject = new MenuItem("Open Project");
         MenuItem openAddon = new MenuItem("Open Addon");
+        MenuItem settings = new MenuItem("Settings");
+        MenuItem refresh = new MenuItem("Refresh");
         openMenu.getItems().addAll(openProject, openFile, openFolder, openAddon);
         newMenu.getItems().addAll(newProject, newFile, newAddon);
-        fileMenu.getItems().addAll(newMenu, openMenu);
+        fileMenu.getItems().addAll(newMenu, openMenu, settings, refresh);
 
         Menu tabMenu = new Menu("Tab");
         MenuItem save = new MenuItem("Save");
@@ -334,9 +340,19 @@ public class Ide extends AnchorPane {
         menuBar.getMenus().addAll(fileMenu, tabMenu);
         tabPane.getTabs().addListener((ListChangeListener<Tab>) change -> tabMenu.setDisable(change.getList().isEmpty()));
         // Menu event handling
+        refresh.setOnAction(event -> {
+            try {
+                Main.startProgram();
+                AnchorPane parent = (AnchorPane) getParent();
+                parent.getChildren().setAll(createCopy());
+                NodeUtils.anchor(parent.getChildren().get(0));
+            } catch (IOException exception) {
+                exception.printStackTrace();
+            }
+        });
         newProject.setOnAction(actionEvent -> {
             Stage stage = new Stage();
-            stage.setScene(new Scene(new Ide()));
+            stage.setScene(new Scene(NodeUtils.wrapNode(new Ide())));
             stage.setTitle("Untitled Project - " + (getTabPane().getSelectedTab() != null ? getTabPane().getSelectedTab().getLabel().getText() : ""));
             stage.show();
             Window thisWindow = this.getScene().getWindow();
@@ -387,7 +403,7 @@ public class Ide extends AnchorPane {
             if (file != null) {
                 Stage stage = new Stage();
                 Ide newIde = new Ide();
-                stage.setScene(new Scene(newIde));
+                stage.setScene(new Scene(NodeUtils.wrapNode(newIde)));
                 stage.setTitle(file.isDirectory() ? file.getName() : "Untitled Project - " + (getTabPane().getSelectedTab() != null ? getTabPane().getSelectedTab().getLabel().getText() : ""));
                 stage.show();
                 Window thisWindow = this.getScene().getWindow();
@@ -440,6 +456,11 @@ public class Ide extends AnchorPane {
                 }
             }
         });
+        settings.setOnAction(event -> {
+            Tab newTab = new ComponentTab<>("Settings", new SettingsView());
+            tabPane.getTabs().add(newTab);
+            tabPane.getSelectionModel().select(newTab);
+        });
 
 
         // Tooltips
@@ -459,7 +480,29 @@ public class Ide extends AnchorPane {
                 ToolTipBuilder.create().setHeader("Project Tab").setMainText("Toggles the view of the File Tree.").build()
         );
 
+    }
 
+    public <T extends Node & ComponentTabContent<T>> Ide createCopy() {
+        Ide newIde = new Ide();
+        if (projectView.getFileRoot() != null) {
+            if (newIde.getScene() != null) {
+                newIde.loadFile(projectView.getFileRoot());
+            } else {
+                newIde.sceneProperty().addListener((observable, oldValue, newValue) -> {
+                    if (newValue != null) {
+                        newIde.loadFile(projectView.getFileRoot());
+                    }
+                });
+            }
+        }
+        for (Tab tab : tabPane.getTabs()) {
+            ComponentTab<?> componentTab = (ComponentTab<?>) tab;
+            if (componentTab.isDuplicable()) {
+                ComponentTab<?> newTab = new ComponentTab<>(componentTab.getLabel().getText(), (T) componentTab.getValue().createNewCopy());
+                newIde.getTabPane().getTabs().add(newTab);
+            }
+        }
+        return newIde;
     }
 
     public Ide(File file) {

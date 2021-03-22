@@ -19,6 +19,8 @@ public class Highlighter {
     }
 
     public StyleSpans<Collection<String>> createStyleSpans() {
+        Thread currentThread = Thread.currentThread();
+
         StyleSpansBuilder<Collection<String>> builder = new StyleSpansBuilder<>();
 
         ArrayList<SortableStyleSpan<Collection<String>>> sortedByStartSpans = new ArrayList<>();
@@ -38,10 +40,17 @@ public class Highlighter {
         sortedByStartSpans.sort(Comparator.comparingInt(SortableStyleSpan::getStart));
         sortedByEndSpans.sort(Comparator.comparingInt(SortableStyleSpan::getEnd));
 
+        if (currentThread.isInterrupted()) {
+            return null;
+        }
+
         ArrayList<SortableStyleSpan<Collection<String>>> withinSpans = new ArrayList<>();
 
         int current = 0;
         while (!sortedByEndSpans.isEmpty()) {
+            if (currentThread.isInterrupted()) {
+                return null;
+            }
             SortableStyleSpan<Collection<String>> firstStart = sortedByStartSpans.isEmpty() ? null : sortedByStartSpans.get(0);
             SortableStyleSpan<Collection<String>> firstEnd = sortedByEndSpans.get(0);
 

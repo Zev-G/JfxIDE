@@ -11,6 +11,7 @@ import javafx.scene.layout.Priority;
 public class Tab extends BorderPane {
 
     private final BooleanProperty autoExpanding = new SimpleBooleanProperty(this, "autoExpanding", false);
+    private final BooleanProperty selected = new SimpleBooleanProperty(this, "selected", false);
     private final ObjectProperty<Node> content = new SimpleObjectProperty<>(this, "content");
     private final ObjectProperty<FinalTabPane> tabPane = new SimpleObjectProperty<>(this, "tabPane");
     private final StringProperty text = new SimpleStringProperty();
@@ -92,4 +93,17 @@ public class Tab extends BorderPane {
     public void setAutoExpanding(boolean autoExpanding) {
         this.autoExpanding.set(autoExpanding);
     }
+
+    public boolean isSelected() {
+        return selected.get();
+    }
+
+    public BooleanProperty selectedProperty() {
+        return selected;
+    }
+
+    public void setSelected(boolean bool) {
+        selected.set(bool);
+    }
+
 }

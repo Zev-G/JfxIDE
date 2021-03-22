@@ -24,4 +24,6 @@ public interface ComponentTabContent<T extends Node & ComponentTabContent<T>> {
         return true;
     }
 
+    default void onSelected() {  }
+
 }

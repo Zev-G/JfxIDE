@@ -26,7 +26,6 @@ public class AddonEditor extends AnchorPane implements ComponentTabContent<Addon
     private static final double VBOX_SPACING = TOP_PADDING;
     private static final double STYLES_VBOX_MIN_WIDTH = 200;
 
-
     private final LanguageAddon addon;
     private final AddonLanguageSupport languageSupport;
 
