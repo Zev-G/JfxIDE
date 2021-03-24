@@ -4,37 +4,52 @@
 
 .tab-pane {
     -fx-tab-min-width: 90px;
-    -fx-background-color: #202937;
+    -fx-background-color: -darker-background-color;
+    -fx-border-color: -fx-near-black;
+    -fx-border-width: 1;
+    -fx-background-insets: 0;
+    -fx-spacing: -1;
 }
 
 .tab {
     -fx-background-insets: 0 1 0 1, 0, 0;
-}
-
-.tab-pane .tab {
-    -fx-background-color: #273245;
-
+    -fx-padding: 4 30 4 30;
+    -fx-border-color: -fx-near-black;
+    -fx-border-width: 1 2 0 0;
 }
 
 .tab .tab-label {
     -fx-alignment: CENTER;
-    -fx-text-fill: #828282;
+    -fx-text-fill: derive(-text-color-base, -20%);
     -fx-font-size: 12px;
     -fx-font-weight: bold;
 }
 
 .tab:selected .tab-label {
     -fx-alignment: CENTER;
-    -fx-text-fill: #b94646;
+    -fx-text-fill: -text-color-base;
 }
 
+.component-tab .label {
+    -fx-text-fill: derive(-text-color-base, -35%);
+}
 .component-tab:selected .label {
-    -fx-text-fill: #b94646;
+    -fx-text-fill: -text-color-base;
 }
 
 .tab-pane:top *.tab-header-area {
-    -fx-background-insets: 0, 0 0 1 0;
-    /* -fx-padding: 0.416667em 0.166667em 0.0em 0.833em; /* 5 2 0 10 */
-    -fx-padding: 0.416667em 0.166667em 0.0em 0.0em; /* overridden as 5 2 0 0 */
+    -fx-background-insets: 0;
+    -fx-padding: 0 0 0 -1;
 }
 
+.tab .tab-close-button {
+    -fx-opacity: 0;
+    -fx-background-color: derive(-text-color-base, -40%);
+}
+.tab:hover .tab-close-button,
+.tab:selected .tab-close-button {
+    -fx-opacity: 1;
+}
+.tab .tab-close-button:hover {
+    -fx-background-color: -text-color-base;
+}

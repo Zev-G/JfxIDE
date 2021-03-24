@@ -1,8 +1,11 @@
 package tmw.me.com.ide.codeEditor.languages;
 
+import tmw.me.com.ide.AddonBase;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
+import tmw.me.com.ide.codeEditor.Behavior;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
 import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
@@ -16,7 +19,7 @@ import java.util.regex.Pattern;
 /**
  * <p>This is the base class for all languages, the main subclass of this class is {@link SfsLanguage} but there is minimal support for some other languages.</p>
  */
-public abstract class LanguageSupport {
+public abstract class LanguageSupport extends AddonBase {
 
     protected static final String NUMBER_PATTERN = "[0-9]+";
     protected static final String STRING_PATTERN = "\"([^\"\\\\]|\\\\.)*\"";
@@ -39,7 +42,7 @@ public abstract class LanguageSupport {
      */
     protected boolean usingAutoComplete = false;
     /**
-     * The language's style spans factory. This should be used to create custom styling for the language (other then the Regex-based styling which comes out-of-the-box with LanguageSupport).
+     * The languageSupport's style spans factory. This should be used to create custom styling for the languageSupport (other then the Regex-based styling which comes out-of-the-box with LanguageSupport).
      * If you do ever want to override the out-of-the-box Regex-based styling just use the styling of {@link PlainTextLanguage} and then do all your styling via this factory.
      */
     protected StyleSpansFactory<Collection<String>> customStyleSpansFactory = null;
@@ -47,8 +50,8 @@ public abstract class LanguageSupport {
     private LanguageSupplier<LanguageSupport> thisSupplier;
 
     /**
-     * @param styleSheet   The language's style sheet, see {@link LanguageSupport#styleSheet}
-     * @param languageName The language's name, see {@link LanguageSupport#languageName}
+     * @param styleSheet   The languageSupport's style sheet, see {@link LanguageSupport#styleSheet}
+     * @param languageName The languageSupport's name, see {@link LanguageSupport#languageName}
      */
     public LanguageSupport(String styleSheet, String languageName) {
         this.styleSheet = styleSheet;
@@ -60,7 +63,7 @@ public abstract class LanguageSupport {
     }
 
     /**
-     * @return A pattern which is used for sectioning the highlighting, if you don't want your language to have highlighting you can always
+     * @return A pattern which is used for sectioning the highlighting, if you don't want your languageSupport to have highlighting you can always
      * make this return null.
      */
     public abstract Pattern generatePattern();
@@ -96,16 +99,15 @@ public abstract class LanguageSupport {
     }
 
     /**
-     * This method should be used for adding any additional functionality this language needs onto the IntegratedTextEditor, for example the highlighting of variables in the {@link SfsLanguage} is added here.
+     * This method should be used for adding any additional functionality this languageSupport needs onto the IntegratedTextEditor, for example the highlighting of variables in the {@link SfsLanguage} is added here.
      *
      * @param integratedTextEditor A reference to the {@link IntegratedTextEditor} which all functionality should be added onto.
      */
-    public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
+    public Behavior[] addBehaviour(BehavioralLanguageEditor integratedTextEditor) {
         return null;
     }
 
-    public Behavior[] removeBehaviour(IntegratedTextEditor integratedTextEditor) {
-        integratedTextEditor.getErrorLines().clear();
+    public Behavior[] removeBehaviour(BehavioralLanguageEditor integratedTextEditor) {
         return null;
     }
 
@@ -120,7 +122,7 @@ public abstract class LanguageSupport {
     /**
      * This method should only be overridden if {@link LanguageSupport#runnable} is true.
      *
-     * @param textEditor A reference to the text editor this language is attached to.
+     * @param textEditor A reference to the text editor this languageSupport is attached to.
      * @param ide        A reference to the Ide that is running the code.
      */
     public void run(IntegratedTextEditor textEditor, Ide ide) {

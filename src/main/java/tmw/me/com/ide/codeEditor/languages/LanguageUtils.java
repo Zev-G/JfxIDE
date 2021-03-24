@@ -59,7 +59,7 @@ public final class LanguageUtils {
                             styles.add("tooltip-highlight");
                             segment = new StyledSegment<>(segment.getSegment(), styles);
                         }
-                        flow.getChildren().add(editor.copySegment(segment)); // Add the segment to the text flow.
+                        flow.getChildren().add(editor.getVisualCopyOfSegment(segment)); // Add the segment to the text flow.
                     }
                     int digitsInI = (int) (Math.log10(i + 1) + 1);
                     TextExt lineNum = new TextExt(" ".repeat(totalDigits + 1 - digitsInI) + (i + 1) + ":"); // Creates the TextExt node used to display the line number.
@@ -74,7 +74,8 @@ public final class LanguageUtils {
                     Pane lineNumHolder = new BorderPane(lineNum); // Create a BorderPane to store the line number in.
                     HBox layoutBox = new HBox(lineNumHolder, flow); // The HBox which stores the line number and the line's code in it.
                     layoutBox.setSpacing(editor.getFontSize());
-                    layoutBox.getStylesheets().addAll(Ide.STYLE_SHEET, IntegratedTextEditor.STYLE_SHEET, editor.getLanguage().getStyleSheet()); // Add the relevant stylesheets to the layoutBox.
+                    layoutBox.getStylesheets().addAll(Ide.STYLE_SHEET);
+                    layoutBox.getStylesheets().addAll(IntegratedTextEditor.STYLE_SHEET, editor.getLanguage().getStyleSheet()); // Add the relevant stylesheets to the layoutBox.
                     // Highlight the line if it is the line which the tooltip was sourced from.
                     if (line == i) {
                         layoutBox.getStyleClass().add("lighter-background");

@@ -20,9 +20,12 @@ import javafx.stage.Popup;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.texteditor.BehavioralEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AutocompletePopup extends Popup implements VisualComponent<AutocompletePopup> {
 
@@ -69,7 +72,7 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
         resultsCount.getStyleClass().add("ac-results");
         selectedLabel.getStyleClass().add("ac-out-of");
         itemsScroller.setMaxHeight(300);
-        topBox.getStylesheets().add(Ide.STYLE_SHEET);
+        topBox.getStylesheets().addAll(Ide.STYLE_SHEET);
 
         getContent().add(topBox);
         setAutoHide(true);
@@ -88,18 +91,18 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
                 editor.fireEvent(new KeyEvent(this, editor, keyEvent.getEventType(), keyEvent.getCharacter(), keyEvent.getText(), keyEvent.getCode(), keyEvent.isShiftDown(), keyEvent.isControlDown(), keyEvent.isAltDown(), keyEvent.isMetaDown()));
             }
             if (keyEvent.getCode() == KeyCode.TAB) {
-                editor.insertAutocomplete();
+                insertAutocomplete(editor);
             }
         });
     }
 
     @Override
-    public void addToITE(IntegratedTextEditor ite) {
+    public void apply(BehavioralEditor ite) {
 
     }
 
     @Override
-    public void receiveKeyEvent(KeyEvent keyEvent, IntegratedTextEditor editor) {
+    public void receiveKeyEvent(KeyEvent keyEvent, BehavioralEditor editor) {
         KeyCode keyCode = keyEvent.getCode();
         if (!factoryOrder.isEmpty() && (keyCode == KeyCode.LEFT || keyCode == KeyCode.RIGHT || keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
             if (isShowing() && (keyCode == KeyCode.UP || keyCode == KeyCode.DOWN)) {
@@ -141,7 +144,7 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
                 keyEvent.consume();
                 String text = factoryOrder.get(selectionIndex).getPutIn();
                 if (text.length() > 0 && editor.getSelectedText().equals("")) {
-                    editor.insertAutocomplete();
+                    insertAutocomplete(editor);
                 } else {
                     int lineStart = 0;
                     for (int i = editor.getCurrentParagraph(); i >= 0; i--) {
@@ -218,6 +221,67 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
             }
         } else {
             this.hide();
+        }
+    }
+
+    /**
+     * Inserts the selected item in the auto complete popup.
+     */
+    public void insertAutocomplete(BehavioralEditor editor) {
+        if (!isShowing()) return;
+        String text = getFactoryOrder().get(getSelectionIndex()).getPutIn();
+        if (getFactoryOrder().get(getSelectionIndex()).isReplaceLine()) {
+            int lineStart = 0;
+            for (int i = editor.getCurrentParagraph() - 1; i >= 0; i--) {
+                lineStart = lineStart + editor.getParagraph(i).getText().length() + 1;
+            }
+            String line = editor.getParagraph(editor.getCurrentParagraph()).getSegments().get(0);
+            Pattern whiteSpace = Pattern.compile("^\\s+");
+            Matcher matcher = whiteSpace.matcher(line);
+            if (matcher.find()) {
+                text = matcher.group() + text;
+            }
+            editor.replaceText(lineStart, editor.getCaretPosition(), text);
+        } else {
+            editor.insertText(editor.getCaretPosition(), text);
+        }
+        getSelectionQueue().clear();
+        selectNext(editor);
+    }
+
+    /**
+     * Selects the next item in the auto complete popup; wraps around if needed.
+     */
+    public void selectNext(BehavioralEditor editor) {
+        StringBuilder builder = new StringBuilder();
+        boolean inPercentageSign = false;
+        int loops = 0;
+        int lineStart = 0;
+        int parenStart = 0;
+        for (int i = editor.getCurrentParagraph() - 1; i >= 0; i--) {
+            lineStart = lineStart + editor.getParagraph(i).getText().length() + 1;
+        }
+        boolean first = true;
+        String line = editor.getParagraph(editor.getCurrentParagraph()).getSegments().get(0);
+        for (char c : line.toCharArray()) {
+            if (c == '%') {
+                if (inPercentageSign) {
+                    inPercentageSign = false;
+                    builder.append(c);
+                    if (first) {
+                        editor.selectRange(parenStart + lineStart, loops + lineStart + 1);
+                        first = false;
+                    } else {
+                        getSelectionQueue().add(builder.toString());
+                    }
+                    builder = new StringBuilder();
+                } else {
+                    inPercentageSign = true;
+                    builder.append(c);
+                    parenStart = loops;
+                }
+            }
+            loops++;
         }
     }
 

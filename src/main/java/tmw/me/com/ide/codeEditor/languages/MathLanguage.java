@@ -1,6 +1,8 @@
 package tmw.me.com.ide.codeEditor.languages;
 
 import tmw.me.com.ide.IdeSpecialParser;
+import tmw.me.com.ide.codeEditor.Behavior;
+import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ public class MathLanguage extends LanguageSupport {
     }
 
     @Override
-    public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
+    public Behavior[] addBehaviour(BehavioralLanguageEditor integratedTextEditor) {
         return null;
     }
 

@@ -28,10 +28,8 @@ public class Highlighter {
 
         String text = editor.getText();
         ArrayList<StyleSpansFactory<Collection<String>>> tempFactories = new ArrayList<>(factories);
-        StyleSpansFactory<Collection<String>> languageFactory = editor.getLanguage().getCustomStyleSpansFactory(editor);
-        if (languageFactory != null) {
-            tempFactories.add(languageFactory);
-        }
+        editor.getExtraFactories().stream().filter(Objects::nonNull).forEach(tempFactories::add);
+
         for (StyleSpansFactory<Collection<String>> factory : tempFactories) {
             Collection<SortableStyleSpan<Collection<String>>> factoryResult = factory.genSpans(text);
             sortedByStartSpans.addAll(factoryResult);

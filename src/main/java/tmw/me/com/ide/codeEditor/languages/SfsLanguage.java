@@ -1,13 +1,12 @@
 package tmw.me.com.ide.codeEditor.languages;
 
-import javafx.application.Platform;
-import javafx.scene.control.IndexRange;
 import javafx.scene.text.Text;
 import tmw.me.com.betterfx.TextModifier;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
-import tmw.me.com.ide.codeEditor.highlighting.SimpleRangeStyleSpansFactory;
+import tmw.me.com.ide.codeEditor.Behavior;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
 import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.texteditor.LineGraphicFactory;
@@ -19,12 +18,15 @@ import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntax.SyntaxManager;
 import tmw.me.com.language.syntaxPiece.SyntaxPieceFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This file contains the main language support for the IDE, {@link LanguageSupport} contains lots of information on the methods used whereas the docs here refer more to the specific elements of this class.
+ * This file contains the main languageSupport support for the IDE, {@link LanguageSupport} contains lots of information on the methods used whereas the docs here refer more to the specific elements of this class.
  */
 public class SfsLanguage extends LanguageSupport {
 
@@ -63,8 +65,6 @@ public class SfsLanguage extends LanguageSupport {
             "|(?<KEYWORD>" + KEYWORD_PATTERN + ")" +
             "");
 
-    private final ArrayList<IndexRange> highlightedVariables = new ArrayList<>();
-    private ChangeListenerScheduler<Integer> caretListener;
     private ChangeListenerScheduler<String> textListener;
 
     /**
@@ -93,54 +93,35 @@ public class SfsLanguage extends LanguageSupport {
      *
      * @param integratedTextEditor A reference to the {@link IntegratedTextEditor} which all functionality should be added onto.
      */
-    public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
-        caretListener = new ChangeListenerScheduler<>(150, (observableValue, integer, t1) -> {
-            if ((integratedTextEditor.getSelectedText() == null || integratedTextEditor.getSelectedText().length() <= 1) && !t1.equals(integer) && integratedTextEditor.getFindAndReplace().getFindSelectedIndex() < 0) {
-                String fullText = integratedTextEditor.getText();
-                highlightedVariables.clear();
-                int[] range = integratedTextEditor.expandFromPoint(t1, '{', '}', ' ', '%');
-                if (range[0] > 0 && range[1] <= fullText.length()) {
-                    String text = integratedTextEditor.getText(range[0], range[1]);
-                    if (text.startsWith("{") && text.endsWith("}")) {
-                        for (IndexRange variableRange : integratedTextEditor.allInstancesOfStringInString(fullText, text)) {
-                            if (variableRange.getStart() <= fullText.length()) {
-                                Collection<String> collection = new ArrayList<>(integratedTextEditor.getStyleAtPosition(variableRange.getStart() + 1));
-                                if (!collection.isEmpty()) {
-                                    highlightedVariables.add(variableRange);
-                                }
-                            }
-                        }
-                    }
-                }
-                integratedTextEditor.highlight();
-            }
-        });
+    @Override
+    public Behavior[] addBehaviour(BehavioralLanguageEditor integratedTextEditor) {
         SyntaxManager syntaxManager = new SyntaxManager();
-        textListener = new ChangeListenerScheduler<>(600, false, (observableValue, s, t1) -> {
-            FXScript.restart(syntaxManager);
-            ArrayList<Integer> errors = new ArrayList<>();
-            Parser parser = new Parser(syntaxManager, parseError -> errors.add(parseError.getLineNumber()));
-            parser.parseChunk(integratedTextEditor.getTabbedText(), null);
-            Platform.runLater(() -> integratedTextEditor.getErrorLines().setAll(errors));
-        });
+//        textListener = new ChangeListenerScheduler<>(600, false, (observableValue, s, t1) -> {
+//            FXScript.restart(syntaxManager);
+//            ArrayList<Integer> errors = new ArrayList<>();
+//            Parser parser = new Parser(syntaxManager, parseError -> errors.add(parseError.getLineNumber()));
+//            parser.parseChunk(integratedTextEditor.getTabbedText(), null);
+//            Platform.runLater(() -> integratedTextEditor.getErrorLines().setAll(errors));
+//        });
         if (ERROR_HIGHLIGHTING) {
             integratedTextEditor.textProperty().addListener(textListener);
         }
-        integratedTextEditor.caretPositionProperty().addListener(caretListener);
+//        customStyleSpansFactory = new SameStyleSameTextFactory(integratedTextEditor.getHighlighter(), Collections.singleton("variable"), "selected-word");
         return null;
     }
 
     @Override
-    public Behavior[] removeBehaviour(IntegratedTextEditor integratedTextEditor) {
+    public Behavior[] removeBehaviour(BehavioralLanguageEditor integratedTextEditor) {
         super.removeBehaviour(integratedTextEditor);
-        integratedTextEditor.caretPositionProperty().removeListener(caretListener);
-        integratedTextEditor.textProperty().removeListener(textListener);
+        if (ERROR_HIGHLIGHTING) {
+            integratedTextEditor.textProperty().removeListener(textListener);
+        }
         return null;
     }
 
     @Override
     public StyleSpansFactory<Collection<String>> getCustomStyleSpansFactory(HighlightableTextEditor editor) {
-        return new SimpleRangeStyleSpansFactory(editor, Collections.singleton("selected-word"), highlightedVariables.toArray(new IndexRange[0]));
+        return customStyleSpansFactory;
     }
 
     /**
@@ -222,7 +203,7 @@ public class SfsLanguage extends LanguageSupport {
     /**
      * This runs the code in the specified textEditor, it also prints the errors to the IDE's console allowing them to be pressed as to highlight their relevant lines.
      *
-     * @param textEditor A reference to the text editor this language is attached to.
+     * @param textEditor A reference to the text editor this languageSupport is attached to.
      * @param ide        A reference to the Ide that is running the code.
      */
     @Override

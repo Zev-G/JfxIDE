@@ -7,10 +7,14 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import tmw.me.com.Resources;
-import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
 import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.texteditor.TextEditorBase;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Not Done
@@ -18,16 +22,11 @@ import tmw.me.com.ide.codeEditor.texteditor.TextEditorBase;
  */
 public class MiniMap extends AnchorPane {
 
-    private final HighlightableTextEditor linkedEditor = new HighlightableTextEditor() {
+    private final BehavioralLanguageEditor linkedEditor = new BehavioralLanguageEditor() {
 
         @Override
         public void onHighlight() {
 
-        }
-
-        @Override
-        protected void languageChanged(LanguageSupport oldLang, LanguageSupport newLang) {
-            highlight();
         }
 
         @Override
@@ -97,7 +96,7 @@ public class MiniMap extends AnchorPane {
             if (t1 == ite.getCaretPosition() && linkedEditor.getText().length() >= t1)
                 linkedEditor.displaceCaret(t1);
         }));
-        ite.languageSupportProperty().addListener((observableValue, support, t1) -> linkedEditor.setLanguageSupport(t1.toSupplier().get()));
+        ite.languageProperty().addListener((observableValue, support, t1) -> linkedEditor.languageProperty().set(t1.toSupplier().get()));
         ite.selectionProperty().addListener((observableValue, indexRange, t1) -> linkedEditor.selectRange(t1.getStart(), t1.getEnd()));
         TextEditorBase.linkITEs(ite, linkedEditor);
 

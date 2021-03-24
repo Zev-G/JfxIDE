@@ -1,9 +1,9 @@
 * {
-    -default-text-color: #909ebc;
-    -editor-background-color: #273245;
-    -selected-line: #2e394c;
-    -fx-background: #273245;
-    -editor-selection: rgb(65, 78, 100);
+    -editor-background-color: derive(-darkish-background-color, 0%);
+    -default-text-color: derive(-color, 100%);
+
+    -selected-line: derive(-editor-background-color, 8%);
+    -editor-selection: derive(-editor-background-color, 15%);
     -fx-fill: -default-text-color;
 }
 
@@ -31,13 +31,13 @@
 
 .code-area .lineno, .lineno {
     -fx-font-family: "JetBrains Mono" !important;
-    -fx-background-color: rgb(36, 49, 64);
+    -fx-background-color: -editor-background-color;
     -fx-background-radius: 0;
     -fx-box-border: none;
 }
 
 .code-area .error-lineno {
-    -fx-text-fill: #273245;
+    -fx-text-fill: derive(-editor-background-color, 5%);
     -fx-font-weight: bold;
     -fx-background-color: rgba(207, 67, 67, 0.2) !important;
 }
@@ -45,7 +45,7 @@
 .code-area .left-holder {
     -fx-border-width: 0 1.5 0 0;
     -fx-border-color: -editor-selection;
-    -fx-background-color: rgb(36, 49, 64);
+    -fx-background-color: -editor-background-color;
 }
 
 .code-area .text {
@@ -58,7 +58,7 @@
 }
 
 .caret {
-    -fx-stroke: white;
+    -fx-stroke: -text-color-base;
 }
 
 .paragraph-box:has-caret {
@@ -99,6 +99,6 @@
     -fx-font-style: italic;
 }
 
-
-
-
+.connected-brackets {
+    -fx-underline: true;
+}

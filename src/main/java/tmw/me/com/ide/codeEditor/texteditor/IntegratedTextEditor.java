@@ -3,10 +3,8 @@ package tmw.me.com.ide.codeEditor.texteditor;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
-import javafx.geometry.NodeOrientation;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -21,7 +19,10 @@ import org.fxmisc.richtext.model.Paragraph;
 import org.reactfx.collection.LiveList;
 import tmw.me.com.ide.codeEditor.MiniMap;
 import tmw.me.com.ide.codeEditor.highlighting.Highlighter;
-import tmw.me.com.ide.codeEditor.languages.*;
+import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
+import tmw.me.com.ide.codeEditor.languages.LanguageSupplier;
+import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.languages.PlainTextLanguage;
 import tmw.me.com.ide.codeEditor.visualcomponents.AutocompletePopup;
 import tmw.me.com.ide.codeEditor.visualcomponents.FindAndReplace;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
@@ -32,7 +33,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +57,7 @@ import java.util.regex.Pattern;
  * <h3>Notes:</h3>
  * <p>*Controlled by LanguageSupport</p>
  */
-public class IntegratedTextEditor extends HighlightableTextEditor implements ComponentTabContent<IntegratedTextEditor> {
+public class IntegratedTextEditor extends BehavioralLanguageEditor implements ComponentTabContent<IntegratedTextEditor> {
 
     // Settings
     private static final boolean USING_MINIMAP = false;
@@ -65,7 +65,6 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
 
     // Properties
     private final ObservableList<Integer> errorLines = FXCollections.observableArrayList();
-    private final ObservableList<Behavior> behaviors = FXCollections.observableArrayList();
 
     private final AutocompletePopup autoCompletePopup = new AutocompletePopup(this);
     private final MiniMap miniMap = USING_MINIMAP ? new MiniMap() : null;
@@ -73,14 +72,16 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
     private final EditorTooltip tooltip = new EditorTooltip(this);
 
     private final ChoiceBox<LanguageSupplier<? extends LanguageSupport>> currentLanguage = new ChoiceBox<>();
-    private final HBox bottomPane = new HBox(currentLanguage);
+    private final Label caretPositionLabel = new Label("1:1");
+    private final Label selectionInfoLabel = new Label();
+    private final HBox bottomPane = new HBox(selectionInfoLabel, caretPositionLabel, currentLanguage);
 
     private final VirtualizedScrollPane<IntegratedTextEditor> virtualizedScrollPane = new VirtualizedScrollPane<>(this);
     private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, findAndReplace, bottomPane);
 
 
     /**
-     * Constructs a new IntegratedTextEditor with {@link PlainTextLanguage} as it's language support.
+     * Constructs a new IntegratedTextEditor with {@link PlainTextLanguage} as it's languageSupport support.
      */
     public IntegratedTextEditor() {
         this(new PlainTextLanguage());
@@ -134,32 +135,20 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
             }
         }
         currentLanguage.getSelectionModel().select(languageSupport.toSimpleSupplier());
-        currentLanguage.getSelectionModel().selectedItemProperty().addListener((observableValue, languageSupport1, t1) -> languageSupportProperty().set(t1.get()));
-
-        behaviors.addListener((ListChangeListener<Behavior>) change -> {
-            while (change.next()) {
-                for (Behavior behavior : change.getAddedSubList()) {
-                    behavior.apply(this);
-                }
-                for (Behavior behavior : change.getRemoved()) {
-                    behavior.remove(this);
-                }
-            }
-        });
+        currentLanguage.getSelectionModel().selectedItemProperty().addListener((observableValue, languageSupport1, t1) -> setLanguage(t1.get()));
 
         // Style classes
         currentLanguage.getStyleClass().add("language-choice-box");
-        bottomPane.getStyleClass().add("transparent-background");
+        bottomPane.getStyleClass().addAll("bottom-ite-pane");
 
         // Value tweaking and value setting
         this.getStylesheets().add(STYLE_SHEET);
-        bottomPane.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
 
         this.setParagraphGraphicFactory(LineGraphicFactory.get(this));
 
         // Layout
         AnchorPane.setTopAnchor(virtualizedScrollPane, 0D);
-        AnchorPane.setBottomAnchor(virtualizedScrollPane, 25D);
+        AnchorPane.setBottomAnchor(virtualizedScrollPane, 30D);
         AnchorPane.setLeftAnchor(virtualizedScrollPane, 0D);
 
         AnchorPane.setTopAnchor(findAndReplace, 0D);
@@ -174,7 +163,13 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
 
         // This event handlers
 
-        this.addEventFilter(KeyEvent.KEY_PRESSED, this::keyPressed);
+        caretPositionProperty().addListener((observable, oldValue, newValue) -> {
+            int line = lineFromAbsoluteLocation(newValue + 1);
+            String caretPos = (line + 1) + ":" + (newValue - absolutePositionFromLine(line) + 1);
+            caretPositionLabel.setText(caretPos);
+        });
+
+        this.addEventFilter(KeyEvent.KEY_PRESSED, this::receiveKeyPressed);
         this.sceneProperty().addListener((observableValue, scene, t1) -> {
             if (t1 != null) {
                 Window t11 = t1.getWindow();
@@ -229,6 +224,20 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
 
         });
 
+        selectedTextProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null && !newValue.isEmpty()) {
+                int length = newValue.length();
+                String text = newValue.length() + " " + (length == 1 ? "char" : "chars");
+                if (newValue.contains("\n")) {
+                    int lineBreaks = allInstancesOfStringInString(newValue, "\n").size();
+                    text = text + ", " + lineBreaks + " " + (lineBreaks == 1 ? "line break" : "line breaks");
+                }
+                selectionInfoLabel.setText(text);
+            } else {
+                selectionInfoLabel.setText("");
+            }
+        });
+
         // Other event handlers
 
         if (USING_MINIMAP) {
@@ -268,27 +277,24 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
     }
 
     @Override
-    protected void languageChanged(LanguageSupport oldLang, LanguageSupport newLang) {
-        if (oldLang != null) {
-            if (newLang != null) {
-                highlight();
+    protected void anyLanguageChanged(LanguageSupport oldLang, LanguageSupport newLang) {
+        super.anyLanguageChanged(oldLang, newLang);
+        if (newLang != null) {
+            if (oldLang != null) {
                 autoCompletePopup.getSelectionQueue().clear();
                 autoCompletePopup.hide();
-            }
-            Behavior[] removedBehaviors = oldLang.removeBehaviour(this);
-            if (removedBehaviors != null) {
-                behaviors.removeAll(removedBehaviors);
-            }
-        }
-        if (newLang != null) {
-            Behavior[] addedBehaviors = newLang.addBehaviour(this);
-            if (addedBehaviors != null) {
-                Collections.addAll(behaviors, addedBehaviors);
             }
         }
     }
 
-    private void keyPressed(KeyEvent keyEvent) {
+    @Override
+    protected void languageRemoved(LanguageSupport language) {
+        super.languageRemoved(language);
+        getErrorLines().clear();
+    }
+
+    public void receiveKeyPressed(KeyEvent keyEvent) {
+        super.keyPressed(keyEvent);
         // Getting certain important variables which are used a lot in other places.
         String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
         KeyCode keyCode = keyEvent.getCode();
@@ -367,7 +373,7 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
             }
         } else if (keyCode == KeyCode.TAB && !autoCompletePopup.isShowing()) {
             if (!keyEvent.isControlDown() && !autoCompletePopup.getSelectionQueue().isEmpty() && this.getSelectedText().equals("")) {
-                selectNext();
+                autoCompletePopup.selectNext(this);
                 keyEvent.consume();
             } else if (!keyEvent.isControlDown() && autoCompletePopup.getSelectionQueue().isEmpty() && !this.getSelectedText().equals("")) {
                 keyEvent.consume();
@@ -410,67 +416,6 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
         return findAndReplace;
     }
 
-    /**
-     * Inserts the selected item in the auto complete popup.
-     */
-    public void insertAutocomplete() {
-        if (!autoCompletePopup.isShowing()) return;
-        String text = autoCompletePopup.getFactoryOrder().get(autoCompletePopup.getSelectionIndex()).getPutIn();
-        if (autoCompletePopup.getFactoryOrder().get(autoCompletePopup.getSelectionIndex()).isReplaceLine()) {
-            int lineStart = 0;
-            for (int i = this.getCurrentParagraph() - 1; i >= 0; i--) {
-                lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
-            }
-            String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
-            Pattern whiteSpace = Pattern.compile("^\\s+");
-            Matcher matcher = whiteSpace.matcher(line);
-            if (matcher.find()) {
-                text = matcher.group() + text;
-            }
-            this.replaceText(lineStart, this.getCaretPosition(), text);
-        } else {
-            this.insertText(this.getCaretPosition(), text);
-        }
-        autoCompletePopup.getSelectionQueue().clear();
-        selectNext();
-    }
-
-    /**
-     * Selects the next item in the auto complete popup; wraps around if needed.
-     */
-    public void selectNext() {
-        StringBuilder builder = new StringBuilder();
-        boolean inPercentageSign = false;
-        int loops = 0;
-        int lineStart = 0;
-        int parenStart = 0;
-        for (int i = this.getCurrentParagraph() - 1; i >= 0; i--) {
-            lineStart = lineStart + this.getParagraph(i).getText().length() + 1;
-        }
-        boolean first = true;
-        String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
-        for (char c : line.toCharArray()) {
-            if (c == '%') {
-                if (inPercentageSign) {
-                    inPercentageSign = false;
-                    builder.append(c);
-                    if (first) {
-                        this.selectRange(parenStart + lineStart, loops + lineStart + 1);
-                        first = false;
-                    } else {
-                        autoCompletePopup.getSelectionQueue().add(builder.toString());
-                    }
-                    builder = new StringBuilder();
-                } else {
-                    inPercentageSign = true;
-                    builder.append(c);
-                    parenStart = loops;
-                }
-            }
-            loops++;
-        }
-    }
-
     public boolean isCurrentlyUsingAutoComplete() {
         return USING_AUTOCOMPLETE && languageSupport.get().isUsingAutoComplete();
     }
@@ -503,7 +448,7 @@ public class IntegratedTextEditor extends HighlightableTextEditor implements Com
 
     @Override
     public IntegratedTextEditor createNewCopy() {
-        IntegratedTextEditor newIntegratedTextEditor = new IntegratedTextEditor(languageSupportProperty().get());
+        IntegratedTextEditor newIntegratedTextEditor = new IntegratedTextEditor(getLanguage().toSupplier().get());
         newIntegratedTextEditor.replaceText(getText());
         IntegratedTextEditor.linkITEs(this, newIntegratedTextEditor);
         return newIntegratedTextEditor;

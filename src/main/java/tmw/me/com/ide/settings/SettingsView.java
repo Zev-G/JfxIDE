@@ -12,14 +12,15 @@ import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 public class SettingsView extends AnchorPane implements ComponentTabContent<SettingsView> {
 
     private final FinalTabPane tabPane;
 
-    public SettingsView() {
-        ArrayList<UnloadedTab> tabs = new ArrayList<>();
+    public SettingsView(Tab... firstTabs) {
+        ArrayList<Tab> tabs = new ArrayList<>(Arrays.asList(firstTabs));
         for (IdeSettings.FileAndInstance<SettingsJSON> fileAndSettingsJSON : IdeSettings.SETTING_PAGES) {
             tabs.add(UnloadedTab.getInstance(fileAndSettingsJSON.getInstance().pageName, () -> new SettingsPage<>(fileAndSettingsJSON.getFile(), fileAndSettingsJSON.getInstance())));
         }
@@ -56,7 +57,13 @@ public class SettingsView extends AnchorPane implements ComponentTabContent<Sett
 
     @Override
     public void onSelected() {
-        ((UnloadedTab) tabPane.getSelectedTab()).loadFromSupplier();
+        if (tabPane.getSelectedTab() instanceof UnloadedTab) {
+            ((UnloadedTab) tabPane.getSelectedTab()).loadFromSupplier();
+        }
+    }
+
+    public FinalTabPane getTabPane() {
+        return tabPane;
     }
 
     private static class UnloadedTab extends Tab {

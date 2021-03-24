@@ -3,10 +3,12 @@ package tmw.me.com.ide.codeEditor.languages;
 import javafx.scene.paint.Color;
 import org.fxmisc.richtext.model.StyledSegment;
 import tmw.me.com.ide.IdeSpecialParser;
+import tmw.me.com.ide.codeEditor.Behavior;
 import tmw.me.com.ide.codeEditor.highlighting.FactoriesCombiner;
 import tmw.me.com.ide.codeEditor.highlighting.SameStyleSameTextFactory;
 import tmw.me.com.ide.codeEditor.highlighting.SortableStyleSpan;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 import tmw.me.com.ide.tools.colorpicker.ColorMapper;
@@ -80,7 +82,7 @@ public class CssLanguage extends LanguageSupport {
     }
 
     @Override
-    public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
+    public Behavior[] addBehaviour(BehavioralLanguageEditor integratedTextEditor) {
         customStyleSpansFactory = new FactoriesCombiner(integratedTextEditor.getHighlighter(), new StyleSpansFactory<>(integratedTextEditor) {
             @Override
             public Collection<SortableStyleSpan<Collection<String>>> genSpans(String text) {

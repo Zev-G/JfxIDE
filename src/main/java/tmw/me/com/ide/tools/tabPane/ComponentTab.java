@@ -37,11 +37,6 @@ import java.util.ArrayList;
  */
 public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
 
-    private static final String DEFAULT_TEXT = "Untitled";
-    private static final double MIN_WIDTH = 150;
-    private static final double IMAGE_OPACITY = 0.7;
-    private static final double IMAGE_RATIO = 0.3;
-
     private final Label label = new Label();
 
     private Ide ide;
@@ -91,7 +86,6 @@ public class ComponentTab<T extends Node & ComponentTabContent<T>> extends Tab {
     private void init() {
         this.getStyleClass().add("component-tab");
         this.setGraphic(label);
-        label.setTextFill(ComponentTabPane.DEFAULT_LABEL_COLOR);
         makeDraggable();
         this.tabPaneProperty().addListener(new ChangeListener<>() {
             @Override

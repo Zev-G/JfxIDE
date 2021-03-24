@@ -52,7 +52,7 @@ public class AddonEditor extends AnchorPane implements ComponentTabContent<Addon
         stylesListPane = new StylesListPane(addon, this);
         stylesScroller.setContent(stylesListPane);
 
-        integratedTextEditor.setLanguageSupport(languageSupport);
+        integratedTextEditor.setLanguage(languageSupport);
         integratedTextEditor.lockLanguageUI();
         integratedTextEditor.setFontSize(40);
 
@@ -97,7 +97,7 @@ public class AddonEditor extends AnchorPane implements ComponentTabContent<Addon
     }
 
     public void updated() {
-        integratedTextEditor.setLanguageSupport(addon.buildNewLanguageSupport());
+        integratedTextEditor.setLanguage(addon.buildNewLanguageSupport());
     }
 
 

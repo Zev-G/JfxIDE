@@ -3,6 +3,10 @@ package tmw.me.com.ide.codeEditor.languages;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import tmw.me.com.ide.Ide;
+import tmw.me.com.ide.codeEditor.Behavior;
+import tmw.me.com.ide.codeEditor.highlighting.ClosingBracketFactory;
+import tmw.me.com.ide.codeEditor.highlighting.FactoriesCombiner;
+import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
 import javax.tools.JavaCompiler;
@@ -75,7 +79,11 @@ public class JavaLanguage extends LanguageSupport {
     }
 
     @Override
-    public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
+    public Behavior[] addBehaviour(BehavioralLanguageEditor integratedTextEditor) {
+        customStyleSpansFactory = new FactoriesCombiner(integratedTextEditor.getHighlighter(),
+                new ClosingBracketFactory(integratedTextEditor, '{', '}', new String[] {"connected-brackets", "selected-word"}, "string", "comment"),
+                new ClosingBracketFactory(integratedTextEditor, '(', ')', new String[] {"connected-brackets", "selected-word"}, "string", "comment"),
+                new ClosingBracketFactory(integratedTextEditor, '[', ']', new String[] {"connected-brackets", "selected-word"}, "string", "comment"));
         return null;
     }
 

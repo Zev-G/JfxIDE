@@ -1,0 +1,24 @@
+* {
+    /*-main-background-color: #273245;*/
+    -main-background-color: derive(-color, -20%);
+
+    -lighter-background-color: derive(-color, -6%);
+    -even-lighter-background-color: -color;
+
+    -darker-background-color: derive(-color, -40%);
+    -darkest-background-color: derive(-color, -50%);
+    -fx-near-black: derive(-color, -60%);
+
+    -fx-background: derive(-color, -32%);
+    -darkish-background-color: derive(-color, -22%);
+
+    -default-text-color: derive(-text-color-base, -6%);
+    -fx-text-base-color: derive(-text-color-base, -6%);
+    -fx-focused-text-base-color: derive(-text-color-base, -8%);
+    -subtitle-text-color: derive(-text-color-base, -8%);
+
+    -selected-line: derive(-color, -50%);
+
+    -light-highlight-color: -highlight-color-base;
+    -highlight-color: derive(-highlight-color-base, -10%);
+}

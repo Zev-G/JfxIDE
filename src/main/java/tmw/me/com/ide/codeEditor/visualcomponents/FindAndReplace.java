@@ -21,6 +21,7 @@ import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
 import tmw.me.com.ide.codeEditor.highlighting.SortableStyleSpan;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.texteditor.BehavioralEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.tools.builders.SVGPathBuilder;
 
@@ -221,12 +222,12 @@ public class FindAndReplace extends Pane implements VisualComponent<FindAndRepla
     }
 
     @Override
-    public void addToITE(IntegratedTextEditor ite) {
+    public void apply(BehavioralEditor ite) {
 
     }
 
     @Override
-    public void receiveKeyEvent(KeyEvent event, IntegratedTextEditor editor) {
+    public void receiveKeyEvent(KeyEvent event, BehavioralEditor editor) {
         KeyCode keyCode = event.getCode();
         if ((keyCode == KeyCode.F || keyCode == KeyCode.R || keyCode == KeyCode.H) && event.isControlDown()) {
             showingFindAndReplace.set(!showingFindAndReplace.get());

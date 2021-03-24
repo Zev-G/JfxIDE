@@ -4,6 +4,7 @@
     <file url="file://$PROJECT_DIR$/src/main/resources/ide/editor/styles/extras/color.css" dialect="JavaFX" />
     <file url="file://$PROJECT_DIR$/src/main/resources/ide/editor/styles/extras/scrollpane.css" dialect="JavaFX" />
     <file url="file://$PROJECT_DIR$/src/main/resources/ide/editor/styles/ite.css" dialect="JavaFX" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/ide/styles/dark.css" dialect="JavaFX" />
     <file url="file://$PROJECT_DIR$/src/main/resources/ide/styles/light.css" dialect="JavaFX" />
     <file url="file://$PROJECT_DIR$/src/main/resources/ide/styles/main.css" dialect="JavaFX" />
   </component>

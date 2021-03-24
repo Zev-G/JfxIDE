@@ -1,16 +1,21 @@
 package tmw.me.com.ide.codeEditor.visualcomponents;
 
 import javafx.scene.input.KeyEvent;
-import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.Behavior;
+import tmw.me.com.ide.codeEditor.texteditor.BehavioralEditor;
 
-public interface VisualComponent<T> {
+public interface VisualComponent<T> extends Behavior {
 
     default T get() {
         return (T) this;
     }
 
-    void addToITE(IntegratedTextEditor ite);
+    void apply(BehavioralEditor ite);
 
-    void receiveKeyEvent(KeyEvent event, IntegratedTextEditor textEditor);
+    void receiveKeyEvent(KeyEvent event, BehavioralEditor textEditor);
 
+    @Override
+    default void remove(BehavioralEditor integratedTextEditor) {
+
+    }
 }

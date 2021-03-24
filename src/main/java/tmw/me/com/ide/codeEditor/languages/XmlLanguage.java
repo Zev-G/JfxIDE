@@ -1,6 +1,7 @@
 package tmw.me.com.ide.codeEditor.languages;
 
-import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
+import tmw.me.com.ide.codeEditor.Behavior;
+import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,7 +26,7 @@ public class XmlLanguage extends LanguageSupport {
     }
 
     @Override
-    public Behavior[] addBehaviour(IntegratedTextEditor integratedTextEditor) {
+    public Behavior[] addBehaviour(BehavioralLanguageEditor integratedTextEditor) {
         return null;
     }
 

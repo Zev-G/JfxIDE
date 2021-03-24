@@ -7,7 +7,7 @@ import javafx.scene.layout.Pane;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import tmw.me.com.Resources;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
 import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
@@ -15,15 +15,11 @@ public class Minimap extends AnchorPane {
 
     private final Pane viewPort = new Pane();
 
-    private final HighlightableTextEditor minimap = new HighlightableTextEditor() {
+    private final HighlightableTextEditor minimap = new BehavioralLanguageEditor() {
+
         @Override
         public void onHighlight() {
 
-        }
-
-        @Override
-        protected void languageChanged(LanguageSupport oldLang, LanguageSupport newLang) {
-            highlight();
         }
 
         @Override
@@ -56,7 +52,8 @@ public class Minimap extends AnchorPane {
         AnchorPane.setLeftAnchor(viewPort, 0D);
         AnchorPane.setRightAnchor(viewPort, 0D);
 
-        this.getStylesheets().addAll(IntegratedTextEditor.STYLE_SHEET, Ide.STYLE_SHEET, Resources.getExternalForm(Resources.EDITOR_STYLES + "minimap"));
+        getStylesheets().addAll(Ide.STYLE_SHEET);
+        this.getStylesheets().addAll(IntegratedTextEditor.STYLE_SHEET, Resources.getExternalForm(Resources.EDITOR_STYLES + "minimap"));
 
         viewPort.getStyleClass().add("viewport");
     }

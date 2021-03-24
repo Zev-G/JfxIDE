@@ -22,7 +22,7 @@ public class JavaPlayground extends AnchorPane {
     private final VBox codeBox = new VBox(quickCodeRunner.getTextAreaHolder(), codeButtonsHolder);
 
     public JavaPlayground() {
-        this.getStylesheets().add(Ide.STYLE_SHEET);
+        this.getStylesheets().addAll(Ide.STYLE_SHEET);
         this.getChildren().add(codeBox);
         quickCodeRunner.setPrefSize(450, 250);
         runCode.setOnAction(actionEvent -> {
