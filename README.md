@@ -1,4 +1,4 @@
-# Simple Coding Language
+# JFxIDE
 
 [![CodeFactor](https://www.codefactor.io/repository/github/zev-g/simplecodinglanguage/badge)](https://www.codefactor.io/repository/github/zev-g/simplecodinglanguage)
 
