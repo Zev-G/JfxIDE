@@ -63,6 +63,10 @@
     -fx-background-color: -fx-near-black;
 }
 
+.theme-circle {
+    -fx-fill: -color;
+}
+
 .check-box .box {
     -fx-background-color: -lighter-background-color;
     -fx-border-color: -fx-near-black;

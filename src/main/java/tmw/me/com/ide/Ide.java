@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -16,6 +17,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
@@ -33,6 +35,7 @@ import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.fileTreeView.FileTreeView;
 import tmw.me.com.ide.images.Images;
+import tmw.me.com.ide.settings.IdeSettings;
 import tmw.me.com.ide.settings.SettingsView;
 import tmw.me.com.ide.settings.annotations.AnnotationHelper;
 import tmw.me.com.ide.settings.visual.fields.direct.ColorField;
@@ -61,7 +64,7 @@ import java.util.function.Consumer;
 public class Ide extends AnchorPane {
 
     public static final Image WINDOW_ICON = new Image(Images.get("icon.png"));
-    public static final String[] STYLE_SHEET = { Resources.getExternalForm("ide/styles/atom.css"), Resources.getExternalForm("ide/styles/dark.css"), Resources.getExternalForm("ide/styles/main.css") };
+    public static final String[] STYLE_SHEET = { IdeSettings.getThemeFromName(IdeSettings.currentTheme.get()), Resources.getExternalForm("ide/styles/dark.css"), Resources.getExternalForm("ide/styles/main.css") };
 
     private final ComponentTabPane tabPane = new ComponentTabPane();
     private final SplitPane tabPanesHorizontal = new SplitPane(tabPane);
@@ -142,6 +145,7 @@ public class Ide extends AnchorPane {
 
         this.getStyleClass().add("ide");
         this.getStylesheets().addAll(STYLE_SHEET);
+        NodeUtils.bindParentToIDEStyle(this, IdeSettings.currentTheme);
 
         // Colors
         playSvg.setFill(Color.LIGHTGREEN);
@@ -340,7 +344,36 @@ public class Ide extends AnchorPane {
         openInNewWindow.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN));
         tabMenu.getItems().addAll(save, close, openInNewWindow);
 
-        menuBar.getMenus().addAll(fileMenu, tabMenu);
+        Menu themes = new Menu("Themes");
+        for (String theme : IdeSettings.THEMES) {
+            Circle themeCircle = new Circle(7.5);
+            themeCircle.getStyleClass().addAll("thin-black-border", "theme-circle");
+            Group parent = new Group(themeCircle);
+            parent.getStylesheets().setAll(IdeSettings.getThemeFromName(theme));
+
+            CheckMenuItem themeItem = new CheckMenuItem(theme.substring(0, 1).toUpperCase() + theme.substring(1), parent);
+            themeItem.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue && theme.equals(IdeSettings.currentTheme.get())) {
+                    themeItem.setSelected(true);
+                }
+            });
+            themeItem.setOnAction(event -> IdeSettings.currentTheme.set(theme));
+
+            if (IdeSettings.currentTheme.get().equals(theme)) {
+                themeItem.setSelected(true);
+            }
+
+            IdeSettings.currentTheme.addListener((observable, oldValue, newValue) -> {
+                if (newValue.equals(theme)) {
+                    themeItem.setSelected(true);
+                } else if (oldValue.equals(theme)) {
+                    themeItem.setSelected(false);
+                }
+            });
+            themes.getItems().add(themeItem);
+        }
+
+        menuBar.getMenus().addAll(fileMenu, tabMenu, themes);
         menuBar.getStyleClass().add("ide-menu-bar");
         tabPane.getTabs().addListener((ListChangeListener<Tab>) change -> tabMenu.setDisable(change.getList().isEmpty()));
         // Menu event handling

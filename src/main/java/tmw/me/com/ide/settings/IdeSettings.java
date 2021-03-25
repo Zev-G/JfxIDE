@@ -2,9 +2,12 @@ package tmw.me.com.ide.settings;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import tmw.me.com.Resources;
 import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
 import tmw.me.com.ide.codeEditor.languages.addon.JSONHelper;
 import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
@@ -12,6 +15,7 @@ import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class IdeSettings {
@@ -29,6 +33,9 @@ public final class IdeSettings {
     private static final File PROGRAM_FILE = new File(PROGRAM_FOLDER);
     private static final File SETTINGS_FOLDER = new File(PROGRAM_FOLDER + "\\" + "settings");
 
+    private static File IDE_FILE;
+    private static IdeSettingJSON ideJSON;
+
     private static File ADDONS_FILE;
     private static AddonSettingJSON addonJSON;
 
@@ -37,10 +44,14 @@ public final class IdeSettings {
 
     public static final List<FileAndInstance<SettingsJSON>> SETTING_PAGES = new ArrayList<>();
 
+    public static final List<String> THEMES = Arrays.asList( "atom", "palenight", "oceanic", "deepocean", "monokai", "dracula", "solarized", "nightowl" );
+    public static StringProperty currentTheme = new SimpleStringProperty();
+
     public static void start() throws IOException {
         SETTING_PAGES.clear();
         ADDONS_FILE = new File(SETTINGS_FOLDER, "addons.json");
         EDITOR_FILE = new File(SETTINGS_FOLDER, "editor.json");
+        IDE_FILE = new File(SETTINGS_FOLDER, "ide.json");
         ADDON_PATHS = FXCollections.observableArrayList();
         LanguageLibrary.defaultLanguages = FXCollections.observableArrayList(LanguageLibrary.HARD_CODED_LANGUAGES);
         createListeners();
@@ -56,6 +67,13 @@ public final class IdeSettings {
             JSONHelper.toFile(EDITOR_FILE, editorJSON);
         } else {
             editorJSON = JSONHelper.fromFile(EDITOR_FILE, EditorSettingJSON.class);
+        }
+        if (!IDE_FILE.exists()) {
+            IDE_FILE.createNewFile();
+            ideJSON = IdeSettingJSON.makeDefault();
+            JSONHelper.toFile(EDITOR_FILE, ideJSON);
+        } else {
+            ideJSON = JSONHelper.fromFile(IDE_FILE, IdeSettingJSON.class);
         }
         if (!ADDONS_FILE.exists()) {
             ADDONS_FILE.createNewFile();
@@ -75,6 +93,7 @@ public final class IdeSettings {
         }
         SETTING_PAGES.add(new FileAndInstance<>(ADDONS_FILE, addonJSON));
         SETTING_PAGES.add(new FileAndInstance<>(EDITOR_FILE, editorJSON));
+        currentTheme.set(ideJSON.defaultStyle);
     }
 
     private static void createListeners() {
@@ -97,6 +116,10 @@ public final class IdeSettings {
                     addonJSON.addonPaths.remove(path);
                 }
             }
+        });
+        currentTheme.addListener((observable, oldValue, newValue) -> {
+            ideJSON.defaultStyle = newValue;
+            JSONHelper.toFile(IDE_FILE, ideJSON);
         });
     }
 
@@ -146,8 +169,10 @@ public final class IdeSettings {
                     '}';
         }
 
+    }
 
-
+    public static String getThemeFromName(String name) {
+        return Resources.getExternalForm("ide/styles/" + name + ".css");
     }
 
 }

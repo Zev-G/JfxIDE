@@ -22,6 +22,8 @@ import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.codeEditor.texteditor.BehavioralEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
+import tmw.me.com.ide.settings.IdeSettings;
+import tmw.me.com.ide.tools.NodeUtils;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -72,7 +74,9 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
         resultsCount.getStyleClass().add("ac-results");
         selectedLabel.getStyleClass().add("ac-out-of");
         itemsScroller.setMaxHeight(300);
+
         topBox.getStylesheets().addAll(Ide.STYLE_SHEET);
+        NodeUtils.bindParentToIDEStyle(topBox, IdeSettings.currentTheme);
 
         getContent().add(topBox);
         setAutoHide(true);

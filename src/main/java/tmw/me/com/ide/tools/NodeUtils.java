@@ -1,15 +1,18 @@
 package tmw.me.com.ide.tools;
 
 import javafx.animation.FadeTransition;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.WritableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+import tmw.me.com.ide.settings.IdeSettings;
 
 import java.util.function.Consumer;
 
@@ -60,6 +63,15 @@ public final class NodeUtils {
         HBox.setHgrow(visualLine, Priority.ALWAYS);
         container.setPadding(new Insets(verticalPadding, horizontalPadding, verticalPadding, horizontalPadding));
         return container;
+    }
+
+    public static void bindParentToIDEStyle(Parent node, StringProperty theme) {
+        if (!node.getStylesheets().contains(IdeSettings.getThemeFromName(theme.get())))
+            node.getStylesheets().add(IdeSettings.getThemeFromName(theme.get()));
+        theme.addListener((observable, oldValue, newValue) -> {
+            node.getStylesheets().remove(IdeSettings.getThemeFromName(oldValue));
+            node.getStylesheets().add(IdeSettings.getThemeFromName(newValue));
+        });
     }
 
     public static <T> WritableValue<T> writableFromConsumer(Consumer<T> consumer) {

@@ -14,6 +14,7 @@ import tmw.me.com.ide.codeEditor.texteditor.BehavioralEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.AutocompletePopup;
 import tmw.me.com.ide.codeEditor.visualcomponents.VisualComponent;
+import tmw.me.com.ide.settings.IdeSettings;
 import tmw.me.com.ide.tools.NodeUtils;
 
 import java.time.Duration;
@@ -34,6 +35,7 @@ public class EditorTooltip extends Popup implements VisualComponent<EditorToolti
         content.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, AutocompletePopup.SHADOW_COLOR, 20, 0.3, 0, 2));
         content.getStyleClass().add("tooltip-top");
         content.getStylesheets().addAll(Ide.STYLE_SHEET);
+        NodeUtils.bindParentToIDEStyle(content, IdeSettings.currentTheme);
         content.setMaxHeight(400);
 
         setAutoHide(true);
