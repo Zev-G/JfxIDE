@@ -2,7 +2,6 @@ package tmw.me.com.ide;
 
 import com.jfoenix.controls.JFXCheckBox;
 import javafx.animation.FadeTransition;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -37,8 +36,6 @@ import tmw.me.com.ide.fileTreeView.FileTreeView;
 import tmw.me.com.ide.images.Images;
 import tmw.me.com.ide.settings.IdeSettings;
 import tmw.me.com.ide.settings.SettingsView;
-import tmw.me.com.ide.settings.annotations.AnnotationHelper;
-import tmw.me.com.ide.settings.visual.fields.direct.ColorField;
 import tmw.me.com.ide.tools.NodeUtils;
 import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
 import tmw.me.com.ide.tools.tabPane.ComponentTab;
@@ -494,16 +491,7 @@ public class Ide extends AnchorPane {
             }
         });
         settings.setOnAction(event -> {
-            VBox page = new VBox();
-            SimpleObjectProperty<Color> objectProperty = new SimpleObjectProperty<>();
-            page.getChildren().add(new ColorField(Color.web("#2A2B43"), AnnotationHelper.createDisplayableJSON(
-                    true, "Color: ", true, 25, Integer.MAX_VALUE, false, null, null
-            ), objectProperty));
-            objectProperty.addListener((observable, oldValue, newValue) -> {
-                setStyle("* { -color: " + NodeUtils.colorToWeb(newValue) + "; }");
-            });
-            tmw.me.com.ide.tools.customtabpane.Tab customTab = new tmw.me.com.ide.tools.customtabpane.Tab("Theme", page);
-            SettingsView settingsView = new SettingsView(customTab);
+            SettingsView settingsView = new SettingsView();
             Tab newTab = new ComponentTab<>("Settings", settingsView);
             tabPane.getTabs().add(newTab);
             tabPane.getSelectionModel().select(newTab);
