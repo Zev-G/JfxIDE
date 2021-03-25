@@ -29,5 +29,7 @@ _haven't recorded showcase yet_
 
 > This feature is a work in progress and has certain features which need to be improved.
 
-_haven't recorded showcase yet_
+<p align="center">
+  <img width="460" height="300" src="https://i.imgur.com/m0mvEQg.gif">
+</p>
 
