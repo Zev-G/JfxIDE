@@ -29,7 +29,7 @@ public class Main extends Application {
         // Script Lab
         startProgram();
 
-        Ide ide = new Ide(new File("D:\\Users\\Windows\\Desktop\\dark.css"));
+        Ide ide = new Ide();
         primaryStage.setScene(new Scene(NodeUtils.wrapNode(ide)));
         primaryStage.show();
         primaryStage.setWidth(800);

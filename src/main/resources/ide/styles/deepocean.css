@@ -3,6 +3,18 @@
     -lighter-color: #d4d3d3;
 
     -highlight-color-base: #e05c5c;
-    -color: #141621;
+    -color: #11131d;
     -text-color-base: white;
+
+    -main-background-color: derive(-color, -5%) !important;
+
+    -lighter-background-color: derive(-color, 20%) !important;
+    -even-lighter-background-color: derive(-color, 40%) !important;
+
+    -darker-background-color: derive(-color, -20%) !important;
+    -darkest-background-color: derive(-color, -50%) !important;
+    -fx-near-black: derive(-color, -70%) !important;
+
+    -fx-background: derive(-color, -5%) !important;
+    -darkish-background-color: -color !important;
 }

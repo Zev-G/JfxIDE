@@ -512,7 +512,7 @@ public class Ide extends AnchorPane {
 
     public <T extends Node & ComponentTabContent<T>> Ide createCopy() {
         Ide newIde = new Ide();
-        if (projectView.getFileRoot() != null) {
+        if (projectView != null && projectView.getFileRoot() != null) {
             if (newIde.getScene() != null) {
                 newIde.loadFile(projectView.getFileRoot());
             } else {

@@ -213,7 +213,7 @@
 
 .fr-vbox {
     -fx-background-radius: 0 0 10 10;
-    -fx-background-color: #202937;
+    -fx-background-color: -darker-background-color;
     -fx-effect: dropshadow(gaussian, -darkest-background-color, 10, 0.0, 0, 7);
     -fx-padding: 7.5 15 7.5 15;
 }
@@ -225,7 +225,7 @@
 .fr-close {
     -fx-scale-x: 1.2;
     -fx-scale-y: 1.2;
-    -fx-fill: lightgray;
+    -fx-fill: -default-text-color;
     -fx-cursor: hand;
 }
 
@@ -236,7 +236,7 @@
 .fr-tool-bar-item {
     -fx-scale-x: 1.2;
     -fx-scale-y: 1.2;
-    -fx-fill: lightgray;
+    -fx-fill: -default-text-color;
     -fx-cursor: hand;
 }
 
@@ -410,7 +410,7 @@
 }
 
 .active-button:hover {
-    -fx-background-color: #18182f;
+    -fx-background-color: -darkest-background-color;
 }
 
 .darker-background {
@@ -510,7 +510,7 @@
 }
 
 .popup-shower {
-    -fx-background-color: rgba(30, 30, 30, 0.7);
+    -fx-background-color: -darkest-background-color;
 }
 
 .context-menu {
@@ -548,7 +548,7 @@
 }
 
 .ac-not-filled-in {
-    -fx-text-fill: #dbdbdb;
+    -fx-text-fill: -default-text-color;
 }
 
 .selected-syntax {
@@ -586,11 +586,11 @@
 }
 
 .ac-results {
-    -fx-text-fill: #f6f6f6;
+    -fx-text-fill: -default-text-color;
 }
 
 .ac-out-of {
-    -fx-text-fill: #e2e2e2;
+    -fx-text-fill: -default-text-color;
 }
 
 .tooltip-top {
@@ -605,8 +605,8 @@
 }
 
 .line-num-holder {
-    -fx-border-width: 0 1.5 0 0;
-    -fx-border-color: rgb(65, 78, 100);
+    -fx-border-width: 0 1 0 0;
+    -fx-border-color: -lightest-background-color;
 }
 
 .circle-highlight-background:hover {
