@@ -104,6 +104,18 @@
     -fx-font-size: 20;
 }
 
+.ms-title {
+    -fx-text-fill: -default-text-color;
+    -fx-font-weight: bold;
+    -fx-font-size: 18 !important;
+}
+
+.m-title {
+    -fx-text-fill: -default-text-color;
+    -fx-font-weight: bold;
+    -fx-font-size: 22 !important;
+}
+
 .l-title {
     -fx-text-fill: -default-text-color;
     -fx-font-weight: bold;

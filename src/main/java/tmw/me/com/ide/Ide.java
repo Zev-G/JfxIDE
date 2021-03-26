@@ -34,6 +34,7 @@ import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.fileTreeView.FileTreeView;
 import tmw.me.com.ide.images.Images;
+import tmw.me.com.ide.notifications.NotificationsView;
 import tmw.me.com.ide.settings.IdeSettings;
 import tmw.me.com.ide.settings.SettingsView;
 import tmw.me.com.ide.tools.NodeUtils;
@@ -44,7 +45,6 @@ import tmw.me.com.ide.tools.tabPane.ComponentTabPane;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
@@ -105,7 +105,7 @@ public class Ide extends AnchorPane {
     private final AnchorPane projectViewAnchorPane = new AnchorPane();
     private FileTreeView projectView;
 
-    private final VBox notificationPane = new VBox();
+    private final NotificationsView notificationPane = new NotificationsView();
 
     public Ide() {
 
@@ -134,7 +134,7 @@ public class Ide extends AnchorPane {
         autoSelect.getStyleClass().add("auto-select");
         tabPanesHorizontal.getStyleClass().add("dark-split-pane");
 
-        confirmText.getStyleClass().addAll("white-text", "xl-title");
+        confirmText.getStyleClass().addAll("white-text", "l-title");
         confirm.getStyleClass().addAll("white-text", "l-title");
 
         prompt.getStyleClass().addAll("white-text", "xl-title");
@@ -454,13 +454,7 @@ public class Ide extends AnchorPane {
             ComponentTab<?> selectedTab = tabPane.getSelectedTab();
             if (selectedTab != null && selectedTab.getValue() instanceof IntegratedTextEditor && selectedTab.getFile() != null && selectedTab.getFile().exists()) {
                 IntegratedTextEditor selectedTextEditor = (IntegratedTextEditor) selectedTab.getValue();
-                try {
-                    FileWriter fileWriter = new FileWriter(selectedTab.getFile());
-                    fileWriter.write(selectedTextEditor.getText());
-                    fileWriter.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                selectedTextEditor.save(selectedTab.getFile());
             }
         });
         close.setOnAction(actionEvent -> {
@@ -496,7 +490,6 @@ public class Ide extends AnchorPane {
             tabPane.getTabs().add(newTab);
             tabPane.getSelectionModel().select(newTab);
         });
-
 
         // Tooltips
         autoSelect.setTooltip(
@@ -825,7 +818,7 @@ public class Ide extends AnchorPane {
         return projectView;
     }
 
-    public VBox getNotificationPane() {
+    public NotificationsView getNotificationPane() {
         return notificationPane;
     }
 

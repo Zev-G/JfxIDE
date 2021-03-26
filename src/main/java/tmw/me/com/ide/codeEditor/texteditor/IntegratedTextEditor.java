@@ -5,6 +5,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -12,11 +13,13 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.stage.Window;
+import javafx.util.Duration;
 import javafx.util.StringConverter;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.Paragraph;
 import org.reactfx.collection.LiveList;
+import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.codeEditor.MiniMap;
 import tmw.me.com.ide.codeEditor.highlighting.Highlighter;
 import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
@@ -26,6 +29,7 @@ import tmw.me.com.ide.codeEditor.languages.PlainTextLanguage;
 import tmw.me.com.ide.codeEditor.visualcomponents.AutocompletePopup;
 import tmw.me.com.ide.codeEditor.visualcomponents.FindAndReplace;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
+import tmw.me.com.ide.notifications.SuccessNotification;
 import tmw.me.com.ide.settings.IdeSettings;
 import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
 
@@ -101,12 +105,6 @@ public class IntegratedTextEditor extends BehavioralLanguageEditor implements Co
         if (USING_MINIMAP) {
             textAreaHolder.getChildren().add(1, miniMap);
         }
-
-//        Minimap minimap = new Minimap();
-//        minimap.link(this);
-//        Stage stage = new Stage();
-//        stage.setScene(new Scene(minimap));
-//        stage.show();
 
         setContextMenu(generateContextMenu());
 
@@ -441,6 +439,15 @@ public class IntegratedTextEditor extends BehavioralLanguageEditor implements Co
             FileWriter fileWriter = new FileWriter(file);
             fileWriter.write(getTabbedText());
             fileWriter.close();
+            Parent parent = getParent();
+            while (parent != null) {
+                if (parent instanceof Ide) {
+                    ((Ide) parent).getNotificationPane().showNotification(new Duration(2000),
+                            new SuccessNotification("Saved: " + file.getName()));
+                    break;
+                }
+                parent = parent.getParent();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

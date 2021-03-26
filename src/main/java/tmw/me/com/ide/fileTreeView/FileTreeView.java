@@ -492,11 +492,24 @@ public class FileTreeView extends JFXTreeView<File> {
                     if (filesArray != null) {
                         List<File> files = new LinkedList<>(Arrays.asList(filesArray));
                         files.removeAll(DELETE_ON_EXIT);
+                        files.sort((o1, o2) -> {
+                            int value = o1.compareTo(o2);
+                            if (o1.isDirectory()) {
+                                value -= 10000;
+                            }
+                            if (o2.isDirectory()) {
+                                value += 10000;
+                            }
+                            return value;
+                        });
                         ArrayList<TreeItem<File>> newTreeItems = new ArrayList<>();
                         for (File loopFile : files) {
                             newTreeItems.add(new CustomItem(loopFile, treeView));
                         }
                         this.getChildren().setAll(newTreeItems);
+                        if (newTreeItems.size() == 1 && !newTreeItems.get(0).getChildren().isEmpty()) {
+                            newTreeItems.get(0).setExpanded(true);
+                        }
                     }
                 }
             });

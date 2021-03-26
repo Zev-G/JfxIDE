@@ -47,9 +47,7 @@ public final class Parser {
     }
 
     public void setErrorHandler(Consumer<ParseError> errorHandler) {
-        System.out.println("So this got called: " + this.errorHandler);
         this.errorHandler = errorHandler;
-        System.out.println("And under neath: " + this.errorHandler);
     }
 
     public static boolean PRINTING_CHUNK_PARSING_INFO = false;

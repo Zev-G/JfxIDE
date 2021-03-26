@@ -29,7 +29,7 @@ public class HoverButton extends Button implements JFXConstructable<HoverButton>
         init();
     }
 
-    public void init() {
+    private void init() {
         this.setCursor(Cursor.HAND);
         this.setOpacity(fadeOutTo.get());
 

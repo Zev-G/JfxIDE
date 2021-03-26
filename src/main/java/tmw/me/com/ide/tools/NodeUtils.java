@@ -1,6 +1,6 @@
 package tmw.me.com.ide.tools;
 
-import javafx.animation.FadeTransition;
+import javafx.animation.*;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.WritableValue;
 import javafx.event.ActionEvent;
@@ -58,7 +58,7 @@ public final class NodeUtils {
     public static Node divider(double height, double horizontalPadding, double verticalPadding) {
         Pane visualLine = new Pane();
         visualLine.setMinHeight(height);
-        visualLine.getStyleClass().add("black-background");
+        visualLine.getStyleClass().addAll("black-background", "divider");
         HBox container = new HBox(visualLine);
         HBox.setHgrow(visualLine, Priority.ALWAYS);
         container.setPadding(new Insets(verticalPadding, horizontalPadding, verticalPadding, horizontalPadding));
@@ -101,6 +101,12 @@ public final class NodeUtils {
         AnchorPane anchorPane = new AnchorPane(node);
         NodeUtils.anchor(node);
         return anchorPane;
+    }
+
+    public static Timeline createLayoutTransition(Duration dur, double x, double y, Node move) {
+        return new Timeline(
+                new KeyFrame(dur, (EventHandler<ActionEvent>) null, new KeyValue(move.layoutXProperty(), x)),
+                new KeyFrame(dur, (EventHandler<ActionEvent>) null, new KeyValue(move.layoutYProperty(), y)));
     }
 
 }

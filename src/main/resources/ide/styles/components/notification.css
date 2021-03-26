@@ -1,0 +1,55 @@
+* {
+    -notification-color: -main-background-color;
+}
+
+.notification {
+    -fx-background-radius: 5;
+    -fx-background-color: -notification-color;
+    -fx-effect: dropshadow(three-pass-box, -fx-near-black, 10, 0.2, 2, 5);
+    -fx-min-width: 350;
+}
+.icon-box {
+    -fx-background-radius: 5 0 0 5;
+    -fx-padding: 18 10 8 10;
+    -fx-background-color: derive(-notification-color, -10%);
+}
+
+.notification-icon {
+    -fx-fill: #ffffff;
+    -fx-opacity: 0.6;
+}
+.notification-text {
+    -fx-font-size: 14;
+}
+.notification-label {
+    -fx-text-fill: #292929;
+    -fx-opacity: 0.7;
+    -fx-font-weight: normal;
+}
+
+.text-box {
+    -fx-padding: 11;
+}
+
+.error-notification {
+    -fx-background-color: #e64c3d;
+}
+.error-notification > .icon-box {
+    -fx-background-color: #b92d1d;
+}
+
+.success-notification {
+    -fx-background-color: #71d886;
+}
+.success-notification > .icon-box {
+    -fx-background-color: #2ba042;
+}
+
+.divider {
+    -fx-background-color: #030303;
+    -fx-opacity: 0.1;
+}
+
+.close-icon {
+    -fx-fill: #434343;
+}
