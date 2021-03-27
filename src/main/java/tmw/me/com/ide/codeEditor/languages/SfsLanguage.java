@@ -81,6 +81,7 @@ public class SfsLanguage extends LanguageSupport {
         super(Styles.forName("sfs"), "Software Scripting");
         runnable = true;
         usingAutoComplete = true;
+        commentChars = "#";
     }
 
     /**

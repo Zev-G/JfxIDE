@@ -3,7 +3,7 @@
 }
 
 .comment {
-    -fx-fill: #5f636b !important;
+    -fx-fill: #787c85 !important;
 }
 
 .number {
@@ -36,5 +36,5 @@
 }
 
 .brace {
-    -fx-fill: #ec3f41 !important;
+    -fx-fill: #30b3e7 !important;
 }

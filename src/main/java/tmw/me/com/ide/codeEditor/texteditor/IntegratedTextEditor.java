@@ -26,6 +26,7 @@ import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupplier;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.codeEditor.languages.PlainTextLanguage;
+import tmw.me.com.ide.codeEditor.texteditor.filters.KeyFilter;
 import tmw.me.com.ide.codeEditor.visualcomponents.AutocompletePopup;
 import tmw.me.com.ide.codeEditor.visualcomponents.FindAndReplace;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
@@ -36,7 +37,9 @@ import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -254,6 +257,52 @@ public class IntegratedTextEditor extends BehavioralLanguageEditor implements Co
             AnchorPane.setTopAnchor(miniMap, 0D);
             AnchorPane.setBottomAnchor(miniMap, 15D);
         }
+
+        getKeyFilters().add(new KeyFilter<>() {
+            @Override
+            public void receiveAcceptedInput(KeyEvent event, FilteredEditor editor) {
+                if (event.getCode() == KeyCode.SLASH && event.isControlDown()) {
+                    String selectedText = getSelectedText();
+                    if (selectedText == null || selectedText.isEmpty() || !selectedText.contains("\n")) {
+                        int lineNum = lineFromAbsoluteLocation(getCaretPosition());
+                        String lineText = getText(lineNum);
+                        if (lineText.trim().startsWith(getLanguage().getCommentChars())) {
+                            String uncommented = lineText.replaceFirst(Pattern.quote(getLanguage().getCommentChars()), "");
+                            replaceText(lineNum, 0, lineNum, lineText.length(), uncommented);
+                        } else {
+                            insertText(absolutePositionFromLine(lineNum), getLanguage().getCommentChars());
+                        }
+                    } else {
+                        IndexRange selection = getSelection();
+                        int current = 0;
+                        List<Paragraph<Collection<String>, String, Collection<String>>> paragraphs = new ArrayList<>();
+                        boolean comment = false;
+                        for (Paragraph<Collection<String>, String, Collection<String>> par : getParagraphs()) {
+                            current += par.length() + 1;
+                            if (current > selection.getEnd()) {
+                                break;
+                            } else if (current >= selection.getStart()) {
+                                paragraphs.add(par);
+                                if (!par.getText().trim().startsWith(getLanguage().getCommentChars()))
+                                    comment = true;
+                            }
+                        }
+                        int startLine = lineFromAbsoluteLocation(selection.getStart());
+                        for (int i = 0; i < paragraphs.size(); i++) {
+                            Paragraph<Collection<String>, String, Collection<String>> par = paragraphs.get(i);
+                            int lineNum = i + startLine;
+                            String lineText = par.getText();
+                            if (!comment) {
+                                String uncommented = lineText.replaceFirst(Pattern.quote(getLanguage().getCommentChars()), "");
+                                replaceText(lineNum, 0, lineNum, lineText.length(), uncommented);
+                            } else {
+                                insertText(absolutePositionFromLine(lineNum), getLanguage().getCommentChars());
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private ContextMenu generateContextMenu() {
@@ -292,8 +341,7 @@ public class IntegratedTextEditor extends BehavioralLanguageEditor implements Co
     }
 
     public void receiveKeyPressed(KeyEvent keyEvent) {
-        super.keyPressed(keyEvent);
-        // Getting certain important variables which are used a lot in other places.
+//         Getting certain important variables which are used a lot in other places.
         String line = this.getParagraph(this.getCurrentParagraph()).getSegments().get(0);
         KeyCode keyCode = keyEvent.getCode();
         String textAfterCaret = this.getText().substring(this.getCaretPosition());

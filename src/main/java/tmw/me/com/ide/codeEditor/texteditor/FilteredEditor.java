@@ -13,7 +13,7 @@ public abstract class FilteredEditor extends HighlightableTextEditor implements 
     public FilteredEditor() {
         super();
 
-        setOnKeyPressed(this::keyPressed);
+        addEventFilter(KeyEvent.KEY_PRESSED, this::keyPressed);
         textProperty().addListener((observable, oldValue, newValue) -> {
             for (TextFilter<FilteredEditor> textFilter : textFilters) {
                 TextReplacement result = textFilter.filterText(newValue, this);

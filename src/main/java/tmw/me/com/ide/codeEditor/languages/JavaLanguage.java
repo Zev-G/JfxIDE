@@ -55,6 +55,7 @@ public class JavaLanguage extends LanguageSupport {
     public JavaLanguage() {
         super(Styles.forName("java"), "Java");
         runnable = true;
+        commentChars = "//";
     }
 
     @Override

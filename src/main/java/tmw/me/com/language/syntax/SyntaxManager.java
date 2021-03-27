@@ -259,16 +259,43 @@ public class SyntaxManager {
                     }
                 }));
                 EVENT_FACTORIES.add(new WhenEventFactory("loop %list%", (state, values, event, args) -> {
-                    List list = (List) values.get(0);
-                    int loopTimes = 0;
-                    for (Map.Entry<String, Object> entry : list.getValues().entrySet()) {
-                        event.getRunChunk().getLocalExpressions().clear();
-                        int finalLoopTimes = loopTimes;
-                        event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("num(ber|)", (state1, values1, args1) -> finalLoopTimes, Number.class));
-                        event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("index", (state1, values1, args1) -> entry.getKey(), String.class));
-                        event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("item", (state1, values1, args1) -> entry.getValue(), Object.class));
-                        event.run();
-                        loopTimes++;
+                    Object valAt0 = values.get(0);
+                    if (valAt0 instanceof List) {
+                        List list = (List) values.get(0);
+                        int loopTimes = 0;
+                        for (Map.Entry<String, Object> entry : list.getValues().entrySet()) {
+                            event.getRunChunk().getLocalExpressions().clear();
+                            int finalLoopTimes = loopTimes;
+                            event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("num(ber|)", (state1, values1, args1) -> finalLoopTimes, Number.class));
+                            event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("index", (state1, values1, args1) -> entry.getKey(), String.class));
+                            event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("item", (state1, values1, args1) -> entry.getValue(), Object.class));
+                            event.run();
+                            loopTimes++;
+                        }
+                    } else if (valAt0 instanceof Object[]) {
+                        Object[] objects = (Object[]) valAt0;
+                        int loopTimes = 0;
+                        for (Object obj : objects) {
+                            event.getRunChunk().getLocalExpressions().clear();
+                            int finalLoopTimes = loopTimes;
+                            event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("num(ber|)", (state1, values1, args1) -> finalLoopTimes, Number.class));
+                            event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("index", (state1, values1, args1) -> finalLoopTimes, Number.class));
+                            event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("item", (state1, values1, args1) -> obj, Object.class));
+                            event.run();
+                            loopTimes++;
+                        }
+                    } else if (valAt0 instanceof java.util.List) {
+                        java.util.List<?> objects = (java.util.List<?>) valAt0;
+                        int loopTimes = 0;
+                        for (Object obj : objects) {
+                            event.getRunChunk().getLocalExpressions().clear();
+                            int finalLoopTimes = loopTimes;
+                            event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("num(ber|)", (state1, values1, args1) -> finalLoopTimes, Number.class));
+                            event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("index", (state1, values1, args1) -> finalLoopTimes, Number.class));
+                            event.getRunChunk().getLocalExpressions().add(new ExpressionFactory<>("item", (state1, values1, args1) -> obj, Object.class));
+                            event.run();
+                            loopTimes++;
+                        }
                     }
                 }));
                 EVENT_FACTORIES.add(new WhenEventFactory("async", (state, values, event, args) -> new Thread(event::run).start()));

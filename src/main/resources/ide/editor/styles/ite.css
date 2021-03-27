@@ -100,5 +100,7 @@
 }
 
 .connected-brackets {
-    -fx-underline: true;
+    -rtfx-underline: true;
+    -rtfx-underline-width: 1;
+    -rtfx-underline-color: #518afd;
 }

@@ -49,6 +49,8 @@ public abstract class LanguageSupport extends AddonBase {
 
     private LanguageSupplier<LanguageSupport> thisSupplier;
 
+    protected String commentChars = "";
+
     /**
      * @param styleSheet   The languageSupport's style sheet, see {@link LanguageSupport#styleSheet}
      * @param languageName The languageSupport's name, see {@link LanguageSupport#languageName}
@@ -67,6 +69,14 @@ public abstract class LanguageSupport extends AddonBase {
      * make this return null.
      */
     public abstract Pattern generatePattern();
+
+    /**
+     * This method is used to get the text used as the prefix for a comment. So for a java comment this should be equal to: '//'
+     * @return The value stored in {@link LanguageSupport#commentChars}
+     */
+    public String getCommentChars() {
+        return commentChars;
+    }
 
     /**
      * @return {@link LanguageSupport#styleSheet}
