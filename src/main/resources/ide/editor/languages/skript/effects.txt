@@ -1,0 +1,134 @@
+set %variable% to %value%
+return %objects%
+send action bar %string% to %players%
+ban %players%
+ban %players% because of %string%
+ban %players% for %timespan%
+ban %players% because of %string% for %timespan%
+break %blocks%
+break %blocks% using %itemtype%
+broadcast %string%
+broadcast %string% in %worlds%
+cancel cooldown
+clear drops
+cancel event
+uncancel event
+give %objects% to %objects%
+remove %objects% from %objects%
+clear %objects%
+make %entities% a charged creeper
+color %itemtypes% %color%
+execute command %string%
+execute command %string% by %commandsender%
+connect %player% to server %string%
+continue
+damage %entities/itemtypes% by %number%
+damage %entities/itemtypes% by %number% with fake cause %damagecause%
+heal %entities% by %number%
+repair %itemtypes% by %number%
+wait %timespan%
+drop %itemtypes%
+load skript %string%
+enchant %itemtypes% with %enchantmenttypes%
+equip with %itemtypes%
+equip %entity% with %itemtypes%
+exit
+instantly explode %entities%
+ignite %entities%
+stop explosion of %entities%
+feed %players%
+feed %players% by %number% beef
+make %entity% attack %entity%
+force %player% to respawn
+hide %players% from server list
+ignite %entities%
+ignite %entities% for %timespan%
+extinguish %entities%
+keep inventory
+keep inventory and xp points
+kick %players%
+kick %players% because of %string%
+kill %entities%
+launch firework with effects %fireworkeffects% at %locations%
+leash %entity% to %entity%
+create lightning %directions% %locations%
+load server icon from file %string%
+suppress conflict warnings
+suppress variable save warnings
+suppress missing conjuctions warnings
+suppress starting expression warnings
+log %string%
+log %string% to file %strings%
+make %players% fly
+make %players% stop flying
+make %entities% invulnerable
+make %entities% vulnerable
+make %players% say %strings%
+message %string%
+message %string% to %player%
+op %player%
+deop %player%
+open crafting table inventory to %player%
+open chest inventory to %player%
+open anvil inventory to %player%
+open hopper inventory to %player%
+open dropper inventory to %player%
+open dispenser inventory to %player%
+close %player%'s inventory
+show %visualeffects% on %entites/locations% to %players%
+play sound %string% at volume %number% at %location% for %players%
+play sound %string% at volume %number% for %players%
+play sound %string% at volume %number% at %location%
+play sound %string% for %players%
+play sound %string% at volume %number%
+hide player info from server list
+show player info on server list
+hide %players%
+hide %players% to %players%
+show %players%
+show %players% to %players%
+poison %entities%
+poison %entities% for %timespan%
+cure %entities% of poison
+apply %potioneffects% of tier %number% for %timespan% to %entities%
+apply %potioneffects% of tier %number% for %timespan%
+apply %potioneffects% for %timespan% to %entities%
+apply %potioneffects% of tier %number% %entities%
+apply %potioneffects% of tier %number% to %entities%
+push %entities% %direction% at speed %number%
+enable PvP in %world%
+enable PvP
+disable PvP in %world%
+disable PvP
+replace every %string% in %string% with %string%
+replace first %string% in %string% with %string%
+replace all %itemtypes% in %inventory% with %itemtyes%
+make %players% see %blocks% as %blocks%
+send resource pack from URL %string% to %players%
+shear %entities%
+un-shear %entities%
+shoot %entity% from %location% at speed %number%
+silence %entity%
+unsilence %entity%
+spawn %entity%
+spawn %number% of %entity%
+stop server
+restart server
+stop sound %strings% for %players%
+make %entity% swing their main hand
+make %entity% swing their off hand
+teleport %entity% to %location%
+reset the title of %players%
+send title %string% to %players%
+send title %string% to %players% with subtitle %string% for %timespan%
+toggle %blocks%
+turn on %blocks%
+turn off %blocks%
+enable flight for %players%
+disable flight for %players%
+grow tree %location%
+make %entity% ride %entity
+eject passenger of %entity%
+
+
+

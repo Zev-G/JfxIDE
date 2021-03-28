@@ -26,6 +26,7 @@ import tmw.me.com.ide.settings.IdeSettings;
 import tmw.me.com.ide.tools.NodeUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -179,7 +180,7 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
     public void fillBox(IntegratedTextEditor editor, String line) {
         if (editor.isCurrentlyUsingAutoComplete() && (line.trim().length() > 0 && (editor.isFocused() || this.isFocused()))) {
             factoryOrder.clear();
-            ArrayList<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = editor.getLanguage().getPossiblePieces(line, editor);
+            List<IdeSpecialParser.PossiblePiecePackage> possiblePiecePackages = editor.getLanguage().getPossiblePieces(line, editor);
             if (possiblePiecePackages != null && !possiblePiecePackages.isEmpty()) {
                 ArrayList<Node> newChildren = new ArrayList<>();
                 boolean showOverride = false;

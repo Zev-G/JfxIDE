@@ -109,6 +109,8 @@ public class IntegratedTextEditor extends BehavioralLanguageEditor implements Co
             textAreaHolder.getChildren().add(1, miniMap);
         }
 
+        getHighlighter().getFactories().add(findAndReplace.getFactory());
+
         setContextMenu(generateContextMenu());
 
         // Some other listeners

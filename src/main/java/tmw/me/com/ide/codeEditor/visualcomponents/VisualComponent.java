@@ -18,4 +18,5 @@ public interface VisualComponent<T> extends Behavior {
     default void remove(BehavioralEditor integratedTextEditor) {
 
     }
+
 }

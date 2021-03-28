@@ -1,0 +1,168 @@
+if %condition%:
+else if %condition%:
+else:
+options:
+command /%cmd% %args%:
+function %name%(%args%):
+trigger:
+at %time%:
+at %time% in %worlds%:
+on area effect:
+on arm swing:
+on player enter bed:
+on bed leave:
+on block damaging:
+on fertilize:
+on plant growth of %itemtypes%:
+on plant growth:
+on book edit:
+on book sign:
+on mining of %itemtypes%:
+on mine:
+on bucket empty:
+on bucket fill:
+on burn:
+on burning of %itemtypes%:
+on can build check:
+on chat:
+on chunk generate:
+on chunk load:
+on chunk unload:
+on right click:
+on left click:
+on click:
+on left click on %entity/item%:
+on right click on %entity/item%:
+on left click on %entity/item% holding %itemtype%:
+on right click on %entity/item% holding %itemtype%:
+on left click holding %itemtype%:
+on right click holding %itemtype%:
+on combust:
+on command:
+on player connecting:
+on player eat:
+on player eating %itemtypes%:
+on craft:
+on player crafting %itemtypes%:
+on creeper power:
+on damage:
+on damage of %entity%:
+on death:
+on death of %entity%:
+on dispense:
+on dispense of %itemtypes%:
+on drop:
+on player droping %itemtypes%:
+on enchant:
+on enchant prepare:
+on enderman place:
+on enderman pickup:
+on sheep eat:
+on silverfish enter:
+on silverfish exit:
+on falling block land:
+on dismount:
+on xp orb spawn:
+on explode:
+on explosion prime:
+on fade:
+on fade of %itemtypes%:
+on firework explode:
+on firework explosion colored %color%:
+on first join:
+on player fishing:
+on flight toggle:
+on flow:
+on form:
+on fuel burn:
+on gamemode change:
+on gamemode change to %gamemode%:
+on gliding state change:
+on grow:
+on swap held item:
+on heal:
+on horse jump:
+on hunger level change:
+on block ignite:
+on inventory click:
+on inventory click at %itemtypes%:
+on inventory close:
+on inventory open:
+on player tool break:
+on item damage:
+on item despawn:
+on item %itemtypes% despawn:
+on item mend:
+on item merge:
+on item %itemtypes% merge:
+on item spawn:
+on join:
+on jump:
+on kick:
+on language change:
+on leaves decay:
+on level change:
+on lightning strike:
+on step over %itemtypes%:
+on block physics:
+on pick up:
+on pick up of %itemtypes%:
+on pig zap:
+on piston extend:
+on piston retract:
+on place:
+on place of %itemtypes%:
+on player world change:
+on portal:
+on portal create:
+on portal enter:
+on player preparing craft:
+on player preparing craft of %itemtypes%:
+on step on pressure plate:
+on tripwire:
+on projectile hit:
+on quit:
+on redstone:
+on region enter:
+on region exit:
+on resource pack response:
+on respawn:
+on resurrect attempt:
+on use of riptide:
+on server list ping:
+on skript enable:
+on skript disable:
+on sheep grow wool:
+on projectile shoot:
+on sign edit:
+on slime spit:
+on smelt:
+on toggle sneak:
+on spawn:
+on spawn of %entity%:
+on spawn change:
+on sponge absorb:
+on spread:
+on sprint toggle:
+on swim toggle:
+on tame:
+on target:
+on teleport:
+on throw of egg:
+on tool change:
+on vehicle collide with block:
+on vehicle collide with entity:
+on vehicle create:
+on vehicle damage:
+on vehicle destroy:
+on vehicle enter:
+on vehicle exit:
+on weather change:
+on weather change to %weathertypes%:
+on world init:
+on world load:
+on world save:
+on world unload:
+on zombie break door:
+every %timespan% in world:
+every %timespan%:

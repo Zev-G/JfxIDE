@@ -8,7 +8,7 @@ import java.util.HashMap;
 public final class LanguageLibrary {
 
     public static final ObservableList<LanguageSupplier<? extends LanguageSupport>> HARD_CODED_LANGUAGES = FXCollections.observableArrayList(
-            LanguageSupplier.fromLanguages(new PlainTextLanguage(), new SfsLanguage(), new JavaLanguage(), new CssLanguage(), new MathLanguage())
+            LanguageSupplier.fromLanguages(new PlainTextLanguage(), new SfsLanguage(), new JavaLanguage(), new CssLanguage(), new MathLanguage(), new SkriptLanguage())
     );
 
     public static ObservableList<LanguageSupplier<? extends LanguageSupport>> defaultLanguages = FXCollections.observableArrayList(HARD_CODED_LANGUAGES);
