@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -307,4 +308,8 @@ public abstract class TextEditorBase extends CodeArea {
         return newIndexRanges;
     }
 
+    @Override
+    public Predicate<Collection<String>> getFoldStyleCheck() {
+        return super.getFoldStyleCheck();
+    }
 }

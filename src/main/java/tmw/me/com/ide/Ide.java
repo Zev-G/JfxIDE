@@ -7,6 +7,7 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -47,6 +48,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -508,6 +510,17 @@ public class Ide extends AnchorPane {
                 ToolTipBuilder.create().setHeader("Project Tab").setMainText("Toggles the view of the File Tree.").build()
         );
 
+    }
+
+    public static Optional<Ide> findIdeInParents(IntegratedTextEditor integratedTextEditor) {
+        Parent parent = integratedTextEditor.getParent();
+        while (parent != null) {
+            if (parent instanceof Ide) {
+                return Optional.of((Ide) parent);
+            }
+            parent = parent.getParent();
+        }
+        return Optional.empty();
     }
 
     public <T extends Node & ComponentTabContent<T>> Ide createCopy() {

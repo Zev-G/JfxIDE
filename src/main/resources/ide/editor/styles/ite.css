@@ -69,6 +69,10 @@
     -fx-background-color: -selected-line;
 }
 
+.folded-label {
+    -fx-text-fill: white;
+}
+
 .mm-viewport {
     -fx-background-color: rgb(255, 255, 255);
 }

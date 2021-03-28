@@ -58,8 +58,9 @@ import java.util.regex.Pattern;
  * </ul>
  * <h2>Planned Features</h3>
  * <ul>
- *     <li>A nice context menu</li>
+ *     <li>A nice context menu (WIP)</li>
  *     <li>A Minimap (WIP)</li>
+ *     <li>Code folding</li>
  * </ul>
  * <h3>Notes:</h3>
  * <p>*Controlled by LanguageSupport</p>
@@ -85,7 +86,6 @@ public class IntegratedTextEditor extends BehavioralLanguageEditor implements Co
 
     private final VirtualizedScrollPane<IntegratedTextEditor> virtualizedScrollPane = new VirtualizedScrollPane<>(this);
     private final AnchorPane textAreaHolder = new AnchorPane(virtualizedScrollPane, findAndReplace, bottomPane);
-
 
     /**
      * Constructs a new IntegratedTextEditor with {@link PlainTextLanguage} as it's languageSupport support.
