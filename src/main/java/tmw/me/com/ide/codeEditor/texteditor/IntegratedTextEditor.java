@@ -1,5 +1,6 @@
 package tmw.me.com.ide.codeEditor.texteditor;
 
+import com.sun.javafx.scene.control.skin.Utils;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -12,6 +13,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.text.Font;
 import javafx.stage.Window;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
@@ -218,13 +220,24 @@ public class IntegratedTextEditor extends BehavioralLanguageEditor implements Co
             }
             Platform.runLater(() -> {
                 autoCompletePopup.fillBox(this, this.getParagraph(this.getCurrentParagraph()).getSegments().get(0));
-                if (getCaretBounds().isPresent()) {
-                    Bounds caretBounds = getCaretBounds().get();
-                    autoCompletePopup.setX(caretBounds.getMinX() - fontSize.get());
-                    autoCompletePopup.setY(caretBounds.getMinY() + fontSize.get());
-                }
             });
 
+        });
+
+        caretBoundsProperty().addListener((observable, oldValue, newValue) -> {
+            if (getCaretBounds().isPresent()) {
+//                Bounds caretBounds = getCaretBounds().get();
+//                double setX = caretBounds.getMinX() - fontSize.get();
+//
+//                if (!autoCompletePopup.getFactoryOrder().isEmpty()) {
+//                    String filledIn = autoCompletePopup.getFactoryOrder().get(autoCompletePopup.getSelectionIndex()).getFilledIn();
+//                    double length = Utils.computeTextWidth(Font.font("JetBrains Mono", getFontSize()), filledIn, 0);
+//                    setX -= length + 8;
+//                }
+//
+//                autoCompletePopup.setX(setX);
+//                autoCompletePopup.setY(caretBounds.getMinY() + fontSize.get());
+            }
         });
 
         selectedTextProperty().addListener((observable, oldValue, newValue) -> {

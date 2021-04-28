@@ -20,6 +20,7 @@
 }
 .notification-text {
     -fx-font-size: 14;
+    -fx-text-fill: -text-color-base;
 }
 .notification-label {
     -fx-text-fill: #292929;

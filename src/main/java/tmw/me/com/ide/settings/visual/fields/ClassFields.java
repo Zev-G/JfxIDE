@@ -87,4 +87,5 @@ public class ClassFields<T> extends AnnotatedField<T> {
         super.saved();
         childrenFields.forEach(AnnotatedField::saved);
     }
+
 }

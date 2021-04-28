@@ -1,7 +1,13 @@
 package tmw.me.com.ide.tools;
 
-import javafx.animation.*;
+import javafx.animation.FadeTransition;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -14,7 +20,11 @@ import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import tmw.me.com.ide.settings.IdeSettings;
 
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public final class NodeUtils {
 
@@ -66,8 +76,9 @@ public final class NodeUtils {
     }
 
     public static void bindParentToIDEStyle(Parent node, StringProperty theme) {
-        if (!node.getStylesheets().contains(IdeSettings.getThemeFromName(theme.get())))
+        if (!node.getStylesheets().contains(IdeSettings.getThemeFromName(theme.get()))) {
             node.getStylesheets().add(IdeSettings.getThemeFromName(theme.get()));
+        }
         theme.addListener((observable, oldValue, newValue) -> {
             node.getStylesheets().remove(IdeSettings.getThemeFromName(oldValue));
             node.getStylesheets().add(IdeSettings.getThemeFromName(newValue));
@@ -107,6 +118,48 @@ public final class NodeUtils {
         return new Timeline(
                 new KeyFrame(dur, (EventHandler<ActionEvent>) null, new KeyValue(move.layoutXProperty(), x)),
                 new KeyFrame(dur, (EventHandler<ActionEvent>) null, new KeyValue(move.layoutYProperty(), y)));
+    }
+
+    public static <T, I> ObjectProperty<T> transformObservable(ObservableValue<I> property, Function<I, ObservableValue<T>> converter) {
+        SimpleObjectProperty<T> newProperty = new SimpleObjectProperty<>();
+
+        Consumer<I> valueConsumer = newValue -> {
+            if (newValue != null) {
+                newProperty.bind(converter.apply(newValue));
+            }
+        };
+
+        property.addListener((observable, oldValue, newValue) -> valueConsumer.accept(newValue));
+
+        valueConsumer.accept(property.getValue());
+        return newProperty;
+    }
+
+    public static <T> ObjectProperty<T> fallbackIf(ObjectProperty<T> property, Predicate<T> tester, T fallback) {
+        return fallbackIf(property, tester, (Supplier<T>) () -> fallback);
+    }
+    public static <T> ObjectProperty<T> fallbackIf(ObjectProperty<T> property, Predicate<T> tester, Supplier<T> fallback) {
+        SimpleObjectProperty<T> newProperty = new SimpleObjectProperty<>();
+
+        Consumer<T> valueConsumer = newValue -> {
+            if (tester.test(newValue)) {
+                newProperty.set(newValue);
+            } else {
+                newProperty.set(fallback.get());
+            }
+        };
+
+        property.addListener((observable, oldValue, newValue) -> valueConsumer.accept(newValue));
+
+        valueConsumer.accept(property.getValue());
+        return newProperty;
+    }
+
+    public static <T> ObjectProperty<T> fallbackIfNull(ObjectProperty<T> property, T fallback) {
+        return NodeUtils.fallbackIf(property, Objects::nonNull, fallback);
+    }
+    public static <T> ObjectProperty<T> fallbackIfNull(ObjectProperty<T> property, Supplier<T> fallback) {
+        return NodeUtils.fallbackIf(property, Objects::nonNull, fallback);
     }
 
 }

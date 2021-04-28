@@ -421,6 +421,10 @@
     -fx-background-color: -main-background-color;
 }
 
+.darkest-background {
+    -fx-background-color: -darkest-background-color;
+}
+
 .split-pane:horizontal > .split-pane-divider {
     -fx-background-color: -main-background-color;
 }

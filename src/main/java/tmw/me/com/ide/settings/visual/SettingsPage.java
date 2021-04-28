@@ -38,7 +38,8 @@ public class SettingsPage<T extends SettingsJSON> extends AnchorPane {
         AnchorPane.setRightAnchor(saveButton, 5D);
         AnchorPane.setTopAnchor(saveButton, 5D);
 
-        getStyleClass().add("darker-background");
+//        getStyleClass().add("darkest-background");
+        setStyle("-fx-background-color: -fx-background;");
 
         topLayout.savedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue) {

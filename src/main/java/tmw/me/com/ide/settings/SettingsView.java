@@ -26,6 +26,8 @@ public class SettingsView extends AnchorPane implements ComponentTabContent<Sett
         }
         tabPane = new FinalTabPane(false, tabs.toArray(new Tab[0]));
 
+        tabPane.setTabPadding(new Insets(0, 20, 0, 20));
+
         getChildren().add(tabPane);
         NodeUtils.anchor(tabPane);
     }
@@ -87,8 +89,6 @@ public class SettingsView extends AnchorPane implements ComponentTabContent<Sett
                     NodeUtils.anchor(generated);
                 }
             });
-
-            setPadding(new Insets(10));
         }
 
         public void loadFromSupplier() {

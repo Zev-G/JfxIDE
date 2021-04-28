@@ -86,9 +86,6 @@ public abstract class AnnotatedField<T> extends HBox implements VisualField {
         removeButton.getStyleClass().add("simple-button");
         getChildren().add(removeButton);
         removeButton.setOnAction(event -> removed.accept(this));
-//        removeButton.setVisible(false);
-//        addEventFilter(MouseEvent.MOUSE_ENTERED, event -> removeButton.setVisible(true));
-//        addEventFilter(MouseEvent.MOUSE_EXITED, event -> removeButton.setVisible(false));
     }
 
     public DisplayedJSON.EditMethod getEditMethod() {

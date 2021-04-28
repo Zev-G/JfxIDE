@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import tmw.me.com.ide.tools.NodeUtils;
 
 public class Tab extends BorderPane {
 
@@ -27,23 +28,20 @@ public class Tab extends BorderPane {
         setContent(node);
         setText(text);
 
-        setPadding(new Insets(5));
-
         label.textProperty().bind(this.text);
-
         setCenter(label);
-
         label.getStyleClass().add("tab-title");
         getStyleClass().add("tab-header");
 
+        paddingProperty().bind(NodeUtils.fallbackIfNull(NodeUtils.transformObservable(tabPane, FinalTabPane::tabPaddingProperty), new Insets(0, 5, 0, 5)));
+
         setOnMouseReleased(mouseEvent -> {
-            if (tabPane != null && isHover()) {
-                getTabPane().select(this);
+            if (tabPane.get() != null && isHover()) {
+                getTabPane().setSelectedTab(this);
             }
         });
-
         contentProperty().addListener((observableValue, node1, t1) -> {
-            if (tabPane != null && getTabPane().getSelectedTab() == this) {
+            if (tabPane.get() != null && getTabPane().getSelectedTab() == this) {
                 getTabPane().updateContent();
             }
         });

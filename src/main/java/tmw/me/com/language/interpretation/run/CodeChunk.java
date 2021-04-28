@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-public class CodeChunk extends CodeChunkBase {
+public class CodeChunk extends CodeChunkBase implements Cloneable {
 
     public static final ArrayList<CodeChunk> ALL_CHUNKS = new ArrayList<>();
 

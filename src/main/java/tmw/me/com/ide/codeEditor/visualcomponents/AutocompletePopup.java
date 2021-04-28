@@ -1,5 +1,6 @@
 package tmw.me.com.ide.codeEditor.visualcomponents;
 
+import com.sun.javafx.scene.control.skin.Utils;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.event.EventHandler;
@@ -16,6 +17,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Popup;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
@@ -201,14 +203,19 @@ public class AutocompletePopup extends Popup implements VisualComponent<Autocomp
                     newChildren.add(box);
                 }
                 if (!showOverride && !newChildren.isEmpty()) {
-                    if (newChildren.size() > 4) {
-                        if (!topBox.getChildren().contains(bottomPane)) {
-                            topBox.getChildren().add(bottomPane);
-                        }
-                        resultsCount.setText("Results: " + newChildren.size());
-                    } else {
-                        topBox.getChildren().remove(bottomPane);
+                    Bounds caretBounds = editor.getCaretBounds().get();
+                    double setX = caretBounds.getMinX() - editor.getFontSize();
+
+                    if (!getFactoryOrder().isEmpty()) {
+                        String filledIn = getFactoryOrder().get(getSelectionIndex()).getFilledIn().trim();
+                        double length = Utils.computeTextWidth(Font.font("JetBrains Mono", editor.getFontSize()), filledIn, 0);
+                        setX -= length + 8;
                     }
+
+                    setX(setX);
+                    setY(caretBounds.getMinY() + editor.getFontSize());
+
+                    resultsCount.setText("Results: " + newChildren.size());
                     itemsBox.getChildren().setAll(newChildren);
                     itemsBox.getChildren().get(0).getStyleClass().add("selected-syntax");
                     selectionIndex = 0;
