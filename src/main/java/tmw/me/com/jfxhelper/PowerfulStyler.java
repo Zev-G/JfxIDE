@@ -1,4 +1,4 @@
-package tmw.me.com.ide.tools;
+package tmw.me.com.jfxhelper;
 
 
 import javafx.scene.Node;

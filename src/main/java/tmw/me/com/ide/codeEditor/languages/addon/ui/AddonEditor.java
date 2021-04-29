@@ -11,7 +11,7 @@ import tmw.me.com.ide.codeEditor.languages.addon.AddonLanguageSupport;
 import tmw.me.com.ide.codeEditor.languages.addon.JSONHelper;
 import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
-import tmw.me.com.ide.tools.ResizableTextField;
+import tmw.me.com.jfxhelper.ResizableTextField;
 import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
 import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
 

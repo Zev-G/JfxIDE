@@ -6,7 +6,7 @@ import javafx.scene.layout.AnchorPane;
 import tmw.me.com.ide.codeEditor.languages.addon.JSONHelper;
 import tmw.me.com.ide.settings.SettingsJSON;
 import tmw.me.com.ide.settings.visual.fields.ClassFields;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.jfxhelper.NodeUtils;
 import tmw.me.com.ide.tools.control.HoverButton;
 
 import java.io.File;

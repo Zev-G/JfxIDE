@@ -1,7 +1,7 @@
 package tmw.me.com.ide.tools.colorpicker;
 
 import javafx.scene.paint.Color;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.jfxhelper.NodeUtils;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;

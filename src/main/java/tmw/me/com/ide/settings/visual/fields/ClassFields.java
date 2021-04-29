@@ -3,7 +3,7 @@ package tmw.me.com.ide.settings.visual.fields;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 import tmw.me.com.ide.settings.annotations.DisplayedJSON;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.jfxhelper.NodeUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

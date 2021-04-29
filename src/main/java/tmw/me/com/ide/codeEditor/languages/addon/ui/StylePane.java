@@ -13,7 +13,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import tmw.me.com.ide.codeEditor.languages.addon.StyleFactoryJSON;
-import tmw.me.com.ide.tools.ResizableTextField;
+import tmw.me.com.jfxhelper.ResizableTextField;
 import tmw.me.com.ide.tools.SVG;
 import tmw.me.com.ide.tools.control.SVGHoverButton;
 

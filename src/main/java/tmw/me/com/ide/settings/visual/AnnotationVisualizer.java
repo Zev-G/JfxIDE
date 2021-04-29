@@ -6,7 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.layout.VBox;
 import tmw.me.com.ide.settings.annotations.DisplayedJSON;
 import tmw.me.com.ide.settings.visual.fields.AnnotatedField;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.jfxhelper.NodeUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
