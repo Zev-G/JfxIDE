@@ -25,7 +25,7 @@ import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.codeEditor.texteditor.BehavioralEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.settings.IdeSettings;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.jfxhelper.NodeUtils;
 
 import java.util.ArrayList;
 import java.util.List;

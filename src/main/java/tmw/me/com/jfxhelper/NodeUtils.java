@@ -1,4 +1,4 @@
-package tmw.me.com.ide.tools;
+package tmw.me.com.jfxhelper;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -28,6 +28,11 @@ import java.util.function.Supplier;
 
 public final class NodeUtils {
 
+    public static void anchor(Node... nodes) {
+        for (Node loopNode : nodes) {
+            anchor(loopNode);
+        }
+    }
     public static void anchor(Node node) {
         anchor(node, 0, 0, 0, 0);
     }
@@ -48,7 +53,10 @@ public final class NodeUtils {
     }
 
     public static void transOpacity(Node node, double to, double duration, EventHandler<ActionEvent> onFinished) {
-        FadeTransition fadeTransition = new FadeTransition(Duration.millis(duration), node);
+        transOpacity(node, to, Duration.millis(duration), onFinished);
+    }
+    public static void transOpacity(Node node, double to, Duration duration, EventHandler<ActionEvent> onFinished) {
+        FadeTransition fadeTransition = new FadeTransition(duration, node);
         fadeTransition.setToValue(to);
         fadeTransition.setOnFinished(onFinished);
         fadeTransition.play();
@@ -160,6 +168,19 @@ public final class NodeUtils {
     }
     public static <T> ObjectProperty<T> fallbackIfNull(ObjectProperty<T> property, Supplier<T> fallback) {
         return NodeUtils.fallbackIf(property, Objects::nonNull, fallback);
+    }
+
+    public static Background coloredBackground(Color color) {
+        return new Background(new BackgroundFill(color, CornerRadii.EMPTY, Insets.EMPTY));
+    }
+
+    public static void setFontSize(Node node, Number fontSize) {
+        String style = node.getStyle();
+        if (style.contains("-fx-font-size:")) {
+            node.setStyle(CssUtils.editProperty(style, "-fx-font-size", fontSize));
+        } else {
+            node.setStyle(CssUtils.append(style, "-fx-font-size: " + fontSize));
+        }
     }
 
 }

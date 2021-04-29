@@ -4,7 +4,7 @@ import javafx.collections.FXCollections;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.VBox;
 import tmw.me.com.ide.settings.annotations.DisplayedJSON;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.jfxhelper.NodeUtils;
 import tmw.me.com.ide.tools.SVG;
 import tmw.me.com.ide.tools.control.SVGHoverButton;
 

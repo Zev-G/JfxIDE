@@ -15,7 +15,7 @@ import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.AutocompletePopup;
 import tmw.me.com.ide.codeEditor.visualcomponents.VisualComponent;
 import tmw.me.com.ide.settings.IdeSettings;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.jfxhelper.NodeUtils;
 
 import java.time.Duration;
 

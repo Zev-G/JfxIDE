@@ -122,7 +122,9 @@ public class FileTreeView extends JFXTreeView<File> {
                         item.setComponentTab(tab);
                         if (!IdeSettings.getAddonJSON().addonPaths.contains(file.getAbsolutePath())) {
                             ide.showConfirmation("Would you like to add this addon to the Ide?", aBoolean -> {
-                                IdeSettings.ADDON_PATHS.add(file.getAbsolutePath());
+                                if (aBoolean) {
+                                    IdeSettings.ADDON_PATHS.add(file.getAbsolutePath());
+                                }
                             });
                         }
                     }
@@ -354,7 +356,7 @@ public class FileTreeView extends JFXTreeView<File> {
             rename.setOnAction(actionEvent -> {
                 if (this.getTreeView() instanceof FileTreeView) {
                     FileTreeView fileTreeView = (FileTreeView) this.getTreeView();
-                    fileTreeView.getIde().showPopupForText("", this.getItem().getName(), gotten -> {
+                    fileTreeView.getIde().showPopupForText("Rename the file to:", this.getItem().getName(), gotten -> {
                         if (!gotten.contains("/") && !gotten.contains("\\")) {
                             File renameTo = new File(this.getItem().getParentFile().getPath() + "\\" + gotten);
                             if (!renameTo.exists()) {

@@ -5,7 +5,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import tmw.me.com.ide.settings.visual.SettingsPage;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.jfxhelper.NodeUtils;
 import tmw.me.com.ide.tools.customtabpane.FinalTabPane;
 import tmw.me.com.ide.tools.customtabpane.Tab;
 import tmw.me.com.ide.tools.tabPane.ComponentTabContent;

@@ -6,7 +6,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import tmw.me.com.ide.settings.annotations.DisplayedJSON;
 import tmw.me.com.ide.settings.visual.fields.AnnotatedField;
-import tmw.me.com.ide.tools.ResizableTextField;
+import tmw.me.com.jfxhelper.ResizableTextField;
 
 public abstract class AnnotatedTextField<T> extends AnnotatedField<T> {
 

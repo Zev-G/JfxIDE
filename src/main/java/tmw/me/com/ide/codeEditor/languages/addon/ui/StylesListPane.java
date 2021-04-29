@@ -14,7 +14,7 @@ import tmw.me.com.ide.codeEditor.languages.addon.JSONHelper;
 import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
 import tmw.me.com.ide.codeEditor.languages.addon.StyleFactoryJSON;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.jfxhelper.NodeUtils;
 import tmw.me.com.ide.tools.SVG;
 import tmw.me.com.ide.tools.control.SVGHoverButton;
 import tmw.me.com.ide.tools.customtabpane.FinalTabPane;

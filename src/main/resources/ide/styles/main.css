@@ -58,6 +58,9 @@
     -fx-text-fill: -lightest-color !important;
     -fx-fill: -lightest-color;
 }
+.text-field.white-text {
+    -fx-accent: rgba(255, 255, 255, 0.2);
+}
 
 .black-background {
     -fx-background-color: -fx-near-black;
@@ -88,6 +91,10 @@
     -fx-background-color: -lighter-background-color;
 }
 
+.tab-button {
+    -fx-font-size: 14 !important;
+}
+
 .underline-hover-label:hover {
     -fx-underline: true;
 }
@@ -102,6 +109,12 @@
     -fx-text-fill: -default-text-color;
     -fx-font-weight: bold;
     -fx-font-size: 20;
+}
+
+.subtitle {
+    -fx-text-fill: -subtitle-text-color;
+    -fx-font-weight: normal;
+    -fx-font-size: 16 !important;
 }
 
 .ms-title {
@@ -205,6 +218,10 @@
 
 .ide {
     -fx-background-color: -main-background-color;
+}
+
+.enclosed-popup {
+    -fx-background-color: -fx-near-black;
 }
 
 .tab-title {
@@ -394,7 +411,6 @@
 
 .button {
     -fx-background-color: -main-background-color;
-    -fx-font-size: 14;
     -fx-padding: 2;
     -fx-background-radius: 0;
     -fx-font-weight: bold;
@@ -513,8 +529,9 @@
     -fx-background-color: -fx-background;
 }
 
-.popup-shower {
+.popup-background {
     -fx-background-color: -darkest-background-color;
+    -fx-opacity: 0.5;
 }
 
 .context-menu {

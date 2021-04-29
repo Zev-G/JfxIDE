@@ -8,7 +8,7 @@ import tmw.me.com.betterfx.CommandConsole;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.codeEditor.fonts.Fonts;
 import tmw.me.com.ide.settings.IdeSettings;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.jfxhelper.NodeUtils;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.interpretation.run.CodeChunk;
 import tmw.me.com.language.syntax.SyntaxManager;

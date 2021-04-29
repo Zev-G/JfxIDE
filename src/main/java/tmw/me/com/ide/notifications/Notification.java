@@ -17,7 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
 import javafx.util.Duration;
 import tmw.me.com.Resources;
-import tmw.me.com.ide.tools.NodeUtils;
+import tmw.me.com.jfxhelper.NodeUtils;
 import tmw.me.com.ide.tools.SVG;
 import tmw.me.com.ide.tools.concurrent.schedulers.ConsumerEventScheduler;
 import tmw.me.com.ide.tools.control.SVGHoverButton;

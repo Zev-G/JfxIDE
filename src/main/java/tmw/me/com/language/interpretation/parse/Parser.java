@@ -145,18 +145,18 @@ public final class Parser {
     /**
      * <b>How it works:</b>
      * <p>
-     * This method will loop through every inputted {@link SyntaxPieceFactory} and will then separate the text of said factories regex
-     * into pieces where each piece is separated by a expression (as in "%anything-here%"). For every piece of text if the piece of
-     * text is not an expression we will test if the literal regex matches the corresponding code. If it does not we will continue the loop.
+     * This method will loop through every inputted {@link SyntaxPieceFactory} and will then separate the text of said factory's REGEX
+     * into pieces where each piece is separated by an expression (i.e. "%anything-here%"). For every piece of text: if the piece of
+     * text is not an expression, we test if the literal (no "%type%") regex matches the corresponding code. If it does not we will {@code continue} the loop.
      * Assuming it does we will then check if the last piece was an expression. If it was we will save the text in between so that it can be
-     * parsed as an expression later. We continue this process until either the loop continues due to the code not matching what is required
-     * by the loop SyntaxPieceFactory or we reach the end of the regex. Should the end of the regex be met we then start to attempt to parse
+     * parsed as an expression later. We continue this process until either: the loop continues due to the code not matching what is required
+     * by the loop SyntaxPieceFactory, or we reach the end of the regex. Should the end of the regex be met we then start to attempt to parse
      * each separated {@link Expression} if any one of these expressions either doesn't match or isn't of the correct type we continue to the
      * next factory. Once we have all the expressions we return the {@link SyntaxPiece} that's gathered from the SyntaxPieceFactory.
      * If we continue to the end of the list of factories we return null;
      * </p>
      * <p>
-     * *Any line starting with (if (CodeChunk.printing)) is temporary and should be removed before any official release.
+     * *Any line starting with (if (CodeChunk.printing)) is temporary.
      * </p>
      *
      * @param code           The code from which the code will be extracted from.

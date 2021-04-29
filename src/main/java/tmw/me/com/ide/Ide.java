@@ -1,8 +1,11 @@
 package tmw.me.com.ide;
 
 import com.jfoenix.controls.JFXCheckBox;
-import javafx.animation.FadeTransition;
+import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -15,7 +18,10 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
@@ -25,7 +31,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.util.Duration;
 import javafx.util.StringConverter;
 import tmw.me.com.Main;
 import tmw.me.com.Resources;
@@ -33,16 +38,18 @@ import tmw.me.com.betterfx.Console;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
 import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
+import tmw.me.com.ide.enclosedpopup.EnclosedPopup;
 import tmw.me.com.ide.fileTreeView.FileTreeView;
 import tmw.me.com.ide.images.Images;
 import tmw.me.com.ide.notifications.NotificationsView;
 import tmw.me.com.ide.settings.IdeSettings;
 import tmw.me.com.ide.settings.SettingsView;
-import tmw.me.com.ide.tools.NodeUtils;
 import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
 import tmw.me.com.ide.tools.tabPane.ComponentTab;
 import tmw.me.com.ide.tools.tabPane.ComponentTabContent;
 import tmw.me.com.ide.tools.tabPane.ComponentTabPane;
+import tmw.me.com.jfxhelper.NodeUtils;
+import tmw.me.com.jfxhelper.ResizableTextField;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -92,17 +99,7 @@ public class Ide extends AnchorPane {
 
     private final MenuBar menuBar = new MenuBar();
 
-    private final Pane emptyPopupPane = new Pane();
-    private final VBox insidePopup = new VBox();
-    private final BorderPane popupPane = new BorderPane();
-
-    private final Label prompt = new Label();
-    private final TextField inputBox = new TextField();
-    private final HBox textInputBox = new HBox(prompt, inputBox);
-
-    private final Label confirmText = new Label();
-    private final Button confirm = new Button("Confirm");
-    private final HBox confirmBox = new HBox(confirmText, confirm);
+    private final EnclosedPopup enclosedPopup = new EnclosedPopup();
 
     private final AnchorPane projectViewAnchorPane = new AnchorPane();
     private FileTreeView projectView;
@@ -117,30 +114,19 @@ public class Ide extends AnchorPane {
         // Booleans
         runSelector.setDisable(true);
         projectTabButton.setVisible(false);
-        popupPane.setVisible(false);
         playSvg.setPickOnBounds(true);
         consoleAnchor.setFillWidth(true);
 
         // Alignments
         topBox.setAlignment(Pos.CENTER_LEFT);
-        insidePopup.setAlignment(Pos.CENTER);
         projectTabButton.setTextAlignment(TextAlignment.CENTER);
 
         // Style
-        popupPane.getStyleClass().add("popup-shower");
         playSvg.getStyleClass().add("circle-highlight-background");
         playButton.getStyleClass().add("transparent-background");
         runSelector.getStyleClass().add("run-selector");
-        textInputBox.getStyleClass().add("popup-item");
-        confirmBox.getStyleClass().add("popup-item");
         autoSelect.getStyleClass().add("auto-select");
         tabPanesHorizontal.getStyleClass().add("dark-split-pane");
-
-        confirmText.getStyleClass().addAll("white-text", "l-title");
-        confirm.getStyleClass().addAll("white-text", "l-title");
-
-        prompt.getStyleClass().addAll("white-text", "xl-title");
-        inputBox.getStyleClass().addAll("white-text", "l-title");
 
         this.getStyleClass().add("ide");
         this.getStylesheets().addAll(STYLE_SHEET);
@@ -161,7 +147,6 @@ public class Ide extends AnchorPane {
         // Size
         bottomTab.setMaxHeight(0);
         leftTab.setMaxWidth(0);
-        emptyPopupPane.setMinHeight(250);
 
         // Other Values
         playSvg.setContent("M 0 0 L 0 18.9 L 13.5 9.45 L 0 0");
@@ -169,52 +154,34 @@ public class Ide extends AnchorPane {
         projectTabButton.setLineSpacing(-5);
         topBox.setFillHeight(true);
         topBox.setSpacing(8);
-        confirmBox.setSpacing(10);
-        textInputBox.setSpacing(10);
         tabPane.setHorizontal(tabPanesHorizontal);
 
         // Children
         consoleAnchor.getChildren().add(runConsole);
-        popupPane.setCenter(insidePopup);
-        this.getChildren().addAll(verticalSplitPane, bottomBox, sideBox, menuBar, notificationPane, popupPane);
+        this.getChildren().addAll(verticalSplitPane, bottomBox, sideBox, menuBar, notificationPane, enclosedPopup);
 
         // Layout
         AnchorPane.setTopAnchor(notificationPane, 13D);
         AnchorPane.setRightAnchor(notificationPane, 13D);
 
-        AnchorPane.setTopAnchor(tabPanesHorizontal, 0D);
-        AnchorPane.setBottomAnchor(tabPanesHorizontal, 0D);
-        AnchorPane.setRightAnchor(tabPanesHorizontal, 0D);
-        AnchorPane.setLeftAnchor(tabPanesHorizontal, 0D);
-
-        AnchorPane.setTopAnchor(verticalSplitPane, 26D);
-        AnchorPane.setBottomAnchor(verticalSplitPane, 35D);
-        AnchorPane.setRightAnchor(verticalSplitPane, 8D);
-        AnchorPane.setLeftAnchor(verticalSplitPane, 14D);
-        AnchorPane.setTopAnchor(horizontalSplitPane, 0D);
-        AnchorPane.setBottomAnchor(horizontalSplitPane, 0D);
-        AnchorPane.setRightAnchor(horizontalSplitPane, 0D);
-        AnchorPane.setLeftAnchor(horizontalSplitPane, 0D);
+        NodeUtils.anchor(tabPanesHorizontal, horizontalSplitPane);
+        NodeUtils.anchor(enclosedPopup);
+        NodeUtils.anchor(verticalSplitPane, 26, 35, 8, 14);
 
         AnchorPane.setTopAnchor(topBox, 2D);
         AnchorPane.setRightAnchor(topBox, 2D);
+
         AnchorPane.setBottomAnchor(bottomBox, 11D);
         AnchorPane.setLeftAnchor(bottomBox, 14D);
 
         AnchorPane.setTopAnchor(sideBox, 26D);
         AnchorPane.setLeftAnchor(sideBox, 2D);
 
-        AnchorPane.setTopAnchor(popupPane, 0D);
-        AnchorPane.setRightAnchor(popupPane, 0D);
-        AnchorPane.setBottomAnchor(popupPane, 0D);
-        AnchorPane.setLeftAnchor(popupPane, 0D);
-
         AnchorPane.setTopAnchor(menuBar, 0D);
         AnchorPane.setLeftAnchor(menuBar, 0D);
         AnchorPane.setRightAnchor(menuBar, 0D);
 
         // Listeners
-        heightProperty().addListener((observableValue, number, t1) -> emptyPopupPane.setMinHeight(t1.doubleValue() / 5));
         tabPane.getSelectionModel().selectedItemProperty().addListener((observableValue, tab, t1) -> {
             if (getScene() != null && t1 instanceof ComponentTab && getScene().getWindow() instanceof Stage) {
                 ComponentTab<?> componentTab = (ComponentTab<?>) t1;
@@ -623,6 +590,7 @@ public class Ide extends AnchorPane {
         tab.getStyleClass().add("darker-background");
         tab.setMinHeight(0);
         button.setMnemonicParsing(true);
+        button.getStyleClass().add("tab-button");
         button.setOnAction(actionEvent -> {
             if (button.getAccessibleText() != null && button.getAccessibleText().equals("ACTIVATED")) {
                 button.setAccessibleText("");
@@ -642,20 +610,43 @@ public class Ide extends AnchorPane {
         });
     }
 
+    /**
+     * This method is just a utility method for populating and showing the {@link Ide#enclosedPopup}
+     * @param prompt used to set the text of the prompt label.
+     * @param defaultText used to set the text of the text field.
+     * @param gotten receives the text whenever the 'enter' button is pressed.
+     */
     public void showPopupForText(String prompt, String defaultText, Consumer<String> gotten) {
-        this.prompt.setText(prompt);
-        this.inputBox.setText(defaultText);
-        this.inputBox.setOnKeyPressed(keyEvent -> {
-            if (keyEvent.getCode() == KeyCode.ENTER) {
-                gotten.accept(this.inputBox.getText());
-                hidePopup();
-            }
+        Label promptLabel = new Label(prompt);
+        promptLabel.getStyleClass().add("subtitle");
+
+        TextField input = new ResizableTextField(defaultText);
+        input.maxWidthProperty().bind(Bindings.divide(widthProperty(), 2));
+        input.setAlignment(Pos.CENTER);
+        input.getStyleClass().add("white-text");
+
+        Button confirm = new Button("Enter");
+        confirm.setOnAction(event -> {
+            gotten.accept(input.getText());
+            hidePopup();
         });
-        insidePopup.getChildren().clear();
-        insidePopup.getChildren().add(textInputBox);
-        textInputBox.setAlignment(Pos.CENTER);
+        Button cancel = new Button("Cancel");
+        cancel.setOnAction(event -> hidePopup());
+        HBox buttons = new HBox(confirm, cancel);
+        buttons.setAlignment(Pos.CENTER);
+        buttons.setSpacing(3);
+
+        VBox vLayout = new VBox(promptLabel, input, buttons);
+        vLayout.setAlignment(Pos.CENTER);
+        vLayout.setPadding(new Insets(15));
+        vLayout.setSpacing(10);
+        vLayout.getStyleClass().add("popup-item");
+        NodeUtils.setFontSize(vLayout, 20);
+        EnclosedPopup.hideOnClick(vLayout);
+
+        enclosedPopup.setContent(vLayout);
+
         showPopup();
-        this.inputBox.requestFocus();
     }
 
     public void showConfirmation(String confirmText, Consumer<Boolean> gotten) {
@@ -663,34 +654,49 @@ public class Ide extends AnchorPane {
     }
 
     public void showConfirmation(String confirmText, String prompt, Consumer<Boolean> gotten) {
-        this.confirmText.setText(confirmText);
-        this.confirm.setText(prompt);
-        confirm.setOnAction(actionEvent -> {
+        ChangeListener<Boolean> shownListener = new ChangeListener<>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if (!newValue) {
+                    gotten.accept(false);
+                    enclosedPopup.shownProperty().removeListener(this);
+                }
+            }
+        };
+        enclosedPopup.shownProperty().addListener(shownListener);
+
+        Button confirm = new Button(prompt);
+        confirm.setOnAction(event -> {
             gotten.accept(true);
+            enclosedPopup.shownProperty().removeListener(shownListener);
             hidePopup();
         });
-        insidePopup.getChildren().clear();
-        insidePopup.getChildren().add(confirmBox);
-        confirmBox.setAlignment(Pos.CENTER);
+        Button cancel = new Button("Cancel");
+        cancel.setOnAction(event -> hidePopup());
+        HBox buttons = new HBox(confirm, cancel);
+        buttons.setAlignment(Pos.CENTER);
+        buttons.setSpacing(3);
+
+        Label promptLabel = new Label(confirmText);
+
+        VBox vLayout = new VBox(promptLabel, buttons);
+        vLayout.setAlignment(Pos.CENTER);
+        vLayout.setPadding(new Insets(15));
+        vLayout.setSpacing(10);
+        vLayout.getStyleClass().add("popup-item");
+        NodeUtils.setFontSize(vLayout, 20);
+        EnclosedPopup.hideOnClick(vLayout);
+
+        enclosedPopup.setContent(vLayout);
+
         showPopup();
-        this.confirm.requestFocus();
     }
 
     public void showPopup() {
-        popupPane.setOpacity(0);
-        popupPane.setVisible(true);
-        insidePopup.getChildren().add(emptyPopupPane);
-        FadeTransition fadeIn = new FadeTransition(new Duration(200), popupPane);
-        fadeIn.setToValue(1);
-        fadeIn.play();
-        popupPane.setOnMousePressed(mouseEvent -> hidePopup());
+        enclosedPopup.setShown(true);
     }
-
     public void hidePopup() {
-        FadeTransition fadeOut = new FadeTransition(new Duration(100), popupPane);
-        fadeOut.setToValue(0);
-        fadeOut.play();
-        fadeOut.setOnFinished(actionEvent -> popupPane.setVisible(false));
+        enclosedPopup.setShown(false);
     }
 
     public static ComponentTab<IntegratedTextEditor> getNewEditorTab(File file) {
@@ -785,42 +791,6 @@ public class Ide extends AnchorPane {
 
     public MenuBar getMenuBar() {
         return menuBar;
-    }
-
-    public Pane getEmptyPopupPane() {
-        return emptyPopupPane;
-    }
-
-    public VBox getInsidePopup() {
-        return insidePopup;
-    }
-
-    public BorderPane getPopupPane() {
-        return popupPane;
-    }
-
-    public Label getPrompt() {
-        return prompt;
-    }
-
-    public TextField getInputBox() {
-        return inputBox;
-    }
-
-    public HBox getTextInputBox() {
-        return textInputBox;
-    }
-
-    public Label getConfirmText() {
-        return confirmText;
-    }
-
-    public Button getConfirm() {
-        return confirm;
-    }
-
-    public HBox getConfirmBox() {
-        return confirmBox;
     }
 
     public AnchorPane getProjectViewAnchorPane() {
