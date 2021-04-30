@@ -11,7 +11,7 @@
   <img width="460" height="300" src="https://i.imgur.com/PXjvewP.gif">
 </p>
 
-## Powrful Tooltips
+## Powerful Tooltips
 
 <p align="center">
   <img width="460" height="300" src="https://i.imgur.com/PMk7zvv.gif">
@@ -27,9 +27,23 @@ _haven't recorded showcase yet_
 
 ## Cutomize the IDE
 
-> This feature is a work in progress and has certain features which need to be improved.
+**Themes**
 
 <p align="center">
   <img width="460" height="300" src="https://i.imgur.com/m0mvEQg.gif">
 </p>
 
+**Settings** 
+
+> This feature is a work in progress and has certain features which need to be improved.
+> _haven't recorded showcase yet_
+
+## Libraries
+
+JSON parsing done with [GSON](https://github.com/google/gson) 
+
+General UI done with [JavaFX](https://openjfx.io/) 
+
+Some components taken from [JFoenix](http://www.jfoenix.com/) (will probably be removed due to lack of use) 
+
+Editor built upon [RichTextFX](https://github.com/FXMisc/RichTextFX) 
