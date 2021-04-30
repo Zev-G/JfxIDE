@@ -1,4 +1,4 @@
-package tmw.me.com.ide.codeEditor.languages;
+package tmw.me.com.ide.codeEditor.languages.langs;
 
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -6,6 +6,9 @@ import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.codeEditor.Behavior;
 import tmw.me.com.ide.codeEditor.highlighting.ClosingBracketFactory;
 import tmw.me.com.ide.codeEditor.highlighting.FactoriesCombiner;
+import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.languages.RegexBasedLangSupport;
+import tmw.me.com.ide.codeEditor.languages.Styles;
 import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
@@ -20,7 +23,7 @@ import java.util.regex.Pattern;
 /**
  * The (very minimal) file support for Java. This is just highlighting, see {@link LanguageSupport} for information on the methods used.
  */
-public class JavaLanguage extends LanguageSupport {
+public class JavaLanguage extends RegexBasedLangSupport {
 
     private Text currentErrorText = null;
     private Text currentPrintText = null;
@@ -85,7 +88,7 @@ public class JavaLanguage extends LanguageSupport {
                 new ClosingBracketFactory(integratedTextEditor, '{', '}', new String[] {"connected-brackets", "selected-word"}, "string", "comment"),
                 new ClosingBracketFactory(integratedTextEditor, '(', ')', new String[] {"connected-brackets", "selected-word"}, "string", "comment"),
                 new ClosingBracketFactory(integratedTextEditor, '[', ']', new String[] {"connected-brackets", "selected-word"}, "string", "comment"));
-        return null;
+        return super.addBehaviour(integratedTextEditor);
     }
 
     @Override

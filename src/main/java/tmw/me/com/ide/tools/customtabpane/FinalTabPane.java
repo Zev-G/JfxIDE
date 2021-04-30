@@ -38,7 +38,6 @@ public class FinalTabPane extends AnchorPane {
             while (c.next()) {
                 List<? extends Tab> newList = c.getList();
                 for (int i = 0; i < newList.size(); i++) {
-                    System.out.println("Inside 2nd loop ( at least )");
                     if ((i >= lastTabs.size() || newList.get(i) != lastTabs.get(i)) && newList.get(i) != null) {
                         setTab(i, newList.get(i));
                     }

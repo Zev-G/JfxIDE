@@ -41,7 +41,6 @@ public final class ColorMapper {
                     int red = Integer.parseInt(colors[0]);
                     int green = Integer.parseInt(colors[1]);
                     int blue = Integer.parseInt(colors[2]);
-                    System.out.println("red: " + red + " green: " + green + " blue: " + blue);
                     if (!isRGBA) {
                         return Color.rgb(red, green, blue);
                     } else if (colors.length > 3) {

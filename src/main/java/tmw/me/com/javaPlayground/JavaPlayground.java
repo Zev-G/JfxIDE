@@ -5,7 +5,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.ide.codeEditor.languages.JavaLanguage;
+import tmw.me.com.ide.codeEditor.languages.langs.JavaLanguage;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
 import javax.tools.SimpleJavaFileObject;

@@ -6,6 +6,7 @@ import javafx.collections.ObservableList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 
 public class FactoriesCombiner extends StyleSpansFactory<Collection<String>> {
 
@@ -28,7 +29,14 @@ public class FactoriesCombiner extends StyleSpansFactory<Collection<String>> {
     @Override
     public Collection<SortableStyleSpan<Collection<String>>> genSpans(String text) {
         ArrayList<SortableStyleSpan<Collection<String>>> styleSpans = new ArrayList<>();
-        factories.forEach(collectionStyleSpansFactory -> styleSpans.addAll(collectionStyleSpansFactory.genSpans(text)));
+        factories.stream().filter(Objects::nonNull).forEach(collectionStyleSpansFactory -> styleSpans.addAll(collectionStyleSpansFactory.genSpans(text)));
         return styleSpans;
+    }
+
+    @Override
+    public String toString() {
+        return "FactoriesCombiner{" +
+                "factories=" + factories +
+                '}';
     }
 }

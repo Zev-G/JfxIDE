@@ -479,7 +479,7 @@ public class Ide extends AnchorPane {
 
     }
 
-    public static Optional<Ide> findIdeInParents(IntegratedTextEditor integratedTextEditor) {
+    public static Optional<Ide> findIdeInParents(Node integratedTextEditor) {
         Parent parent = integratedTextEditor.getParent();
         while (parent != null) {
             if (parent instanceof Ide) {

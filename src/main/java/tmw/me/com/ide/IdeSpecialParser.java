@@ -1,5 +1,6 @@
 package tmw.me.com.ide;
 
+import tmw.me.com.ide.codeEditor.languages.langs.SfsLanguage;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.language.FXScript;
 import tmw.me.com.language.syntax.SyntaxManager;
@@ -17,7 +18,7 @@ public final class IdeSpecialParser {
 
 
     /**
-     * This heavily changed version of {@link tmw.me.com.language.interpretation.parse.Parser#parseSyntaxPiece(String, ArrayList, File, int)} is used to populate the AutoComplete used in {@link tmw.me.com.ide.codeEditor.languages.SfsLanguage}
+     * This heavily changed version of {@link tmw.me.com.language.interpretation.parse.Parser#parseSyntaxPiece(String, ArrayList, File, int)} is used to populate the AutoComplete used in {@link SfsLanguage}
      *
      * @param code     The code from which the possible pieces are created.
      * @param pickFrom The list of possible pieces.

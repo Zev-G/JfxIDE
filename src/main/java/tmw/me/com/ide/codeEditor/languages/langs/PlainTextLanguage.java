@@ -1,9 +1,12 @@
-package tmw.me.com.ide.codeEditor.languages;
+package tmw.me.com.ide.codeEditor.languages.langs;
+
+import tmw.me.com.ide.codeEditor.languages.RegexBasedLangSupport;
+import tmw.me.com.ide.codeEditor.languages.Styles;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PlainTextLanguage extends LanguageSupport {
+public class PlainTextLanguage extends RegexBasedLangSupport {
 
     private static final Pattern PATTERN = Pattern.compile("");
 

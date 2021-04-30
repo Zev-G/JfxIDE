@@ -9,7 +9,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import tmw.me.com.ide.Ide;
-import tmw.me.com.ide.codeEditor.languages.CssLanguage;
+import tmw.me.com.ide.codeEditor.languages.langs.CssLanguage;
 import tmw.me.com.ide.codeEditor.languages.addon.JSONHelper;
 import tmw.me.com.ide.codeEditor.languages.addon.LanguageAddon;
 import tmw.me.com.ide.codeEditor.languages.addon.StyleFactoryJSON;

@@ -1,12 +1,12 @@
 package tmw.me.com.ide.codeEditor.languages.addon;
 
-import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.languages.RegexBasedLangSupport;
 
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class AddonLanguageSupport extends LanguageSupport {
+public class AddonLanguageSupport extends RegexBasedLangSupport {
 
     private final LanguageAddon addon;
 

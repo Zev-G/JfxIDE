@@ -1,13 +1,15 @@
-package tmw.me.com.ide.codeEditor.languages;
+package tmw.me.com.ide.codeEditor.languages.langs;
 
 import javafx.scene.text.Text;
 import tmw.me.com.betterfx.TextModifier;
 import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.Behavior;
-import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.languages.LanguageUtils;
+import tmw.me.com.ide.codeEditor.languages.RegexBasedLangSupport;
+import tmw.me.com.ide.codeEditor.languages.Styles;
 import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
-import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.texteditor.LineGraphicFactory;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
@@ -28,7 +30,7 @@ import java.util.regex.Pattern;
 /**
  * This file contains the main languageSupport support for the IDE, {@link LanguageSupport} contains lots of information on the methods used whereas the docs here refer more to the specific elements of this class.
  */
-public class SfsLanguage extends LanguageSupport {
+public class SfsLanguage extends RegexBasedLangSupport {
 
     private static final boolean ERROR_HIGHLIGHTING = false;
 
@@ -108,7 +110,7 @@ public class SfsLanguage extends LanguageSupport {
             integratedTextEditor.textProperty().addListener(textListener);
         }
 //        customStyleSpansFactory = new SameStyleSameTextFactory(integratedTextEditor.getHighlighter(), Collections.singleton("variable"), "selected-word");
-        return null;
+        return super.addBehaviour(integratedTextEditor);
     }
 
     @Override
@@ -118,11 +120,6 @@ public class SfsLanguage extends LanguageSupport {
             integratedTextEditor.textProperty().removeListener(textListener);
         }
         return null;
-    }
-
-    @Override
-    public StyleSpansFactory<Collection<String>> getCustomStyleSpansFactory(HighlightableTextEditor editor) {
-        return customStyleSpansFactory;
     }
 
     /**

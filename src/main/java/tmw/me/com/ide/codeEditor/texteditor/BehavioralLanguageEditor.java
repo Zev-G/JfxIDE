@@ -4,10 +4,9 @@ import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import tmw.me.com.ide.codeEditor.Behavior;
-import tmw.me.com.ide.codeEditor.highlighting.LanguageSupportStyleSpansFactory;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
-import tmw.me.com.ide.codeEditor.languages.PlainTextLanguage;
+import tmw.me.com.ide.codeEditor.languages.langs.PlainTextLanguage;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -29,8 +28,6 @@ public class BehavioralLanguageEditor extends BehavioralEditor implements Langua
                 languageAdded(newValue);
             }
         });
-
-        getFactories().add(new LanguageSupportStyleSpansFactory(this));
 
         Platform.runLater(() -> {
             this.languageSupport.set(initialLanguage);

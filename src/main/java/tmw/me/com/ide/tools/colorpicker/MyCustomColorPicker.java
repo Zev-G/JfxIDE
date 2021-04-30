@@ -48,9 +48,6 @@ public class MyCustomColorPicker extends VBox {
     }
 
     public MyCustomColorPicker(boolean includeOpacity) {
-
-        System.out.println(includeOpacity);
-
         getStyleClass().add("my-custom-color");
 
         VBox box = new VBox();

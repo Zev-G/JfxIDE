@@ -1,7 +1,11 @@
-package tmw.me.com.ide.codeEditor.languages;
+package tmw.me.com.ide.codeEditor.languages.langs;
 
 import tmw.me.com.Resources;
 import tmw.me.com.ide.IdeSpecialParser;
+import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.languages.LanguageUtils;
+import tmw.me.com.ide.codeEditor.languages.RegexBasedLangSupport;
+import tmw.me.com.ide.codeEditor.languages.Styles;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 
@@ -13,7 +17,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SkriptLanguage extends LanguageSupport {
+public class SkriptLanguage extends RegexBasedLangSupport {
 
     private static final String FOLDER = Resources.EDITOR + "languages/skript/";
 

@@ -2,6 +2,7 @@ package tmw.me.com.ide.codeEditor.languages;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import tmw.me.com.ide.codeEditor.languages.langs.*;
 
 import java.util.HashMap;
 

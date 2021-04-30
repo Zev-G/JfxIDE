@@ -1,4 +1,4 @@
-package tmw.me.com.ide.codeEditor.languages;
+package tmw.me.com.ide.codeEditor.languages.langs;
 
 import javafx.scene.paint.Color;
 import org.fxmisc.richtext.model.StyledSegment;
@@ -8,6 +8,10 @@ import tmw.me.com.ide.codeEditor.highlighting.FactoriesCombiner;
 import tmw.me.com.ide.codeEditor.highlighting.SameStyleSameTextFactory;
 import tmw.me.com.ide.codeEditor.highlighting.SortableStyleSpan;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
+import tmw.me.com.ide.codeEditor.languages.LanguageUtils;
+import tmw.me.com.ide.codeEditor.languages.RegexBasedLangSupport;
+import tmw.me.com.ide.codeEditor.languages.Styles;
 import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
@@ -21,7 +25,7 @@ import java.util.stream.Collectors;
 /**
  * The file support for CSS. This contains: highlighting, autocomplete, selected-word highlighting, and tooltips. See {@link LanguageSupport} for information on the methods used.
  */
-public class CssLanguage extends LanguageSupport {
+public class CssLanguage extends RegexBasedLangSupport {
 
     private static final String[] KEYWORDS = {"italic", "bold", "!important", "bolder", "light", "lighter", "normal", "none", "solid", "middle", "auto", "inset"};
     private static final String[] UNITS =  { "px", "cm", "mm", "in", "pt", "pc", "em", "ex", "ch", "rem", "vw", "vh", "vmin", "vmax", "%" };
@@ -108,7 +112,7 @@ public class CssLanguage extends LanguageSupport {
                 return textColors;
             }
         }, new SameStyleSameTextFactory(integratedTextEditor.getHighlighter(), Arrays.asList("class", "value"), "selected-word"));
-        return null;
+        return super.addBehaviour(integratedTextEditor);
     }
 
     @Override

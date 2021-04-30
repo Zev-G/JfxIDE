@@ -1,6 +1,7 @@
 package tmw.me.com.ide.codeEditor.texteditor;
 
 import javafx.application.Platform;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.text.TextFlow;
 import org.fxmisc.richtext.TextExt;
 import org.fxmisc.richtext.model.Paragraph;
@@ -8,7 +9,7 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyledSegment;
 import tmw.me.com.ide.codeEditor.highlighting.Highlighter;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
-import tmw.me.com.ide.tools.concurrent.schedulers.ChangeListenerScheduler;
+import tmw.me.com.ide.tools.concurrent.schedulers.ConsumerEventScheduler;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,9 +27,9 @@ public abstract class HighlightableTextEditor extends TextEditorBase implements 
     }
 
     private void init() {
-        this.plainTextChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(plainTextChange -> highlight());
+        this.plainTextChanges().filter(ch -> !ch.getInserted().equals(ch.getRemoved())).subscribe(new ConsumerEventScheduler<>(50, plainTextChange -> highlight()));
 
-        caretPositionProperty().addListener(new ChangeListenerScheduler<>(50, (observable, oldValue, newValue) -> highlight()));
+        addEventFilter(MouseEvent.MOUSE_RELEASED, event -> highlight());
     }
 
     public TextExt getVisualCopyOfSegment(StyledSegment<String, Collection<String>> segment) {

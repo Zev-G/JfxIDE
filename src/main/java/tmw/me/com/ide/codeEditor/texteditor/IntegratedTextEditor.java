@@ -1,11 +1,9 @@
 package tmw.me.com.ide.codeEditor.texteditor;
 
-import com.sun.javafx.scene.control.skin.Utils;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Bounds;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
@@ -13,7 +11,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.text.Font;
 import javafx.stage.Window;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
@@ -27,7 +24,7 @@ import tmw.me.com.ide.codeEditor.highlighting.Highlighter;
 import tmw.me.com.ide.codeEditor.languages.LanguageLibrary;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupplier;
 import tmw.me.com.ide.codeEditor.languages.LanguageSupport;
-import tmw.me.com.ide.codeEditor.languages.PlainTextLanguage;
+import tmw.me.com.ide.codeEditor.languages.langs.PlainTextLanguage;
 import tmw.me.com.ide.codeEditor.texteditor.filters.KeyFilter;
 import tmw.me.com.ide.codeEditor.visualcomponents.AutocompletePopup;
 import tmw.me.com.ide.codeEditor.visualcomponents.FindAndReplace;

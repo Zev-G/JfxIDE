@@ -51,9 +51,6 @@ public class ComponentTabPane extends TabPane {
 
         this.getStylesheets().add(STYLE_SHEET);
 
-        setOnDragOver(dragEvent -> {
-            System.out.println('a');
-        });
     }
 
     public EventHandler<Event> getOnTabCloseRequested() {

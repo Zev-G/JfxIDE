@@ -5,6 +5,10 @@ import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.IdeSpecialParser;
 import tmw.me.com.ide.codeEditor.Behavior;
 import tmw.me.com.ide.codeEditor.highlighting.StyleSpansFactory;
+import tmw.me.com.ide.codeEditor.languages.langs.CssLanguage;
+import tmw.me.com.ide.codeEditor.languages.langs.JavaLanguage;
+import tmw.me.com.ide.codeEditor.languages.langs.PlainTextLanguage;
+import tmw.me.com.ide.codeEditor.languages.langs.SfsLanguage;
 import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
 import tmw.me.com.ide.codeEditor.texteditor.HighlightableTextEditor;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
@@ -13,8 +17,6 @@ import tmw.me.com.ide.codeEditor.visualcomponents.tooltip.EditorTooltip;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * <p>This is the base class for all languages, the main subclass of this class is {@link SfsLanguage} but there is minimal support for some other languages.</p>
@@ -65,12 +67,6 @@ public abstract class LanguageSupport extends AddonBase {
     }
 
     /**
-     * @return A pattern which is used for sectioning the highlighting, if you don't want your languageSupport to have highlighting you can always
-     * make this return null.
-     */
-    public abstract Pattern generatePattern();
-
-    /**
      * This method is used to get the text used as the prefix for a comment. So for a java comment this should be equal to: '//'
      * @return The value stored in {@link LanguageSupport#commentChars}
      */
@@ -91,13 +87,6 @@ public abstract class LanguageSupport extends AddonBase {
     public String getLanguageName() {
         return languageName;
     }
-
-    /**
-     * @param matcher The matcher which the style class should be determined from, calling {@link Matcher#find()} will break highlighting.
-     * @return A String which will be used for the pattern, currently this only supports a single String so you cannot return multiple style classes.
-     * The returned style class should have a matching style in this Language's css file (defined in the constructor).
-     */
-    public abstract String styleClass(Matcher matcher);
 
     /**
      * @param line   The line which the user is typing on.
@@ -169,7 +158,7 @@ public abstract class LanguageSupport extends AddonBase {
         return customStyleSpansFactory;
     }
 
-    public LanguageSupplier<LanguageSupport> toSimpleSupplier() {
+    public final LanguageSupplier<LanguageSupport> toSimpleSupplier() {
         if (thisSupplier == null) {
             thisSupplier = new LanguageSupplier<>() {
                 @Override

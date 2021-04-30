@@ -143,6 +143,7 @@ public final class LanguageUtils {
         colorPane.setOnMouseClicked(mouseEvent -> {
             String trimmedSegment = segmentAtPos.getSegment().trim();
             MyCustomColorPicker colorPicker = new MyCustomColorPicker(trimmedSegment.startsWith("rgba") || trimmedSegment.startsWith("hsba"));
+            colorPicker.getStylesheets().addAll(Ide.STYLE_SHEET);
             colorPicker.setOpacity(0);
             colorPicker.setCurrentColor(NodeUtils.copyWithoutOpacity(currentColor.get()));
             colorPicker.setAlpha((int) (currentColor.get().getOpacity() * 100));

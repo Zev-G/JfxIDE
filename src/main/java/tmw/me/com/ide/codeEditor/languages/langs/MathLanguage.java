@@ -1,15 +1,15 @@
-package tmw.me.com.ide.codeEditor.languages;
+package tmw.me.com.ide.codeEditor.languages.langs;
 
 import tmw.me.com.ide.IdeSpecialParser;
-import tmw.me.com.ide.codeEditor.Behavior;
-import tmw.me.com.ide.codeEditor.texteditor.BehavioralLanguageEditor;
+import tmw.me.com.ide.codeEditor.languages.RegexBasedLangSupport;
+import tmw.me.com.ide.codeEditor.languages.Styles;
 import tmw.me.com.ide.codeEditor.texteditor.IntegratedTextEditor;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MathLanguage extends LanguageSupport {
+public class MathLanguage extends RegexBasedLangSupport {
 
 
     public MathLanguage() {
@@ -27,11 +27,6 @@ public class MathLanguage extends LanguageSupport {
     @Override
     public String styleClass(Matcher matcher) {
         return matcher.group("NUMBER") != null ? "number" : null;
-    }
-
-    @Override
-    public Behavior[] addBehaviour(BehavioralLanguageEditor integratedTextEditor) {
-        return null;
     }
 
     @Override
