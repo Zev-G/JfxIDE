@@ -1,5 +1,5 @@
 # JFxIDE
-> The project's code base currently contains an old programming language which I made, this will be removed from the codebase once a working addon system has been put in place.
+> The project's codebase currently contains an old programming language which I made, this will be removed from the codebase once a working addon system has been put in place.
 
 [![CodeFactor](https://www.codefactor.io/repository/github/zev-g/jfxide/badge)](https://www.codefactor.io/repository/github/zev-g/jfxide) 
 
