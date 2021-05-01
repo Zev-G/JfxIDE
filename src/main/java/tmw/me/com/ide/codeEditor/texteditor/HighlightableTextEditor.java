@@ -17,7 +17,6 @@ import java.util.Collection;
 public abstract class HighlightableTextEditor extends TextEditorBase implements Highlightable {
 
     private Highlighter highlighter = new Highlighter(this);
-    private boolean highlightOnCaretMove = false;
 
     private HighlightingThread stylingThread;
 
@@ -78,10 +77,6 @@ public abstract class HighlightableTextEditor extends TextEditorBase implements 
     }
 
     public abstract void onHighlight();
-
-    public void setHighlightOnCaretMove(boolean b) {
-        this.highlightOnCaretMove = b;
-    }
 
     public abstract Collection<? extends StyleSpansFactory<Collection<String>>> getExtraFactories();
 

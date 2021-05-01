@@ -18,8 +18,6 @@ public class SameStyleSameTextFactory extends StyleSpansFactory<Collection<Strin
         super(highlighter);
         this.styles = styles;
         this.applyStyles = Arrays.asList(applyStyles);
-
-        highlighter.getEditor().setHighlightOnCaretMove(true);
     }
 
     @Override

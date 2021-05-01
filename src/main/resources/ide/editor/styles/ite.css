@@ -29,9 +29,9 @@
     -fx-fill: -default-text-color;
 }
 
-.code-area .lineno, .lineno {
+.code-area .linenumber, .linenumber {
     -fx-font-family: "JetBrains Mono" !important;
-    -fx-background-color: -editor-background-color;
+    -fx-font-weight: bold;
     -fx-background-radius: 0;
     -fx-box-border: none;
 }
@@ -42,10 +42,18 @@
     -fx-background-color: rgba(207, 67, 67, 0.2) !important;
 }
 
-.code-area .left-holder {
+.code-area .line-holder {
     -fx-border-width: 0 1.5 0 0;
     -fx-border-color: -editor-selection;
     -fx-background-color: -editor-background-color;
+}
+
+.code-area .line-holder:selected {
+    -fx-background-color: -selected-line;
+}
+
+.code-area .line-holder:selected .linenumber {
+    -fx-text-fill: derive(-text-color-base, 10%) !important;
 }
 
 .code-area .text {
@@ -82,7 +90,7 @@
 }
 
 .selected-word {
-    -rtfx-background-color: rgba(100, 146, 234, 0.1) !important;
+    -rtfx-background-color: rgba(100, 146, 234, 0.25) !important;
 }
 
 .tooltip-highlight {

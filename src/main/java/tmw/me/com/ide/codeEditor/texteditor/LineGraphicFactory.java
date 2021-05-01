@@ -1,6 +1,6 @@
 package tmw.me.com.ide.codeEditor.texteditor;
 
-import javafx.collections.ListChangeListener;
+import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -18,7 +18,6 @@ import tmw.me.com.ide.Ide;
 import tmw.me.com.ide.notifications.ErrorNotification;
 import tmw.me.com.ide.settings.IdeSettings;
 import tmw.me.com.ide.tools.SVG;
-import tmw.me.com.ide.tools.builders.tooltip.ToolTipBuilder;
 import tmw.me.com.ide.tools.control.SVGHoverButton;
 
 import java.util.ConcurrentModificationException;
@@ -33,10 +32,12 @@ import java.util.function.IntFunction;
 public class LineGraphicFactory implements IntFunction<Node> {
 
     private static final String SVG_PATH = SVG.resizePath(SVG.ARROW, 0.5);
+    private static final PseudoClass SELECTED_PSEUDO_CLASS = PseudoClass.getPseudoClass("selected");
 
     private static final Insets DEFAULT_INSETS = new Insets(0.0D, 5.0D, 0.0D, 5.0D);
     private static final Background DEFAULT_BACKGROUND;
     private final Val<Integer> nParagraphs;
+    private final Val<Integer> currentLine;
     private final IntFunction<String> format;
 
     private final IntegratedTextEditor integratedTextEditor;
@@ -52,6 +53,7 @@ public class LineGraphicFactory implements IntFunction<Node> {
 
     private LineGraphicFactory(IntegratedTextEditor area, IntFunction<String> format) {
         this.nParagraphs = LiveList.sizeOf(area.getParagraphs());
+        this.currentLine = Val.map(area.caretPositionProperty(), integer -> area.lineFromAbsoluteLocation(integer + 1));
         this.format = format;
         this.integratedTextEditor = area;
     }
@@ -114,11 +116,16 @@ public class LineGraphicFactory implements IntFunction<Node> {
             this.idx = idx;
             Val<String> formatted = nParagraphs.map((n) -> format(idx + 1, n));
 
+            if (currentLine.getValue() == idx) {
+                pseudoClassStateChanged(SELECTED_PSEUDO_CLASS, true);
+            }
+            currentLine.addListener((observable, oldValue, newValue) -> pseudoClassStateChanged(SELECTED_PSEUDO_CLASS, newValue == idx));
+
             lineNo.setBackground(DEFAULT_BACKGROUND);
             lineNo.setPadding(DEFAULT_INSETS);
             lineNo.textProperty().bind(formatted.conditionOnShowing(lineNo));
             lineNo.setAlignment(Pos.TOP_RIGHT);
-            lineNo.getStyleClass().add("lineno");
+            lineNo.getStyleClass().addAll("linenumber");
             if (integratedTextEditor.getErrorLines().contains(idx + 1)) {
                 lineNo.getStyleClass().add("error-lineno");
             }
@@ -168,28 +175,15 @@ public class LineGraphicFactory implements IntFunction<Node> {
             this.setAlignment(Pos.CENTER_RIGHT);
             HBox.setHgrow(this, Priority.ALWAYS);
 
-            if (isFolded)
+            if (isFolded) {
                 this.setVisible(false);
-
-            integratedTextEditor.getErrorLines().addListener((ListChangeListener<Integer>) change -> {
-                if (change.getList().contains(idx + 1)) {
-                    if (!lineNo.getStyleClass().contains("error-lineno")) {
-                        lineNo.getStyleClass().add("error-lineno");
-                        lineNo.setTooltip(
-                                ToolTipBuilder.create().setHeader("Error")
-                                        .setMainText("This line has an error on it.\nIf your stuck debugging remember\nyou can always use our debugging wiki").build());
-                    }
-                } else {
-                    lineNo.getStyleClass().remove("error-lineno");
-                    lineNo.setTooltip(null);
-                }
-            });
+            }
 
             this.setPadding(DEFAULT_INSETS);
             this.setBackground(DEFAULT_BACKGROUND);
             this.setFillHeight(true);
 
-            this.getStyleClass().add("left-holder");
+            this.getStyleClass().add("line-holder");
 
             this.setCursor(Cursor.DEFAULT);
 

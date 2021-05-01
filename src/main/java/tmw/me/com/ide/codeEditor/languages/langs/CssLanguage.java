@@ -30,14 +30,15 @@ public class CssLanguage extends RegexBasedLangSupport {
     private static final String[] KEYWORDS = {"italic", "bold", "!important", "bolder", "light", "lighter", "normal", "none", "solid", "middle", "auto", "inset"};
     private static final String[] UNITS =  { "px", "cm", "mm", "in", "pt", "pc", "em", "ex", "ch", "rem", "vw", "vh", "vmin", "vmax", "%" };
 
-    private static final String TEXT_RECOGNITION_PATTERN = "[^\\s:#.]";
+    private static final String TEXT_RECOGNITION_MAIN = "\\s:#.{}"; // this is valid but intelliJ is dumb.
+    private static final String TEXT_RECOGNITION_PATTERN = "[^" + TEXT_RECOGNITION_MAIN + "]";
 
     private static final String KEYWORDS_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
     private static final String COMMENT_PATTERN = "/\\*(.|\n)*?\\*/";
     private static final String BRACE_PATTERN = "[{}]";
     private static final String SEMICOLON_PATTERN = ";";
     private static final String PAREN_PATTERN = "[A-z-]+?\\(((\\n|.)*?)\\)";
-    private static final String CLASS_PATTERN = "\\.(" + TEXT_RECOGNITION_PATTERN + "|-|\\\\|\\|)+";
+    private static final String CLASS_PATTERN = "\\.[^" + TEXT_RECOGNITION_MAIN + "0-9](" + TEXT_RECOGNITION_PATTERN + ")+";
     private static final String VALUE_PATTERN = "(" + TEXT_RECOGNITION_PATTERN + "|-)+?:";
     private static final String COLOR_CODE_PATTERN = "#([A-z]|[0-9]){1,6}";
     private static final String PSEUDO_CLASS_PATTERN = ":(" + TEXT_RECOGNITION_PATTERN +"|-)+";
