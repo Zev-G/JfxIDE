@@ -1,5 +1,5 @@
 # JFxIDE
-> The project is called SimpleCodingLanguage because originally the goal was to create a simple coding language (which is done and can be seen in the src) and an IDE to go with it, since then this project has developed into the creation of a powerful IDE in JavaFX
+> The project's code base currently contains an old programming language which I made, this will be removed from the codebase once a working addon system has been put in place.
 
 [![CodeFactor](https://www.codefactor.io/repository/github/zev-g/jfxide/badge)](https://www.codefactor.io/repository/github/zev-g/jfxide) 
 
