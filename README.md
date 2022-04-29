@@ -6,13 +6,13 @@
 ## Intelligent Autocomplete
 
 <p align="center">
-  <img width="460" height="300" src="https://i.imgur.com/PXjvewP.gif">
+  <img src="https://i.imgur.com/PXjvewP.gif">
 </p>
 
 ## Powerful Tooltips
 
 <p align="center">
-  <img width="460" height="300" src="https://i.imgur.com/PMk7zvv.gif">
+  <img src="https://i.imgur.com/PMk7zvv.gif">
 </p>
 
 ## File Tree View
@@ -28,7 +28,7 @@ _haven't recorded showcase yet_
 **Themes**
 
 <p align="center">
-  <img width="460" height="300" src="https://i.imgur.com/m0mvEQg.gif">
+  <img src="https://i.imgur.com/m0mvEQg.gif">
 </p>
 
 **Settings** 
