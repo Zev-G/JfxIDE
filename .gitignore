@@ -1,0 +1,6 @@
+build/*
+gradle/*
+"null*
+.gradle/*
+.idea/*
+*.DS_Store
